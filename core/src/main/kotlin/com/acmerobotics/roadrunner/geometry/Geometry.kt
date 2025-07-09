@@ -345,7 +345,12 @@ data class PoseVelocity2dDual<Param>(
     fun value() = PoseVelocity2d(linearVel.value(), angVel.value())
 }
 
-data class Twist2d(@JvmField val line: Vector2d, @JvmField val angle: Double)
+data class Twist2d(@JvmField val line: Vector2d, @JvmField val angle: Double) {
+    companion object {
+        @JvmField
+        val zero = Twist2d(Vector2d.zero, 0.0)
+    }
+}
 
 data class Twist2dDual<Param>(
     @JvmField val line: Vector2dDual<Param>,
@@ -353,6 +358,21 @@ data class Twist2dDual<Param>(
 ) {
     fun value() = Twist2d(line.value(), angle.value())
     fun velocity() = PoseVelocity2dDual(line.drop(1), angle.drop(1))
+}
+
+data class Acceleration2d(@JvmField val linearAcc: Vector2d, @JvmField val angAcc: Double) {
+    companion object {
+        @JvmField
+        val zero = Acceleration2d(Vector2d.zero, 0.0)
+    }
+
+    /**
+     * Uses kinematic integration to compute a new velocity given a time step and initial velocity.
+     * @param initial initial velocity; default is 0.
+     */
+    @JvmOverloads
+    fun integrateToVel(dt: Double, initial: PoseVelocity2d = PoseVelocity2d.zero) =
+        PoseVelocity2d(initial.linearVel + linearAcc * dt, initial.angVel + angAcc * dt)
 }
 
 /**

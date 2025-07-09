@@ -2,13 +2,13 @@
 
 package com.acmerobotics.roadrunner.control
 
+import com.acmerobotics.roadrunner.geometry.Acceleration2d
 import com.acmerobotics.roadrunner.geometry.DualNum
 import com.acmerobotics.roadrunner.geometry.Matrix
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.acmerobotics.roadrunner.geometry.Pose2dDual
 import com.acmerobotics.roadrunner.geometry.PoseVelocity2d
 import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
-import com.acmerobotics.roadrunner.geometry.Rotation2d
 import com.acmerobotics.roadrunner.geometry.Time
 import com.acmerobotics.roadrunner.geometry.Twist2d
 import com.acmerobotics.roadrunner.geometry.Twist2dDual
@@ -18,7 +18,9 @@ import com.acmerobotics.roadrunner.geometry.makeBrysonMatrix
 import com.acmerobotics.roadrunner.geometry.times
 import com.acmerobotics.roadrunner.geometry.unaryMinus
 import org.ejml.simple.SimpleMatrix
-import kotlin.math.pow
+import kotlin.time.ComparableTimeMark
+import kotlin.time.DurationUnit
+import kotlin.time.TimeSource
 
 
 /**
@@ -41,6 +43,7 @@ import kotlin.math.pow
 class LQRController : RobotPosVelController{
     private val k: SimpleMatrix
     private val dt: Double
+    private val start: ComparableTimeMark = TimeSource.Monotonic.markNow()
 
     /**
      * Constructor for the common holonomic robot control use case.
@@ -153,10 +156,9 @@ class LQRController : RobotPosVelController{
      *
      * @param error The current state error of the system, represented as a dual twist
      *              (position error AND velocity error).
-     * @return The calculated optimal control acceleration (`PoseVelocity2dDual`).
-     *              Note that despite being a `PoseVelocity2dDual` object, it is an acceleration.
+     * @return The calculated optimal control acceleration.
      */
-    fun <Param> update(error: Twist2dDual<Param>): PoseVelocity2d {
+    fun <Param> update(error: Twist2dDual<Param>): Acceleration2d {
         require(error.size() >= 2) { "Position and velocity errors must be provided" }
 
         val posError = error.value()
@@ -169,7 +171,7 @@ class LQRController : RobotPosVelController{
 
         val output = update(input)
 
-        return PoseVelocity2d(Vector2d(output[0, 0], output[1, 0]), output[2, 0])
+        return Acceleration2d(Vector2d(output[0, 0], output[1, 0]), output[2, 0])
     }
 
     override fun compute(
@@ -183,7 +185,8 @@ class LQRController : RobotPosVelController{
         }
 
         val acc = update(posError.concat<Time>(velError))
-        val vel = integrateAccel(acc, actualVelActual, dt)
+        val dt = start.elapsedNow().toDouble(DurationUnit.SECONDS)
+        val vel = acc.integrateToVel(dt, actualVelActual)
 
         return vel.concat(acc)
     }
@@ -297,25 +300,9 @@ internal fun <Param> Vector2dDual<Param>.concat(other: Vector2dDual<Param>) = Ve
     DualNum(x.values() + y.values())
 )
 
-internal fun <Param> PoseVelocity2d.concat(other: PoseVelocity2d) = PoseVelocity2dDual<Param>(
-    this.linearVel.concat(other.linearVel),
-    DualNum(doubleArrayOf(this.angVel, other.angVel))
+internal fun <Param> PoseVelocity2d.concat(other: Acceleration2d) = PoseVelocity2dDual<Param>(
+    this.linearVel.concat(other.linearAcc),
+    DualNum(doubleArrayOf(this.angVel, other.angAcc))
 )
 
 internal fun <Param> Twist2dDual<Param>.size() = angle.size()
-
-fun integrateAccel(accel: PoseVelocity2d, vi: PoseVelocity2d, dt: Double) = PoseVelocity2d(
-    Vector2d(
-        vi.linearVel.x + accel.linearVel.x * dt,
-        vi.linearVel.y + accel.linearVel.y * dt
-    ),
-        vi.angVel + accel.angVel * dt
-    )
-
-fun integrateVel(a: PoseVelocity2d, v: PoseVelocity2d, x: Pose2d, dt: Double) = Pose2d(
-    Vector2d(
-        0.5 * a.linearVel.x * dt.pow(2) + v.linearVel.x * dt + x.position.x,
-        0.5 * a.linearVel.y * dt.pow(2) + v.linearVel.y * dt + x.position.y,
-    ),
-    Rotation2d.exp(0.5 * a.angVel * dt.pow(2) + v.angVel * dt + x.heading.log())
-)
