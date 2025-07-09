@@ -46,16 +46,16 @@ val dokkaJar = tasks.register<Jar>("dokkaJar") {
 
 deployer {
     projectInfo {
-        groupId.set("dev.nextftc.nextrunner")
+        groupId.set("me.zharel.hermes")
         artifactId.set("core")
 
-        name.set("NextRunner")
+        name.set("Hermes")
         description.set("A modern fork of RoadRunner.")
-        url.set("https://github.com/NextFTC/NextRunner")
+        url.set("https://github.com/HermesFTC/Hermes")
         scm {
-            fromGithub("NextFTC", "NextRunner")
+            fromGithub("HermesFTC", "Hermes")
         }
-        license("GNU General Public License, version 3", "https://www.gnu.org/licenses/gpl-3.0.html")
+        license("MIT License", "https://opensource.org/license/mit")
 
         developer("Zachary Harel", "ftc@zharel.me", url = "https://github.com/zachwaffle4")
         developer("Ryan Brott", "rcbrott@gmail.com", url = "https://github.com/rbrott")
