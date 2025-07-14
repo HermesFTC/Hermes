@@ -1,10 +1,7 @@
 package com.acmerobotics.roadrunner.paths
 
-import com.acmerobotics.roadrunner.geometry.Arclength
-import com.acmerobotics.roadrunner.geometry.DualNum
-import com.acmerobotics.roadrunner.geometry.Internal
-import com.acmerobotics.roadrunner.geometry.Rotation2d
-import com.acmerobotics.roadrunner.geometry.Rotation2dDual
+import com.acmerobotics.roadrunner.geometry.*
+import kotlinx.serialization.Serializable
 
 /**
  * @usesMathJax
@@ -20,6 +17,7 @@ interface HeadingPath {
     fun end(n: Int) = get(length(), n)
 }
 
+@Serializable
 data class ConstantHeadingPath(
     @JvmField
     val heading: Rotation2d,
@@ -42,6 +40,7 @@ data class TangentHeadingPath(
     override fun length(): Double = posPath.length()
 }
 
+@Serializable
 data class LinearHeadingPath(
     @JvmField
     val begin: Rotation2d,
@@ -56,6 +55,7 @@ data class LinearHeadingPath(
     override fun length() = length
 }
 
+@Serializable
 data class SplineHeadingPath(
     @JvmField
     val begin: Rotation2d,

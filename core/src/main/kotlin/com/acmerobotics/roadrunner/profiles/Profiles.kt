@@ -2,19 +2,11 @@
 
 package com.acmerobotics.roadrunner.profiles
 
-import com.acmerobotics.roadrunner.geometry.DualNum
-import com.acmerobotics.roadrunner.geometry.Time
-import com.acmerobotics.roadrunner.geometry.integralScan
-import com.acmerobotics.roadrunner.geometry.lerpLookupMap
-import com.acmerobotics.roadrunner.geometry.range
-import com.acmerobotics.roadrunner.geometry.rangeCentered
+import com.acmerobotics.roadrunner.geometry.*
 import com.acmerobotics.roadrunner.paths.PosePath
-import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.max
-import kotlin.math.min
-import kotlin.math.sqrt
-import kotlin.math.withSign
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlin.math.*
 
 interface Profile {
     operator fun get(x: Double): DualNum<Time>
@@ -28,6 +20,8 @@ interface Profile {
  * @param[accels] constant accelerations applied over each displacement interval
  */
 // NOTE: disps[0] = 0 is assumed by the merge() implementation.
+@Serializable
+@SerialName("DisplacementProfile")
 data class DisplacementProfile(
     @JvmField
     val disps: List<Double>,
@@ -86,6 +80,8 @@ data class DisplacementProfile(
  *
  * Cancellation doesn't modify the base displacement profile, allowing for multiple cancellations.
  */
+@Serializable
+@SerialName("CancelableProfile")
 class CancelableProfile(
     @JvmField val baseProfile: DisplacementProfile,
     @JvmField val disps: List<Double>,
@@ -152,6 +148,8 @@ private fun timeScan(p: DisplacementProfile): List<Double> {
  * @param[dispProfile] displacement profile
  * @param[times] time offsets of each displacement sample, starting at 0.0
  */
+@Serializable
+@SerialName("TimeProfile")
 data class TimeProfile @JvmOverloads constructor(
     @JvmField
     val dispProfile: DisplacementProfile,

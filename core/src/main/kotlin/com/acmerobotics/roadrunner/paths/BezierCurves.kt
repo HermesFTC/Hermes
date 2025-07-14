@@ -1,13 +1,9 @@
 @file:JvmName("BezierCurves")
 package com.acmerobotics.roadrunner.paths
 
-import com.acmerobotics.roadrunner.geometry.DualNum
-import com.acmerobotics.roadrunner.geometry.Internal
-import com.acmerobotics.roadrunner.geometry.Vector2dDual
-import com.acmerobotics.roadrunner.geometry.Vector2d
-import com.acmerobotics.roadrunner.geometry.fact
-import com.acmerobotics.roadrunner.geometry.xs
-import com.acmerobotics.roadrunner.geometry.ys
+import com.acmerobotics.roadrunner.geometry.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlin.math.pow
 
 /**
@@ -17,16 +13,18 @@ import kotlin.math.pow
  *
  * @property[coefficients] Array of coefficients \(a_i\) for \(i = 0, 1, ..., k\)
  */
+@Serializable
 data class BezierCurve1d(
     val coefficients: List<Double>,
 ) {
     constructor(coefficients: DoubleArray) : this(coefficients.toList())
 
     val dim = coefficients.size - 1
+    val cache = coefficients.indices.map { dim bi it }
 
     operator fun get(t: Double): Double {
         return (0..dim).sumOf { i ->
-            (dim bi i) * (1 - t).pow(dim - i) * t.pow(i) * coefficients[i]
+            cache[i] * (1 - t).pow(dim - i) * t.pow(i) * coefficients[i]
         }
     }
 
@@ -68,6 +66,8 @@ data class BezierCurve1d(
     }
 }
 
+@Serializable
+@SerialName("BezierCurve2d")
 class BezierCurve2dInternal(val x: BezierCurve1d, val y: BezierCurve1d) : PositionPath<Internal> {
     constructor(xs:  List<Double>, ys: List<Double>) : this(BezierCurve1d(xs), BezierCurve1d(ys))
     constructor(points: List<Vector2d>) : this(points.xs(), points.ys())

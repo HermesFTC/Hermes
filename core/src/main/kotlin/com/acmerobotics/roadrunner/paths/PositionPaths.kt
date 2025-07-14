@@ -2,17 +2,9 @@
 
 package com.acmerobotics.roadrunner.paths
 
-import com.acmerobotics.roadrunner.geometry.Arclength
-import com.acmerobotics.roadrunner.geometry.DualNum
-import com.acmerobotics.roadrunner.geometry.IntegralScanResult
-import com.acmerobotics.roadrunner.geometry.Internal
-import com.acmerobotics.roadrunner.geometry.Rotation2d
-import com.acmerobotics.roadrunner.geometry.Rotation2dDual
-import com.acmerobotics.roadrunner.geometry.Vector2d
-import com.acmerobotics.roadrunner.geometry.Vector2dDual
-import com.acmerobotics.roadrunner.geometry.clamp
-import com.acmerobotics.roadrunner.geometry.integralScan
-import com.acmerobotics.roadrunner.geometry.lerpLookup
+import com.acmerobotics.roadrunner.geometry.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * @usesMathJax
@@ -115,6 +107,8 @@ fun project(path: PositionPath<Arclength>, query: Vector2d, init: Double): Doubl
  *
  * @param[dir] unit vector
  */
+@Serializable
+@SerialName("Line")
 data class Line(
     @JvmField
     val begin: Vector2d,
@@ -152,6 +146,8 @@ data class Line(
 /**
  * Arclength reparameterization of [curve].
  */
+@Serializable
+@SerialName("ArclengthReparamPath")
 data class ArclengthReparamCurve2d(
     @JvmField
     val curve: PositionPath<*>,
@@ -207,6 +203,8 @@ private fun <Param> PositionPath<Param>.wrtArclength(): PositionPath<Arclength> 
     else -> ArclengthReparamCurve2d(this, 1e-6)
 }
 
+@Serializable
+@SerialName("CompositePositionPath")
 data class CompositePositionPath<Param> @JvmOverloads constructor(
     @JvmField
     val paths: List<PositionPath<Param>>,
@@ -239,6 +237,8 @@ data class CompositePositionPath<Param> @JvmOverloads constructor(
     override fun length() = length
 }
 
+@Serializable
+@SerialName("PositionPathView")
 data class PositionPathView<Param>(
     @JvmField
     val path: PositionPath<Param>,

@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    kotlin("plugin.serialization")
 
     `java-library`
     `java-test-fixtures`
@@ -17,6 +18,7 @@ repositories {
 
 dependencies {
     implementation(libs.ejml)
+    implementation(libs.kotlinx.serialization.json)
 
     testImplementation(libs.kotlin.test)
 

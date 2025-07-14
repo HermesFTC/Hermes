@@ -2,9 +2,6 @@
 package com.acmerobotics.roadrunner.trajectories
 
 import com.acmerobotics.roadrunner.geometry.Arclength
-import com.acmerobotics.roadrunner.profiles.CancelableProfile
-import com.acmerobotics.roadrunner.profiles.DisplacementProfile
-import com.acmerobotics.roadrunner.profiles.TimeProfile
 import com.acmerobotics.roadrunner.geometry.Pose2dDual
 import com.acmerobotics.roadrunner.geometry.Time
 import com.acmerobotics.roadrunner.geometry.Vector2d
@@ -12,7 +9,12 @@ import com.acmerobotics.roadrunner.paths.CompositePosePath
 import com.acmerobotics.roadrunner.paths.MappedPosePath
 import com.acmerobotics.roadrunner.paths.PoseMap
 import com.acmerobotics.roadrunner.paths.PosePath
+import com.acmerobotics.roadrunner.profiles.CancelableProfile
+import com.acmerobotics.roadrunner.profiles.DisplacementProfile
+import com.acmerobotics.roadrunner.profiles.TimeProfile
 import com.acmerobotics.roadrunner.profiles.plus
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 interface Trajectory<Param> {
     fun length(): Double
@@ -44,13 +46,15 @@ val Trajectory<*>.duration get() = this.wrtTime().duration
 val Trajectory<Arclength>.endWrtDisp get() = get(length())
 val Trajectory<Time>.endWrtTime get() = get(duration)
 
+@Serializable
+@SerialName("CancelableTrajectory")
 class CancelableTrajectory(
-    path: PosePath,
+    val thisPath: PosePath,
     @JvmField
     val cProfile: CancelableProfile,
     @JvmField
     val offsets: List<Double>
-) : DisplacementTrajectory(path, cProfile.baseProfile) {
+) : DisplacementTrajectory(thisPath, cProfile.baseProfile) {
     fun cancel(s: Double): DisplacementTrajectory {
         val offset = s
         return DisplacementTrajectory(
@@ -63,6 +67,8 @@ class CancelableTrajectory(
     }
 }
 
+@Serializable
+@SerialName("DisplacementTrajectory")
 open class DisplacementTrajectory(
     @JvmField
     val path: PosePath,
@@ -81,6 +87,8 @@ open class DisplacementTrajectory(
     override operator fun get(s: Double): Pose2dDual<Time> = path[s, 3].reparam(profile[s])
 }
 
+@Serializable
+@SerialName("TimeTrajectory")
 class TimeTrajectory(
     @JvmField
     val path: PosePath,
@@ -106,19 +114,20 @@ class TimeTrajectory(
     override fun project(query: Vector2d, init: Double): Double = path.project(query, init)
 }
 
+@Serializable
+@SerialName("CompositeTrajectory")
 class CompositeTrajectory @JvmOverloads constructor(
     @JvmField
     val trajectories: List<DisplacementTrajectory>,
     @JvmField
     val offsets: List<Double> = trajectories.scan(0.0) { acc, t -> acc + t.length() }
-) : DisplacementTrajectory(
-    CompositePosePath(trajectories.map { it.path }, offsets),
-    trajectories.map { it.profile }.reduce { acc, profile -> acc + profile }
-    ) {
-
+) : Trajectory<Arclength> {
     constructor(trajectories: Collection<Trajectory<*>>) : this(trajectories.map { it.wrtDisp() })
     constructor(vararg trajectories: DisplacementTrajectory) : this(trajectories.toList())
     constructor(vararg trajectories: Trajectory<*>) : this(trajectories.map { it.wrtDisp() })
+
+    val path = CompositePosePath(trajectories.map { it.path }, offsets)
+    val profile = trajectories.map { it.profile }.reduce { acc, profile -> acc + profile }
 
     @JvmField
     val length = offsets.last()
@@ -144,6 +153,11 @@ class CompositeTrajectory @JvmOverloads constructor(
     }
 
     override fun length() = length
+
+    override fun wrtDisp() = DisplacementTrajectory(path, profile)
+    override fun wrtTime() = TimeTrajectory(path, TimeProfile(profile))
+
+    override fun project(query: Vector2d, init: Double) = path.project(query, init)
 }
 
 fun compose(vararg trajectories: Trajectory<*>) = CompositeTrajectory(*trajectories)

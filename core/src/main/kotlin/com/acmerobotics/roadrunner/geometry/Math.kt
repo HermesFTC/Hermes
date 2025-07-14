@@ -2,6 +2,8 @@
 
 package com.acmerobotics.roadrunner.geometry
 
+import kotlinx.serialization.Serializable
+
 // ~10 * machine epsilon
 private const val EPS = 2.2e-15
 
@@ -66,6 +68,7 @@ fun lerp(x: Double, fromLo: Double, fromHi: Double, toLo: Double, toHi: Double) 
     else
         toLo + (x - fromLo) * (toHi - toLo) / (fromHi - fromLo)
 
+@Serializable
 data class IntegralScanResult(
     @JvmField
     val values: List<Double>,

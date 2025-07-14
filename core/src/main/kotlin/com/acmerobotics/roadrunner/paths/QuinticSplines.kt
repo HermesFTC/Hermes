@@ -3,6 +3,8 @@ package com.acmerobotics.roadrunner.paths
 import com.acmerobotics.roadrunner.geometry.DualNum
 import com.acmerobotics.roadrunner.geometry.Internal
 import com.acmerobotics.roadrunner.geometry.Vector2dDual
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 /**
  * @usesMathJax
@@ -16,6 +18,7 @@ import com.acmerobotics.roadrunner.geometry.Vector2dDual
  * @property[e] \(e\)
  * @property[f] \(f\)
  */
+@Serializable
 data class QuinticSpline1d(
     @JvmField
     val a: Double,
@@ -78,6 +81,8 @@ data class QuinticSpline1d(
 /**
  * Path comprised of two [QuinticSpline1d]s.
  */
+@Serializable
+@SerialName("QuinticSpline2d")
 data class QuinticSpline2dInternal(
     @JvmField
     val x: QuinticSpline1d,

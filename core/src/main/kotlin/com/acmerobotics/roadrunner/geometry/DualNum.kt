@@ -1,22 +1,23 @@
 package com.acmerobotics.roadrunner.geometry
 
+import kotlinx.serialization.Serializable
 import kotlin.math.atan2
 import kotlin.math.min
 
 /**
  * Parameter for [DualNum] for internal use only.
  */
-class Internal
+@Serializable class Internal
 
 /**
  * Arclength parameter for [DualNum]
  */
-class Arclength
+@Serializable class Arclength
 
 /**
  * Time parameter for [DualNum]
  */
-class Time
+@Serializable class Time
 
 /**
  * @usesMathJax
@@ -26,6 +27,7 @@ class Time
  * @param[Param] \(x\)
  * @property[values] \(\left(u, \frac{du}{dx}, \frac{d^2u}{dx^2}, \ldots, \frac{d^{n - 1} u}{dx^{n - 1}} \right)\)
  */
+@Serializable
 class DualNum<Param> constructor(private val values: DoubleArray) {
     constructor(values: List<Double>) : this(values.toDoubleArray())
 

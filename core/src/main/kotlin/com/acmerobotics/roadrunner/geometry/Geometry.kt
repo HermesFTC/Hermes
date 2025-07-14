@@ -2,17 +2,17 @@
 
 package com.acmerobotics.roadrunner.geometry
 
-import kotlin.math.atan2
-import kotlin.math.cos
-import kotlin.math.sin
-import kotlin.math.sqrt
-import kotlin.math.tan
+import com.acmerobotics.roadrunner.geometry.Pose2d.Companion.exp
+import com.acmerobotics.roadrunner.geometry.Rotation2d.Companion.exp
+import kotlinx.serialization.Serializable
+import kotlin.math.*
 
 /**
  * @usesMathJax
  *
  * Vector \((x, y)\)
  */
+@Serializable
 data class Vector2d(@JvmField val x: Double, @JvmField val y: Double) {
     operator fun plus(v: Vector2d) = Vector2d(x + v.x, y + v.y)
     operator fun minus(v: Vector2d) = Vector2d(x - v.x, y - v.y)
@@ -42,6 +42,7 @@ fun List<Vector2d>.ys() = map { it.asPair() }.unzip().second
 /**
  * Dual version of [Vector2d].
  */
+@Serializable
 data class Vector2dDual<Param>(@JvmField val x: DualNum<Param>, @JvmField val y: DualNum<Param>) {
     companion object {
         @JvmStatic
@@ -115,6 +116,7 @@ fun <A, B, C> Iterable<Triple<A, B, C>>.unzip(): Triple<List<A>, List<B>, List<C
  * comes from the Lie theory, and [this paper](https://arxiv.org/abs/1812.01537) gives a targeted exposition of the key
  * fundamentals.
  */
+@Serializable
 data class Rotation2d(@JvmField val real: Double, @JvmField val imag: Double) {
     companion object {
         /**
@@ -159,6 +161,7 @@ data class Rotation2d(@JvmField val real: Double, @JvmField val imag: Double) {
 /**
  * Dual version of [Rotation2d].
  */
+@Serializable
 data class Rotation2dDual<Param>(@JvmField val real: DualNum<Param>, @JvmField val imag: DualNum<Param>) {
     init {
         require(real.size() == imag.size()) { "Real and imaginary parts must have the same size" }
@@ -221,6 +224,7 @@ data class Rotation2dDual<Param>(@JvmField val real: DualNum<Param>, @JvmField v
  * comes from the Lie theory, and [this paper](https://arxiv.org/abs/1812.01537) gives a targeted exposition of the key
  * fundamentals.
  */
+@Serializable
 data class Pose2d(
     @JvmField
     val position: Vector2d,
@@ -278,6 +282,7 @@ data class Pose2d(
 /**
  * Dual version of [Pose2d].
  */
+@Serializable
 data class Pose2dDual<Param>(
     @JvmField
     val position: Vector2dDual<Param>,
@@ -315,6 +320,7 @@ data class Pose2dDual<Param>(
     fun velocity() = PoseVelocity2dDual(position.drop(1), heading.velocity())
 }
 
+@Serializable
 data class PoseVelocity2d(@JvmField val linearVel: Vector2d, @JvmField val angVel: Double) {
     operator fun minus(pv: PoseVelocity2d) = PoseVelocity2d(linearVel - pv.linearVel, angVel - pv.angVel)
 
@@ -327,6 +333,7 @@ data class PoseVelocity2d(@JvmField val linearVel: Vector2d, @JvmField val angVe
 /**
  * Dual version of [PoseVelocity2d].
  */
+@Serializable
 data class PoseVelocity2dDual<Param>(
     @JvmField val linearVel: Vector2dDual<Param>,
     @JvmField val angVel: DualNum<Param>
@@ -345,6 +352,7 @@ data class PoseVelocity2dDual<Param>(
     fun value() = PoseVelocity2d(linearVel.value(), angVel.value())
 }
 
+@Serializable
 data class Twist2d(@JvmField val line: Vector2d, @JvmField val angle: Double) {
     companion object {
         @JvmField
@@ -352,6 +360,7 @@ data class Twist2d(@JvmField val line: Vector2d, @JvmField val angle: Double) {
     }
 }
 
+@Serializable
 data class Twist2dDual<Param>(
     @JvmField val line: Vector2dDual<Param>,
     @JvmField val angle: DualNum<Param>
@@ -360,6 +369,7 @@ data class Twist2dDual<Param>(
     fun velocity() = PoseVelocity2dDual(line.drop(1), angle.drop(1))
 }
 
+@Serializable
 data class Acceleration2d(@JvmField val linearAcc: Vector2d, @JvmField val angAcc: Double) {
     companion object {
         @JvmField

@@ -2,13 +2,10 @@
 
 package com.acmerobotics.roadrunner.paths
 
-import com.acmerobotics.roadrunner.geometry.Arclength
-import com.acmerobotics.roadrunner.geometry.Pose2d
-import com.acmerobotics.roadrunner.geometry.Pose2dDual
-import com.acmerobotics.roadrunner.geometry.Rotation2d
-import com.acmerobotics.roadrunner.geometry.Vector2d
-import com.acmerobotics.roadrunner.geometry.Vector2dDual
-import com.acmerobotics.roadrunner.geometry.clamp
+import com.acmerobotics.roadrunner.geometry.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+
 
 /**
  * @usesMathJax
@@ -34,6 +31,8 @@ interface PosePath {
     operator fun plus(other: PosePath) = CompositePosePath(listOf(this, other))
 }
 
+@Serializable
+@SerialName("TangentPath")
 data class TangentPath(
     @JvmField
     val path: PositionPath<Arclength>,
@@ -48,6 +47,8 @@ data class TangentPath(
     override fun length() = path.length()
 }
 
+@Serializable
+@SerialName("HeadingPath")
 data class HeadingPosePath(
     @JvmField
     val posPath: PositionPath<Arclength>,
@@ -66,7 +67,9 @@ data class HeadingPosePath(
     override fun length() = posPath.length()
 }
 
-data class CompositePosePath @JvmOverloads constructor(
+@Serializable
+@SerialName("CompositePosePath")
+data class CompositePosePath(
     @JvmField
     val paths: List<PosePath>,
     @JvmField
@@ -103,6 +106,8 @@ data class CompositePosePath @JvmOverloads constructor(
     }
 }
 
+@Serializable
+@SerialName("OffsetPosePath")
 class OffsetPosePath(
     @JvmField
     val path: PosePath,
@@ -152,10 +157,14 @@ fun interface PoseMap {
     fun map(pose: Pose2d) = map(Pose2dDual.constant(pose, 1)).value()
 }
 
+@Serializable
+@SerialName("IdentityPoseMap")
 object IdentityPoseMap : PoseMap {
     override fun map(pose: Pose2dDual<Arclength>) = pose
 }
 
+@Serializable
+@SerialName("MappedPosePath")
 data class MappedPosePath(
     val basePath: PosePath,
     val poseMap: PoseMap,
