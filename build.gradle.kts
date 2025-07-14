@@ -1,15 +1,15 @@
-import org.jetbrains.dokka.gradle.DokkaTaskPartial
-
 plugins {
-    id("com.android.application") version "8.0.2" apply false
-    id("com.android.library") version "8.0.2" apply false
-    id("org.jetbrains.dokka") version "2.0.0"
-    id("io.deepmedia.tools.deployer") version "0.18.0"
+    kotlin("jvm") version libs.versions.kotlin apply false
+    kotlin("android") version libs.versions.kotlin apply false
+    libs.plugins.kotlin.kapt
+    kotlin("plugin.serialization") version libs.versions.kotlin apply false
 
-    kotlin("android") version "2.0.0" apply false
-    kotlin("jvm") version "2.0.0" apply false
-    kotlin("kapt") version "2.0.0" apply false
-    kotlin("plugin.serialization") version "2.0.0" apply false
+    id("org.jetbrains.dokka") version libs.versions.kotlin
+
+    id("com.android.application") version libs.versions.android apply false
+    id("com.android.library") version libs.versions.android apply false
+
+    id("io.deepmedia.tools.deployer") version libs.versions.deployer
 }
 
 allprojects {

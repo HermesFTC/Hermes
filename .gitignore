@@ -27,3 +27,5 @@ local.properties
 ftc/src/main/assets/
 
 bin
+
+core/output.json
