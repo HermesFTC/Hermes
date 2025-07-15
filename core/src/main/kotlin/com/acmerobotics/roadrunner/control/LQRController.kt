@@ -125,8 +125,8 @@ class LQRController : RobotPosVelController{
         epsilon: Double = 1e-6
     ) {
         require(dt > 0) { "Time step (dt) must be positive" }
-        require(A.numRows == A.numCols && A.numRows == Q.numRows && Q.numRows == Q.numCols) { "A and Q must be square and match dimensions." }
-        require(B.numRows == A.numRows && B.numCols == R.numRows && R.numRows == R.numCols) { "B and R must have compatible dimensions with A and each other." }
+        require(A.numRows == A.numColumns && A.numRows == Q.numRows && Q.numRows == Q.numColumns) { "A and Q must be square and match dimensions." }
+        require(B.numRows == A.numRows && B.numColumns == R.numRows && R.numRows == R.numColumns) { "B and R must have compatible dimensions with A and each other." }
 
         val (Ad, Bd) = discretizeSystem(A.simple, B.simple, dt)
 
@@ -146,7 +146,7 @@ class LQRController : RobotPosVelController{
      * The matrix will have dimensions 3 x 1: [ax, ay, alpha].
      * */
     fun update(error: Matrix): Matrix {
-        require(error.numCols == k.numCols)
+        require(error.numColumns == k.numCols)
 
         return Matrix(-k * error.simple)
     }
@@ -164,10 +164,10 @@ class LQRController : RobotPosVelController{
         val posError = error.value()
         val velError = error.velocity().value()
 
-        val input = Matrix(doubleArrayOf(
+        val input = Matrix.column(
             posError.line.x, posError.line.y, posError.angle,
             velError.linearVel.x, velError.linearVel.y, velError.angVel
-        ))
+        )
 
         val output = update(input)
 

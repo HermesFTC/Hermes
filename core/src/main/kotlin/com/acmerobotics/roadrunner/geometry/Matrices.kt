@@ -1,48 +1,195 @@
+@file:JvmName("Matrices")
 package com.acmerobotics.roadrunner.geometry
 
 import org.ejml.dense.row.decomposition.lu.LUDecompositionAlt_DDRM
 import org.ejml.simple.SimpleMatrix
 import kotlin.math.pow
-import kotlin.properties.ReadWriteProperty
-import kotlin.reflect.KProperty
-
 
 internal operator fun SimpleMatrix.unaryMinus() = this.times(-1.0)
 internal operator fun SimpleMatrix.times(other: SimpleMatrix): SimpleMatrix = this.mult(other)
 internal operator fun SimpleMatrix.times(other: Double): SimpleMatrix = this.scale(other)
 internal operator fun Double.times(other: SimpleMatrix): SimpleMatrix = other.times(this)
 
-enum class TYPE_1D {
-    COLUMN,
-    ROW,
-}
 
 /**
  * Represents a matrix of doubles.
  * Internally represented as a SimpleMatrix from EJML.
  */
 class Matrix(data: Array<DoubleArray>) {
-    constructor(data: DoubleArray, type1d: TYPE_1D = TYPE_1D.ROW) : this(type1d.let {
-        when (it) {
-            TYPE_1D.COLUMN -> arrayOf(data).transpose()
-            TYPE_1D.ROW -> arrayOf(data)
-        }
-    })
+    /**
+     * Constructor to create a [Matrix] from a list of lists.
+     */
+    constructor(data: Collection<Collection<Double>>) : this(data.map { it.toDoubleArray() }.toTypedArray())
 
+    /**
+     * Internal constructor to create a [Matrix] from an EJML [SimpleMatrix].
+     */
     internal constructor(matrix: SimpleMatrix) : this(matrix.toArray2())
+
+    companion object {
+        /**
+         * Creates a zero matrix with the given dimensions.
+         */
+        @JvmStatic
+        fun zero(rows: Int, cols: Int) = Matrix(SimpleMatrix(rows, cols))
+
+        /**
+         * Creates a zero matrix with dimensions [size] by [size].
+         */
+        @JvmStatic
+        fun zero(size: Int) = zero(size, size)
+
+        /**
+         * Creates an identity matrix with dimensions [size] by [size].
+         */
+        @JvmStatic
+        fun identity(size: Int) = Matrix(SimpleMatrix.identity(size))
+
+        /**
+         * Creates a matrix with [data] along the diagonal
+         * and all other elements set to 0.
+         */
+        @JvmStatic
+        fun diagonal(data: DoubleArray) = Matrix(SimpleMatrix.diag(*data))
+
+        /**
+         * Creates a 1 by n matrix with [data] as its elements,
+         * where n is [data].size.
+         */
+        @JvmStatic
+        fun row(data: DoubleArray) =
+            Matrix(SimpleMatrix(1, data.size, true, *data))
+
+        /**
+         * Creates a 1 by n matrix with [data] as its elements,
+         * where n is [data].size.
+         */
+        @JvmStatic
+        fun row(data: Collection<Double>) = row(data.toDoubleArray())
+
+        /**
+         * Creates a 1 by n matrix with [data] as its elements,
+         * where n is [data].size.
+         */
+        @JvmStatic
+        fun row(vararg data: Double) = row(data)
+
+        /**
+         * Creates an n by 1 matrix with [data] as its elements,
+         * where n is [data].size.
+         */
+        @JvmStatic
+        fun column(data: DoubleArray) =
+            Matrix(SimpleMatrix(data.size, 1, false, *data))
+
+        /**
+         * Creates an n by 1 matrix with [data] as its elements,
+         * where n is [data].size.
+         */
+        @JvmStatic
+        fun column(data: Collection<Double>) = column(data.toDoubleArray())
+
+        /**
+         * Creates an n by 1 matrix with [data] as its elements,
+         * where n is [data].size.
+         */
+        @JvmStatic
+        fun column(vararg data: Double) = column(data)
+    }
 
     internal val simple = SimpleMatrix(data)
 
-    val numCols = simple.numCols
-    val numRows = simple.numRows
+    /**
+     * The number of columns in the matrix.
+     */
+    @JvmField val numColumns = simple.numCols
 
-    fun transpose() = Matrix(simple.transpose().toArray2())
+    /**
+     * The number of rows in the matrix.
+     */
+    @JvmField val numRows = simple.numRows
 
+    /**
+     * The size of the matrix.
+     *
+     * @return a pair of integers representing the number of rows and columns respectively.
+     */
+    @JvmField val size = numRows to numColumns
+
+    /**
+     * Returns the transpose of this matrix.
+     */
+    fun transpose() = Matrix(simple.transpose())
+
+
+    /**
+     * Returns the matrix with all elements negated.
+     * This is equivalent to multiplying the matrix by -1.
+     */
+    operator fun unaryMinus() = Matrix(-simple)
+
+    /** 
+     * Adds another matrix to this matrix.
+     * The matrices must have the same dimensions.
+     */
+    operator fun plus(other: Matrix) = Matrix(this.simple + other.simple)
+
+    /**
+     * Subtracts another matrix from this matrix.
+     * The matrices must have the same dimensions.
+     */
+    operator fun minus(other: Matrix) = Matrix(this.simple - other.simple)
+
+    /**
+     * Multiplies this matrix by another matrix.
+     * The number of columns in this matrix must match the number of rows in the other matrix.
+     */
+    operator fun times(other: Matrix) = Matrix(this.simple * other.simple)
+
+    /**
+     * Multiplies this matrix by a scalar.
+     */
+    operator fun times(scalar: Double) = Matrix(simple * scalar)
+
+    /**
+     * Multiplies this matrix by a scalar.
+     */
+    operator fun times(scalar: Int) = Matrix(simple * scalar.toDouble())
+
+    /**
+     * @usesMathJax
+     *
+     * Solves for X in the equation \(AX = B)\,
+     * where A is this matrix and B is other.
+     */
+    fun solve(other: Matrix): Matrix = Matrix(this.simple.solve(other.simple))
+
+    /**
+     * Returns the element at the given indices.
+     */
     operator fun get(i: Int, j: Int) = simple[i, j]
 
+    /**
+     * Sets the element at the given indices to the given [value].
+     */
     operator fun set(i: Int, j: Int, value: Double) {
         simple[i, j] = value
     }
+
+    /**
+     * Returns the [n]th row of the matrix.
+     */
+    fun row(n: Int) = Matrix(simple.getRow(n))
+
+    /**
+     * Returns the [n]th column of the matrix.
+     */
+    fun column(n: Int) = Matrix(simple.getColumn(n))
+
+    /**
+     * Returns the diagonal elements of this matrix.
+     */
+    fun diagonals() = Matrix(simple.diag())
 
     override fun toString(): String = (simple.toArray2()).contentDeepToString()
 
@@ -58,22 +205,10 @@ class Matrix(data: Array<DoubleArray>) {
     }
 }
 
-class DiagonalElement<M>(val matrix: Matrix, val index: Int) : ReadWriteProperty<M, Double> {
-    override fun getValue(
-        thisRef: M,
-        property: KProperty<*>,
-    ): Double {
-        return matrix[index, index]
-    }
-
-    override fun setValue(
-        thisRef: M,
-        property: KProperty<*>,
-        value: Double,
-    ) {
-        matrix[index, index] = value
-    }
-}
+/**
+ * Solves for X in the equation \(aX = b)\.
+ */
+fun solveMatrices(a: Matrix, b: Matrix) = a.solve(b)
 
 private fun Array<DoubleArray>.transpose(): Array<DoubleArray> {
     val rows = this.size
