@@ -18,7 +18,6 @@ import com.acmerobotics.roadrunner.geometry.makeBrysonMatrix
 import com.acmerobotics.roadrunner.geometry.times
 import com.acmerobotics.roadrunner.geometry.unaryMinus
 import org.ejml.simple.SimpleMatrix
-import kotlin.time.ComparableTimeMark
 import kotlin.time.DurationUnit
 import kotlin.time.TimeSource
 
@@ -39,11 +38,13 @@ import kotlin.time.TimeSource
  * Thank you to Tyler Veness and WPILib!
  *
  * @see <a href="https://en.wikipedia.org/wiki/Linear%E2%80%93quadratic_regulator">LQR on Wikipedia</a>
+ * @see <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/state-space/state-space-intro.html#the-linear-quadratic-regulator">LQR in WPILib</a>
  */
 class LQRController : RobotPosVelController{
-    private val k: SimpleMatrix
+    private val K: SimpleMatrix
     private val dt: Double
-    private val start: ComparableTimeMark = TimeSource.Monotonic.markNow()
+    private val timeSource = TimeSource.Monotonic
+    private var lastTimeStamp = timeSource.markNow()
 
     /**
      * Constructor for the common holonomic robot control use case.
@@ -68,7 +69,7 @@ class LQRController : RobotPosVelController{
      * @param qOmega The maximum error in the angular velocity.
      * @param rAx The maximum linear acceleration in the x-direction.
      * @param rAy The maximum using linear acceleration in the y-direction.
-     * @param rAlpha The maximum using angular acceleration.
+     * @param rAlpha The maximum angular acceleration.
      * @param dt The discrete time step (control loop period) in seconds.
      */
     constructor(
@@ -95,7 +96,7 @@ class LQRController : RobotPosVelController{
 
         val (_, K) = computeLQRGain(Ad, Bd, Q.simple, R.simple)
 
-        this.k = K
+        this.K = K
         this.dt = dt
     }
 
@@ -121,8 +122,6 @@ class LQRController : RobotPosVelController{
         Q: Matrix,
         R: Matrix,
         dt: Double = 0.0303,
-        maxIter: Int = 100,
-        epsilon: Double = 1e-6
     ) {
         require(dt > 0) { "Time step (dt) must be positive" }
         require(A.numRows == A.numColumns && A.numRows == Q.numRows && Q.numRows == Q.numColumns) { "A and Q must be square and match dimensions." }
@@ -132,7 +131,7 @@ class LQRController : RobotPosVelController{
 
         val (_, K) = computeLQRGain(Ad, Bd, Q.simple, R.simple)
 
-        this.k = K
+        this.K = K
         this.dt = dt
     }
 
@@ -146,9 +145,9 @@ class LQRController : RobotPosVelController{
      * The matrix will have dimensions 3 x 1: [ax, ay, alpha].
      * */
     fun update(error: Matrix): Matrix {
-        require(error.numColumns == k.numCols)
+        require(error.numColumns == K.numCols)
 
-        return Matrix(-k * error.simple)
+        return Matrix(-K * error.simple)
     }
 
     /**
@@ -179,14 +178,18 @@ class LQRController : RobotPosVelController{
         actualPose: Pose2d,
         actualVelActual: PoseVelocity2d,
     ): PoseVelocity2dDual<Time> {
+        val newStamp = timeSource.markNow()
+
         val posError = targetPose.value() - actualPose
         val velError = (targetPose.velocity().value() - actualVelActual).let {
             Twist2d(it.linearVel, it.angVel)
         }
 
         val acc = update(posError.concat<Time>(velError))
-        val dt = start.elapsedNow().toDouble(DurationUnit.SECONDS)
+        val dt = (newStamp - lastTimeStamp).toDouble(DurationUnit.SECONDS)
         val vel = acc.integrateToVel(dt, actualVelActual)
+
+        lastTimeStamp = newStamp
 
         return vel.concat(acc)
     }
@@ -293,11 +296,6 @@ internal fun <Param> Twist2d.concat(other: Twist2d) = Twist2dDual<Param>(
 internal fun <Param> Vector2d.concat(other: Vector2d) = Vector2dDual<Param>(
     DualNum(doubleArrayOf(this.x, other.x)),
     DualNum(doubleArrayOf(this.y, other.y))
-)
-
-internal fun <Param> Vector2dDual<Param>.concat(other: Vector2dDual<Param>) = Vector2dDual<Param>(
-    DualNum(x.values() + y.values()),
-    DualNum(x.values() + y.values())
 )
 
 internal fun <Param> PoseVelocity2d.concat(other: Acceleration2d) = PoseVelocity2dDual<Param>(

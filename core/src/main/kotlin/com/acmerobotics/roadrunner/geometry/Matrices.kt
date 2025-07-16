@@ -22,6 +22,16 @@ class Matrix(data: Array<DoubleArray>) {
     constructor(data: Collection<Collection<Double>>) : this(data.map { it.toDoubleArray() }.toTypedArray())
 
     /**
+     * Constructor to create a [Matrix] from multiple arrays.
+     */
+    constructor(vararg data: DoubleArray) : this(data.map { it.toList() })
+
+    /**
+     * Constructor to create a [Matrix] from multiple collections.
+     */
+    constructor(vararg data: Collection<Double>) : this(data.map { it.toDoubleArray() }.toTypedArray())
+
+    /**
      * Internal constructor to create a [Matrix] from an EJML [SimpleMatrix].
      */
     internal constructor(matrix: SimpleMatrix) : this(matrix.toArray2())
@@ -239,3 +249,30 @@ internal fun SimpleMatrix.lu() = LUDecompositionAlt_DDRM().let {
     it.decompose(this.ddrm)
     SimpleMatrix.wrap(it.lu)
 }
+
+fun lerpMatrix(start: Matrix, end: Matrix, t: Double): Matrix {
+    require(start.size == end.size) { "Matrices must have the same size" }
+
+    return (end - start) * t + start
+}
+
+internal fun lerpMatrix(start: SimpleMatrix, end: SimpleMatrix, t: Double): SimpleMatrix =
+    lerpMatrix(Matrix(start), Matrix(end), t).simple
+
+fun lerpMatrixLookup(times: List<Double>, matrices: List<Matrix>, query: Double): Matrix {
+    val index = times.binarySearch(query)
+
+    if (index >= 0) return matrices[index]
+
+    val nextIdx = -(index + 1)
+    val prevIdx = -index
+
+    return lerpMatrix(
+        matrices[prevIdx],
+        matrices[nextIdx],
+        lerp(query, times[prevIdx], times[nextIdx], 0.0, 1.0)
+    )
+}
+
+internal fun lerpMatrixLookup(times: List<Double>, matrices: List<SimpleMatrix>, query: Double): SimpleMatrix =
+    lerpMatrixLookup(times, matrices.map { Matrix(it) }, query).simple
