@@ -8,7 +8,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles
 
-class DriveCommandMessage(poseVelocity: PoseVelocity2dDual<Time?>) {
+class DriveCommandMessage(poseVelocity: PoseVelocity2dDual<Time>) {
     var timestamp: Long = System.nanoTime()
     var forwardVelocity: Double = poseVelocity.linearVel.x[0]
     var forwardAcceleration: Double = poseVelocity.linearVel.x[1]
@@ -42,12 +42,12 @@ class MecanumLocalizerInputsMessage(
 }
 
 class TankLocalizerInputsMessage(
-    left: MutableList<PositionVelocityPair?>,
-    right: MutableList<PositionVelocityPair?>
+    left: MutableList<PositionVelocityPair>,
+    right: MutableList<PositionVelocityPair>
 ) {
     var timestamp: Long = System.nanoTime()
-    var left: Array<PositionVelocityPair?>? = left.toTypedArray<PositionVelocityPair?>()
-    var right: Array<PositionVelocityPair?>? = right.toTypedArray<PositionVelocityPair?>()
+    var left: Array<PositionVelocityPair> = left.toTypedArray<PositionVelocityPair>()
+    var right: Array<PositionVelocityPair> = right.toTypedArray<PositionVelocityPair>()
 }
 
 class TankCommandMessage(var voltage: Double, var leftPower: Double, var rightPower: Double) {
@@ -62,16 +62,16 @@ class PoseMessage(pose: Pose2d) {
 }
 
 class ThreeDeadWheelInputsMessage(
-    var par0: PositionVelocityPair?,
-    var par1: PositionVelocityPair?,
-    var perp: PositionVelocityPair?
+    var par0: PositionVelocityPair,
+    var par1: PositionVelocityPair,
+    var perp: PositionVelocityPair
 ) {
     var timestamp: Long = System.nanoTime()
 }
 
 class TwoDeadWheelInputsMessage(
-    var par: PositionVelocityPair?,
-    var perp: PositionVelocityPair?,
+    var par: PositionVelocityPair,
+    var perp: PositionVelocityPair,
     angles: YawPitchRollAngles,
     angularVelocity: AngularVelocity
 ) {
