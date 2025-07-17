@@ -55,20 +55,6 @@ class DisplacementFollower(trajectory: Trajectory<*>, private val drive: Drive) 
         drive,
     )
 
-    constructor(path: PosePath, drive: Drive, velConstraint: VelConstraint) : this(
-        path,
-        drive,
-        velConstraint,
-        drive.defaultAccelConstraint,
-    )
-
-    constructor(path: PosePath, drive: Drive, accelConstraint: AccelConstraint) : this(
-        path,
-        drive,
-        drive.defaultVelConstraint,
-        accelConstraint,
-    )
-
     override var currentTarget: Pose2d = trajectory[0.0].value()
         private set
     override var lastCommand: PoseVelocity2dDual<Time> = PoseVelocity2dDual.zero();
@@ -137,20 +123,6 @@ class TimeFollower(trajectory: Trajectory<*>, private val drive: Drive) : Follow
             ),
         ),
         drive,
-    )
-
-    constructor(path: PosePath, drive: Drive, velConstraint: VelConstraint) : this(
-        path,
-        drive,
-        velConstraint,
-        drive.defaultAccelConstraint,
-    )
-
-    constructor(path: PosePath, drive: Drive, accelConstraint: AccelConstraint) : this(
-        path,
-        drive,
-        drive.defaultVelConstraint,
-        accelConstraint,
     )
 
     override var currentTarget: Pose2d = trajectory[0.0].value()
