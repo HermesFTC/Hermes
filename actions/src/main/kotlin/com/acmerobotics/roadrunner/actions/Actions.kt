@@ -81,9 +81,14 @@ fun interface Action {
     fun race(a: () -> Action) = RaceAction(this, a())
 
     /**
-     * Returns a new action that waits [dt] seconds before executing this action.
+     * Returns a new action that waits [dt] before executing this action.
      */
-    fun delay(dt: Double) = SleepAction(dt).then(this)
+    fun delay(dt: Duration) = Actions.sleep(dt).then(this)
+
+    /**
+     * Returns a new action that waits [dt] before executing this action.
+     */
+    fun delay(dt: java.time.Duration) = Actions.sleep(dt).then(this)
 
     /**
      * Returns an interruptible copy of this action, with [onInterruption] occurring on interrupt.
@@ -166,23 +171,23 @@ object Actions {
      * Returns the current time in seconds.
      */
     @JvmStatic fun now() = System.nanoTime().nanoseconds.toDouble(DurationUnit.SECONDS)
-}
 
-/**
- * Primitive sleep action that stalls for [dt].
- */
-data class SleepAction(val dt: Duration) : ActionEx() {
-    constructor(dt: java.time.Duration) : this(dt.toKotlinDuration())
-    constructor(dt: Double) : this(dt.seconds)
-
-    private lateinit var start: ComparableTimeMark
-
-    override fun init(packet: TelemetryPacket) {
-        start = markNow()
+    /**
+     * Sleeps for [dt].
+     */
+    @JvmStatic fun sleep(dt: Duration): Action {
+        lateinit var mark: ComparableTimeMark
+        return ActionEx()
+            .withInit { mark = markNow() }
+            .withLoop { mark.elapsedNow() < dt }
     }
 
-    override fun loop(packet: TelemetryPacket) = (start.elapsedNow() - dt).isPositive()
+    /**
+     * Sleeps for [dt].
+     */
+    @JvmStatic fun sleep(dt: java.time.Duration) = sleep(dt.toKotlinDuration())
 }
+
 fun interface InstantFunction {
     fun run()
 }

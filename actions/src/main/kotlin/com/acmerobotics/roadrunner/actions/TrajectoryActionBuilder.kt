@@ -19,6 +19,7 @@ import com.acmerobotics.roadrunner.trajectories.Trajectory
 import com.acmerobotics.roadrunner.trajectories.TrajectoryBuilder
 import com.acmerobotics.roadrunner.trajectories.TrajectoryBuilderParams
 import com.acmerobotics.roadrunner.trajectories.TurnConstraints
+import kotlin.time.Duration.Companion.seconds
 
 private fun seqCons(hd: Action, tl: Action) = SequentialAction(hd, tl).withoutNulls().let {
     if (it.actions.size == 1) it.actions.first() else it
@@ -35,12 +36,12 @@ private sealed class MarkerFactory(
 
 private class TimeMarkerFactory(segmentIndex: Int, val dt: Double, val a: Action) : MarkerFactory(segmentIndex) {
     override fun make(t: TimeTrajectory, segmentDisp: Double) =
-        seqCons(SleepAction(t.profile.inverse(segmentDisp) + dt), a)
+        seqCons(Actions.sleep((t.profile.inverse(segmentDisp) + dt).seconds), a)
 }
 
 private class DispMarkerFactory(segmentIndex: Int, val ds: Double, val a: Action) : MarkerFactory(segmentIndex) {
     override fun make(t: TimeTrajectory, segmentDisp: Double) =
-        seqCons(SleepAction(t.profile.inverse(segmentDisp + ds)), a)
+        seqCons(Actions.sleep(t.profile.inverse(segmentDisp + ds).seconds), a)
 }
 
 fun interface TurnActionFactory {
@@ -215,7 +216,7 @@ class TrajectoryActionBuilder private constructor(
     fun waitSeconds(t: Double): TrajectoryActionBuilder {
         require(t >= 0.0) { "Time ($t) must be non-negative" }
 
-        return stopAndAdd(SleepAction(t))
+        return stopAndAdd(Actions.sleep(t.seconds))
     }
 
     /**
@@ -245,7 +246,7 @@ class TrajectoryActionBuilder private constructor(
 
         return if (n == 0) {
             TrajectoryActionBuilder(this, tb, 0, lastPoseUnmapped, lastPose, lastTangent, emptyList()) { tail ->
-                val m = seqCons(SleepAction(dt), a)
+                val m = seqCons(Actions.sleep(dt.seconds), a)
                 if (tail is NullAction) {
                     cont(m)
                 } else {
