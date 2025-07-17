@@ -10,9 +10,11 @@ import kotlin.math.min
 import kotlin.math.round
 
 class PositionVelocityPair(
-        @JvmField val position: Int, @JvmField val velocity: Int?,
-        @JvmField val rawPosition: Int, @JvmField val rawVelocity: Int?
- )
+        @JvmField val position: Int, @JvmField val velocity: Int,
+        @JvmField val rawPosition: Int, @JvmField val rawVelocity: Int
+ ) {
+    constructor(position: Int, velocity: Int) : this(position, velocity, position, velocity)
+}
 
 sealed interface Encoder {
     var direction: DcMotorSimple.Direction
@@ -101,7 +103,7 @@ class OverflowEncoder(@JvmField val encoder: RawEncoder) : Encoder {
 
         return PositionVelocityPair(
                 p.position,
-                p.velocity?.let { inverseOverflow(it, v) },
+                inverseOverflow(p.velocity, v),
                 p.rawPosition,
                 p.rawVelocity,
         )
@@ -154,5 +156,4 @@ class WrappingEncoder(val encoder: Encoder, val cpr: Int) : Encoder {
         val p = encoder.getPositionAndVelocity()
         return PositionVelocityPair(p.position.absoluteValue % cpr, p.velocity, p.rawPosition, p.rawVelocity)
     }
-
 }

@@ -148,8 +148,6 @@ class AngularRampLogger(val dvf: DriveViewFactory) : LinearOpMode() {
     }
 }
 
-private fun avgPos(es: List<Encoder>) = es.sumOf { it.getPositionAndVelocity().position.toDouble() } / es.size
-
 class ForwardPushTest(val dvf: DriveViewFactory) : LinearOpMode() {
     override fun runOpMode() {
         telemetry = MultipleTelemetry(telemetry, FtcDashboard.getInstance().telemetry)

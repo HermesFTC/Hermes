@@ -231,7 +231,7 @@ data class Pose2d(
     @JvmField
     val heading: Rotation2d,
 ) {
-    constructor(position: Vector2d, heading: Double) : this(position, Rotation2d.exp(heading))
+    constructor(position: Vector2d, heading: Double) : this(position, exp(heading))
     constructor(positionX: Double, positionY: Double, heading: Double) : this(Vector2d(positionX, positionY), heading)
 
     companion object {
