@@ -1,17 +1,11 @@
-package com.acmerobotics.roadrunner.ftc
+package com.acmerobotics.roadrunner.hardware
 
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareDevice
 import com.qualcomm.robotcore.hardware.IMU
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
-import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation
-import org.firstinspires.ftc.robotcore.external.navigation.Quaternion
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles
+import org.firstinspires.ftc.robotcore.external.navigation.*
 import kotlin.math.round
 
 fun rawPosVelPair(pos: Int, vel: Int) = PositionVelocityPair(pos, vel, pos, vel)

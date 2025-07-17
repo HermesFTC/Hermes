@@ -1,10 +1,6 @@
 package com.acmerobotics.roadrunner.ftc
 
-import com.acmerobotics.roadrunner.actions.TrajectoryActionBuilder
-import com.acmerobotics.roadrunner.control.RobotKinematics
 import com.acmerobotics.roadrunner.control.RobotPosVelController
-import com.acmerobotics.roadrunner.control.WheelIncrements
-import com.acmerobotics.roadrunner.control.WheelVelocities
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.acmerobotics.roadrunner.geometry.PoseVelocity2d
 import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
@@ -61,9 +57,3 @@ interface Drive {
     )
 }
 
-interface Localizer {
-    var pose: Pose2d
-    val poseHistory: MutableList<Pose2d>
-
-    fun update(): PoseVelocity2d
-}

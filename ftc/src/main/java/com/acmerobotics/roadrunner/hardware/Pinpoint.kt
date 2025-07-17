@@ -1,16 +1,9 @@
-package com.acmerobotics.roadrunner.ftc
+package com.acmerobotics.roadrunner.hardware
 
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareDevice
 import com.qualcomm.robotcore.hardware.IMU
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
-import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity
-import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder
-import org.firstinspires.ftc.robotcore.external.navigation.AxesReference
-import org.firstinspires.ftc.robotcore.external.navigation.Orientation
-import org.firstinspires.ftc.robotcore.external.navigation.Quaternion
-import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles
+import org.firstinspires.ftc.robotcore.external.navigation.*
 
 interface PinpointView {
     var parDirection: DcMotorSimple.Direction

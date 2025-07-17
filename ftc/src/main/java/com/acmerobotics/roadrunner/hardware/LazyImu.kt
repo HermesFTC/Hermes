@@ -1,5 +1,6 @@
-package com.acmerobotics.roadrunner.ftc
+package com.acmerobotics.roadrunner.hardware
 
+import com.acmerobotics.roadrunner.logs.FlightRecorder
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import com.qualcomm.robotcore.hardware.ImuOrientationOnRobot

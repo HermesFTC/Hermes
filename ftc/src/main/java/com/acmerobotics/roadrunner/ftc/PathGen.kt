@@ -4,12 +4,7 @@ package com.acmerobotics.roadrunner.ftc
 import com.acmerobotics.roadrunner.geometry.Arclength
 import com.acmerobotics.roadrunner.geometry.Rotation2d
 import com.acmerobotics.roadrunner.geometry.Vector2d
-import com.acmerobotics.roadrunner.geometry.Vector2dDual
-import com.acmerobotics.roadrunner.paths.ArclengthReparamCurve2d
 import com.acmerobotics.roadrunner.paths.CompositePosePath
-import com.acmerobotics.roadrunner.paths.Line
-import com.acmerobotics.roadrunner.paths.QuinticSpline2dInternal
-import com.acmerobotics.roadrunner.paths.TangentPath
 import com.acmerobotics.roadrunner.profiles.forwardProfile
 import com.acmerobotics.roadrunner.trajectories.DisplacementTrajectory
 import com.acmerobotics.roadrunner.trajectories.PathBuilder

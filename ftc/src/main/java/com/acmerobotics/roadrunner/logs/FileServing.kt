@@ -1,4 +1,4 @@
-package com.acmerobotics.roadrunner.ftc
+package com.acmerobotics.roadrunner.logs
 
 import android.content.Context
 import android.content.res.AssetManager
@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotserver.internal.webserver.MimeTypesUtil
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
-import java.util.Objects
+import java.util.*
 
 private fun newStaticAssetHandler(assetManager: AssetManager, file: String): WebHandler {
     return WebHandler { session: IHTTPSession ->

@@ -1,12 +1,11 @@
 @file:JvmName("LogFile")
 
-package com.acmerobotics.roadrunner.ftc
+package com.acmerobotics.roadrunner.logs
 
 import java.io.OutputStream
 import java.lang.reflect.Modifier
 import java.nio.ByteBuffer
-import java.util.TreeMap
-import kotlin.collections.iterator
+import java.util.*
 
 sealed interface MessageSchema {
     // schema encoding

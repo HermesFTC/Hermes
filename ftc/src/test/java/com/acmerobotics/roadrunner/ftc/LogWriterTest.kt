@@ -1,5 +1,7 @@
 package com.acmerobotics.roadrunner.ftc
 
+import com.acmerobotics.roadrunner.logs.LogWriter
+import com.acmerobotics.roadrunner.logs.PrimitiveSchema
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

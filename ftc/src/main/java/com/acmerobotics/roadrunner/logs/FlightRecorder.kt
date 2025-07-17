@@ -1,4 +1,4 @@
-package com.acmerobotics.roadrunner.ftc
+package com.acmerobotics.roadrunner.logs
 
 import android.annotation.SuppressLint
 import android.content.Context
