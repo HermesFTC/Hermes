@@ -16,7 +16,7 @@ plugins {
     `maven-publish`
     id("io.deepmedia.tools.deployer")
 
-    id("com.github.node-gradle.node") version "2.2.4"
+    id("com.github.node-gradle.node") version "7.1.0"
 }
 
 android {
