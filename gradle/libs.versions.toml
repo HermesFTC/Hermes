@@ -1,6 +1,6 @@
 [versions]
 dash = "0.4.10"
-jacksonDatabind = "2.15.2"
+jacksonDatabind = "2.19.1"
 kotlin = "2.0.0"
 kotest = "5.9.1"
 android = "8.6.1"
