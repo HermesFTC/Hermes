@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.Servo;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -73,7 +74,7 @@ public class AsyncSamples {
             // sample: actionsGamepadTrigger
             if (gamepad1.a) {
                 runningActions.add(new SequentialAction(
-                        new SleepAction(0.5),
+                        new SleepAction(Duration.ofSeconds(500)),
                         new InstantAction(() -> servo.setPosition(0.5))
                 ));
             }
