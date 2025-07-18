@@ -1,16 +1,19 @@
+@file:Suppress("DuplicatedCode")
+
 package com.acmerobotics.roadrunner.ftc
 
 import com.acmerobotics.roadrunner.geometry.*
-import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual.Companion.zero
 import com.acmerobotics.roadrunner.paths.PosePath
 import com.acmerobotics.roadrunner.profiles.*
 import com.acmerobotics.roadrunner.trajectories.DisplacementTrajectory
 import com.acmerobotics.roadrunner.trajectories.TimeTrajectory
 import com.acmerobotics.roadrunner.trajectories.Trajectory
-import com.acmerobotics.roadrunner.trajectories.endWrtTime
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlin.math.ceil
 import kotlin.math.max
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toKotlinDuration
 
 data class FollowerParams(
     @JvmField
@@ -21,9 +24,48 @@ data class FollowerParams(
     val accelConstraint: AccelConstraint,
 )
 
+fun interface EndCondition {
+    fun shouldEnd(follower: Follower): Boolean
+
+    companion object {
+        @JvmSynthetic
+        fun createEndCondition(condition: Follower.() -> Boolean) =
+            EndCondition { follower -> follower.condition() }
+
+        @JvmStatic
+        fun overTime(dt: Duration) =
+            createEndCondition { (timer.seconds().seconds - trajectory.duration()) > dt }
+
+        @JvmStatic
+        fun overTime(dt: java.time.Duration) = overTime(dt.toKotlinDuration())
+
+        @JvmStatic
+        fun overTime(dt: Double) = overTime(dt.seconds)
+
+        @JvmStatic
+        fun dispFromEnd(disp: Double) =
+            createEndCondition { trajectory.endWrtDisp().value().position.norm() < disp}
+
+        @JvmStatic
+        fun robotVel(vel: Double) =
+            createEndCondition { drive.localizer.vel.linearVel.norm() < vel }
+
+        @JvmStatic
+        val default = setOf(
+            overTime(2.0.seconds),
+            dispFromEnd(2.0)
+        )
+    }
+}
+
 interface Follower {
+    val trajectory: Trajectory<*>
+    val drive: Drive
+    val endConditions: Set<EndCondition>
+
     val currentTarget: Pose2d
     val lastCommand: PoseVelocity2dDual<Time>
+    val timer: ElapsedTime
 
     val isDone: Boolean
 
@@ -32,8 +74,13 @@ interface Follower {
     val points: List<Vector2d> get() = listOf(Vector2d.zero)
 }
 
-class DisplacementFollower(trajectory: Trajectory<*>, private val drive: Drive) : Follower {
-    private val trajectory: DisplacementTrajectory = trajectory.wrtDisp()
+class DisplacementFollower @JvmOverloads constructor(
+    override val trajectory: DisplacementTrajectory,
+    override val drive: Drive,
+    override val endConditions: Set<EndCondition> = EndCondition.default
+) : Follower {
+    @JvmOverloads constructor(trajectory: Trajectory<*>, drive: Drive, endConditions: Set<EndCondition> = EndCondition.default) :
+            this(trajectory.wrtDisp(), drive, endConditions)
 
     @JvmOverloads
     constructor(
@@ -41,6 +88,7 @@ class DisplacementFollower(trajectory: Trajectory<*>, private val drive: Drive) 
         drive: Drive,
         velConstraintOverride: VelConstraint = drive.defaultVelConstraint,
         accelConstraintOverride: AccelConstraint = drive.defaultAccelConstraint,
+        endConditions: Set<EndCondition> = EndCondition.default,
     ) : this(
         DisplacementTrajectory(
             path,
@@ -53,11 +101,14 @@ class DisplacementFollower(trajectory: Trajectory<*>, private val drive: Drive) 
             ),
         ),
         drive,
+        endConditions
     )
 
     override var currentTarget: Pose2d = trajectory[0.0].value()
         private set
     override var lastCommand: PoseVelocity2dDual<Time> = PoseVelocity2dDual.zero();
+    override val timer: ElapsedTime = ElapsedTime()
+    private var started = false
 
     override var isDone: Boolean = false
         private set
@@ -73,13 +124,18 @@ class DisplacementFollower(trajectory: Trajectory<*>, private val drive: Drive) 
 
     val driveCommand: PoseVelocity2dDual<Time>
         get() {
+            if (!started) {
+                timer.reset()
+                started = true
+            }
+
             val robotVel = drive.localizer.update()
             val robotPose = drive.localizer.pose
 
             ds = trajectory.project(robotPose.position, ds)
 
             val error = trajectory[trajectory.length()].value() - robotPose
-            if (ds >= trajectory.length() || (error.line.norm() < 1.0 && error.angle < Math.toDegrees(5.0))) {
+            if (endConditions.any { it.shouldEnd(this) }) {
                 isDone = true
                 return PoseVelocity2dDual.zero()
             }
@@ -100,8 +156,13 @@ class DisplacementFollower(trajectory: Trajectory<*>, private val drive: Drive) 
     }
 }
 
-class TimeFollower(trajectory: Trajectory<*>, private val drive: Drive) : Follower {
-    private val trajectory: TimeTrajectory = trajectory.wrtTime()
+class TimeFollower @JvmOverloads constructor(
+    override val trajectory: TimeTrajectory,
+    override val drive: Drive,
+    override val endConditions: Set<EndCondition> = EndCondition.default
+) : Follower {
+    @JvmOverloads constructor(trajectory: Trajectory<*>, drive: Drive, endConditions: Set<EndCondition> = EndCondition.default) :
+            this(trajectory.wrtTime(), drive, endConditions)
 
     @JvmOverloads
     constructor(
@@ -109,6 +170,7 @@ class TimeFollower(trajectory: Trajectory<*>, private val drive: Drive) : Follow
         drive: Drive,
         velConstraintOverride: VelConstraint = drive.defaultVelConstraint,
         accelConstraintOverride: AccelConstraint = drive.defaultAccelConstraint,
+        endConditions: Set<EndCondition>,
     ) : this(
         TimeTrajectory(
             path,
@@ -123,6 +185,7 @@ class TimeFollower(trajectory: Trajectory<*>, private val drive: Drive) : Follow
             ),
         ),
         drive,
+        endConditions
     )
 
     override var currentTarget: Pose2d = trajectory[0.0].value()
@@ -131,8 +194,7 @@ class TimeFollower(trajectory: Trajectory<*>, private val drive: Drive) : Follow
 
     override var isDone: Boolean = false
         private set
-    private val timer: ElapsedTime = ElapsedTime()
-    private val duration: Double = this.trajectory.duration
+    override val timer: ElapsedTime = ElapsedTime()
     private var started = false
 
 
@@ -156,8 +218,8 @@ class TimeFollower(trajectory: Trajectory<*>, private val drive: Drive) : Follow
             val robotVel = drive.localizer.update()
             val robotPose = drive.localizer.pose
 
-            val error = trajectory.endWrtTime.value() - robotPose
-            if (dt >= duration || (error.line.norm() < 1.0 && error.angle < Math.toDegrees(5.0))) {
+            val error = trajectory.endWrtTime().value() - robotPose
+            if (endConditions.any { it.shouldEnd(this) }) {
                 isDone = true
                 return PoseVelocity2dDual.zero()
             }

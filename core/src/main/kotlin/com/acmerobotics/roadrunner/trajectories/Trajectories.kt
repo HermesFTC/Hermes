@@ -15,6 +15,8 @@ import com.acmerobotics.roadrunner.profiles.TimeProfile
 import com.acmerobotics.roadrunner.profiles.plus
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.DurationUnit
 
 interface Trajectory<Param> {
     fun length(): Double
@@ -24,7 +26,7 @@ interface Trajectory<Param> {
     operator fun get(param: Double): Pose2dDual<Time>
     fun start() = get(0.0)
     fun endWrtDisp() = wrtDisp()[length()]
-    fun endWrtTime() = wrtTime()[duration()]
+    fun endWrtTime() = wrtTime()[duration().toDouble(DurationUnit.SECONDS)]
 
     fun project(query: Vector2d, init: Double): Double
 
@@ -40,11 +42,6 @@ interface Trajectory<Param> {
         )
     }
 }
-
-val Trajectory<*>.duration get() = this.wrtTime().duration
-
-val Trajectory<Arclength>.endWrtDisp get() = get(length())
-val Trajectory<Time>.endWrtTime get() = get(duration)
 
 @Serializable
 @SerialName("CancelableTrajectory")
@@ -95,7 +92,7 @@ class TimeTrajectory(
     @JvmField
     val profile: TimeProfile
 ) : Trajectory<Time> {
-    @JvmField val duration = profile.duration
+    val duration = profile.duration.seconds
 
     constructor(t: CancelableTrajectory) : this(t.path, TimeProfile(t.cProfile.baseProfile))
 

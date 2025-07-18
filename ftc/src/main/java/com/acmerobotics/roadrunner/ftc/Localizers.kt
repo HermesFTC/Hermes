@@ -29,6 +29,7 @@ import kotlin.math.sign
 
 interface Localizer {
     var pose: Pose2d
+    val vel: PoseVelocity2d
     val poseHistory: MutableList<Pose2d>
 
     fun update(): PoseVelocity2d
@@ -60,6 +61,8 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
     private var headingVelOffset = 0.0
     private var initialized = false
     override var pose: Pose2d
+    override var vel: PoseVelocity2d = PoseVelocity2d.zero
+        private set
     override val poseHistory = mutableListOf<Pose2d>()
 
     init {
@@ -142,7 +145,8 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
             poseHistory.removeAt(poseHistory.lastIndex)
         }
 
-        return twist.velocity().value()
+        vel = twist.velocity().value()
+        return vel
     }
     
     fun withNames(parName: String, perpName: String) = TwoDeadWheelLocalizer(
@@ -223,6 +227,8 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
     private var lastPerpPos = 0
     private var initialized = false
     override var pose: Pose2d
+    override var vel: PoseVelocity2d = PoseVelocity2d.zero
+        private set
     override val poseHistory = mutableListOf<Pose2d>()
 
     init {
@@ -286,7 +292,8 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
             poseHistory.removeAt(poseHistory.lastIndex)
         }
 
-        return twist.velocity().value()
+        vel = twist.velocity().value()
+        return vel
     }
 
     fun withNames(par0Name: String, par1Name: String, perpName: String) = ThreeDeadWheelLocalizer(
@@ -366,6 +373,7 @@ class PinpointLocalizer(
     private var txWorldPinpoint: Pose2d
     private var txPinpointRobot = Pose2d(0.0, 0.0, 0.0)
     private var currentPose: Pose2d = Pose2d.zero
+
     override val poseHistory = mutableListOf<Pose2d>()
 
     init {
@@ -384,6 +392,8 @@ class PinpointLocalizer(
         set(pose) {
             txWorldPinpoint = pose.times(txPinpointRobot.inverse())
         }
+    override var vel: PoseVelocity2d = PoseVelocity2d.zero
+        private set
 
     override fun update(): PoseVelocity2d {
         driver.update()
@@ -403,7 +413,8 @@ class PinpointLocalizer(
                 poseHistory.removeAt(poseHistory.lastIndex)
             }
 
-            return PoseVelocity2d(robotVelocity, driver.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS))
+            vel = PoseVelocity2d(robotVelocity, driver.getHeadingVelocity(UnnormalizedAngleUnit.RADIANS))
+            return vel
         }
         return PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
     }
@@ -481,6 +492,8 @@ class OTOSLocalizer(
         set(value) {
             otos.setPosition(value.toOTOSPose())
         }
+    override var vel: PoseVelocity2d = PoseVelocity2d.zero
+        private set
 
     override fun update(): PoseVelocity2d {
         val otosPose = SparkFunOTOS.Pose2D()
@@ -498,7 +511,8 @@ class OTOSLocalizer(
             poseHistory.removeAt(poseHistory.lastIndex)
         }
 
-        return PoseVelocity2d(robotVel, otosVel.h)
+        vel =  PoseVelocity2d(robotVel, otosVel.h)
+        return vel
     }
 
     fun withName(otosName: String) = OTOSLocalizer(
