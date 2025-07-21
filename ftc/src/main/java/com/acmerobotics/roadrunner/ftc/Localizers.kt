@@ -178,6 +178,9 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
         return vel
     }
     
+    /**
+     * Returns a new localizer with the given encoder names.
+     */
     fun withNames(parName: String, perpName: String) = TwoDeadWheelLocalizer(
         hardwareMap,
         imu,
@@ -191,6 +194,9 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
         initialPose,
     )
 
+    /**
+     * Returns a new localizer with the given encoder locations.
+     */
     fun withLocations(parYTicks: Double, perpXTicks: Double) = TwoDeadWheelLocalizer(
         hardwareMap,
         imu,
@@ -204,6 +210,9 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
         initialPose,
     )
 
+    /**
+     * Returns a new localizer with the given encoder directions.
+     */
     fun withDirections(parDirection: DcMotorSimple.Direction, perpDirection: DcMotorSimple.Direction) =
         TwoDeadWheelLocalizer(
             hardwareMap,
@@ -218,6 +227,9 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
             initialPose,
         )
 
+    /**
+     * Returns a new localizer with the given initial pose.
+     */
     fun withInitialPose(initialPose: Pose2d) = TwoDeadWheelLocalizer(
         hardwareMap,
         imu,
@@ -341,6 +353,9 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
         return vel
     }
 
+    /**
+     * Returns a new localizer with the given encoder names.
+     */
     fun withNames(par0Name: String, par1Name: String, perpName: String) = ThreeDeadWheelLocalizer(
         hardwareMap,
         inPerTick,
@@ -355,6 +370,9 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
         perpDirection,
     )
 
+    /**
+     * Returns a new localizer with the given encoder locations.
+     */
     fun withLocations(par0YTicks: Double, par1YTicks: Double, perpXTicks: Double) =
         ThreeDeadWheelLocalizer(
             hardwareMap,
@@ -370,6 +388,9 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
             perpDirection,
         )
 
+    /**
+     * Returns a new localizer with the given encoder directions.
+     */
     fun withDirections(par0Direction: DcMotorSimple.Direction, par1Direction: DcMotorSimple.Direction, perpDirection: DcMotorSimple.Direction) =
         ThreeDeadWheelLocalizer(
             hardwareMap,
@@ -385,6 +406,9 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
             perpDirection,
         )
 
+    /**
+     * Returns a new localizer with the given initial pose.
+     */
     fun withInitialPose(initialPose: Pose2d) = ThreeDeadWheelLocalizer(
         hardwareMap,
         inPerTick,
@@ -476,6 +500,9 @@ class PinpointLocalizer @JvmOverloads constructor(
         return PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
     }
 
+    /**
+     * Returns a new localizer with the given device name.
+     */
     fun withName(name: String) = PinpointLocalizer(
         hardwareMap,
         inPerTick,
@@ -487,6 +514,9 @@ class PinpointLocalizer @JvmOverloads constructor(
         initialPose,
     )
 
+    /**
+     * Returns a new localizer with the given offsets.
+     */
     fun withOffsets(parYTicks: Double, perpXTicks: Double) = PinpointLocalizer(
         hardwareMap,
         inPerTick,
@@ -498,6 +528,9 @@ class PinpointLocalizer @JvmOverloads constructor(
         initialPose,
     )
 
+    /**
+     * Returns a new localizer with the given encoder directions.
+     */
     fun withDirections(parDirection: DcMotorSimple.Direction, perpDirection: DcMotorSimple.Direction) =
         PinpointLocalizer(
             hardwareMap,
@@ -510,6 +543,9 @@ class PinpointLocalizer @JvmOverloads constructor(
             initialPose,
         )
 
+    /**
+     * Returns a new localizer with the given initial pose.
+     */
     fun withInitialPose(initialPose: Pose2d) = PinpointLocalizer(
         hardwareMap,
         inPerTick,
@@ -582,6 +618,9 @@ class OTOSLocalizer @JvmOverloads constructor(
         return vel
     }
 
+    /**
+     * Returns a new localizer with the given sensor name.
+     */
     fun withName(otosName: String) = OTOSLocalizer(
         hardwareMap,
         otosName,
@@ -591,6 +630,9 @@ class OTOSLocalizer @JvmOverloads constructor(
         initialPose,
     )
 
+    /**
+     * Returns a new localizer with the given scalars.
+     */
     fun withScalars(linearScalar: Double, angularScalar: Double) = OTOSLocalizer(
         hardwareMap,
         otosName,
@@ -600,6 +642,9 @@ class OTOSLocalizer @JvmOverloads constructor(
         initialPose,
     )
 
+    /**
+     * Returns a new localizer with the given offset.
+     */
     fun withOffset(offset: Pose2d) = OTOSLocalizer(
         hardwareMap,
         otosName,
@@ -609,9 +654,15 @@ class OTOSLocalizer @JvmOverloads constructor(
         initialPose,
     )
 
+    /**
+     * Returns a new localizer with the given offset.
+     */
     fun withOffset(x: Double, y: Double, h: Double) =
         withOffset(Pose2d(x, y, h))
 
+    /**
+     * Returns a new localizer with the given initial pose.
+     */
     fun withInitialPose(initialPose: Pose2d) = OTOSLocalizer(
         hardwareMap,
         otosName,
@@ -623,20 +674,16 @@ class OTOSLocalizer @JvmOverloads constructor(
 }
 
 /**
- * Localizer based on mecanum drive encoders and an IMU.
+ * Localizer based on mecanum drive encoders and an IMU. This localizer is not recommended for use with dead wheels.
  *
  * @param hardwareMap hardware map
  * @param inPerTick inches per tick
  * @param imu IMU
  * @param kinematics mecanum kinematics
- * @param lfName name of the left front motor
- * @param lbName name of the left back motor
- * @param rfName name of the right front motor
- * @param rbName name of the right back motor
- * @param lfDirection direction of the left front motor
- * @param lbDirection direction of the left back motor
- * @param rfDirection direction of the right front motor
- * @param rbDirection direction of the right back motor
+ * @param leftFront left front encoder
+ * @param leftBack left back encoder
+ * @param rightFront right front encoder
+ * @param rightBack right back encoder
  * @param initialPose initial pose
  */
 @Config
@@ -645,20 +692,55 @@ class MecanumDriveLocalizer @JvmOverloads constructor(
     @JvmField var inPerTick: Double,
     val imu: IMU,
     val kinematics: MecanumKinematics,
-    val lfName: String = "leftFront",
-    val lbName: String = "leftBack",
-    val rfName: String = "rightFront",
-    val rbName: String = "rightBack",
-    val lfDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
-    val lbDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
-    val rfDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
-    val rbDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+    val leftFront: Encoder,
+    val leftBack: Encoder,
+    val rightFront: Encoder,
+    val rightBack: Encoder,
     val initialPose: Pose2d = Pose2d.zero,
 ) : Localizer {
-    val leftFront: Encoder = hardwareMap.overflowEncoder(lfName)
-    val leftBack: Encoder = hardwareMap.overflowEncoder(lbName)
-    val rightFront: Encoder = hardwareMap.overflowEncoder(rfName)
-    val rightBack: Encoder = hardwareMap.overflowEncoder(rbName)
+    /**
+     * Creates a new localizer.
+     *
+     * @param hardwareMap hardware map
+     * @param inPerTick inches per tick
+     * @param imu IMU
+     * @param kinematics mecanum kinematics
+     * @param lfName name of the left front motor
+     * @param lbName name of the left back motor
+     * @param rfName name of the right front motor
+     * @param rbName name of the right back motor
+     * @param lfDirection direction of the left front motor
+     * @param lbDirection direction of the left back motor
+     * @param rfDirection direction of the right front motor
+     * @param rbDirection direction of the right back motor
+     * @param initialPose initial pose
+     */
+    @JvmOverloads constructor(
+        hardwareMap: HardwareMap,
+        inPerTick: Double,
+        imu: IMU,
+        kinematics: MecanumKinematics,
+        lfName: String = "leftFront",
+        lbName: String = "leftBack",
+        rfName: String = "rightFront",
+        rbName: String = "rightBack",
+        lfDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        lbDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        rfDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        rbDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        initialPose: Pose2d = Pose2d.zero,
+    ) : this(
+        hardwareMap,
+        inPerTick,
+        imu,
+        kinematics,
+        hardwareMap.overflowEncoder(lfName).apply { direction = lfDirection },
+        hardwareMap.overflowEncoder(lbName).apply { direction = lbDirection },
+        hardwareMap.overflowEncoder(rfName).apply { direction = rfDirection },
+        hardwareMap.overflowEncoder(rbName).apply { direction = rbDirection },
+        initialPose,
+    )
+
     private var lastLeftFrontPos = 0
     private var lastLeftBackPos: Int = 0
     private var lastRightBackPos: Int = 0
@@ -672,13 +754,6 @@ class MecanumDriveLocalizer @JvmOverloads constructor(
     override val poseHistory = mutableListOf<Pose2d>()
 
     private var initialized = false
-
-    init {
-        leftFront.direction = lfDirection
-        leftBack.direction = lbDirection
-        rightFront.direction = rfDirection
-        rightBack.direction = rbDirection
-    }
 
     override fun update(): PoseVelocity2d {
         val leftFrontPosVel = leftFront.getPositionAndVelocity()
@@ -759,68 +834,79 @@ class MecanumDriveLocalizer @JvmOverloads constructor(
         return vel
     }
 
+    /**
+     * Returns a new localizer with the given motor names.
+     */
     fun withNames(lfName: String, lbName: String, rfName: String, rbName: String) =
         MecanumDriveLocalizer(
             hardwareMap,
             inPerTick,
             imu,
             kinematics,
-            lfName,
-            lbName,
-            rfName,
-            rbName,
-            lfDirection,
-            lbDirection,
-            rfDirection,
-            rbDirection,
+            hardwareMap.overflowEncoder(lfName),
+            hardwareMap.overflowEncoder(lbName),
+            hardwareMap.overflowEncoder(rfName),
+            hardwareMap.overflowEncoder(rbName),
             initialPose,
         )
 
+    /**
+     * Returns a new localizer with the given motor directions.
+     */
     fun withDirections(lfDirection: DcMotorSimple.Direction, lbDirection: DcMotorSimple.Direction, rfDirection: DcMotorSimple.Direction, rbDirection: DcMotorSimple.Direction) =
         MecanumDriveLocalizer(
             hardwareMap,
             inPerTick,
             imu,
             kinematics,
-            lfName,
-            lbName,
-            rfName,
-            rbName,
-            lfDirection,
-            lbDirection,
-            rfDirection,
-            rbDirection,
+            leftFront.apply { direction = lfDirection },
+            leftBack.apply { direction = lbDirection },
+            rightFront.apply { direction = rfDirection },
+            rightBack.apply { direction = rbDirection },
             initialPose,
         )
 
+    /**
+     * Returns a new localizer with the given initial pose.
+     */
     fun withInitialPose(initialPose: Pose2d) =
         MecanumDriveLocalizer(
             hardwareMap,
             inPerTick,
             imu,
             kinematics,
-            lfName,
-            lbName,
-            rfName,
-            rbName,
-            lfDirection,
-            lbDirection,
-            rfDirection,
-            rbDirection,
+            leftFront,
+            leftBack,
+            rightFront,
+            rightBack,
+            initialPose,
+        )
+
+    /**
+     * Returns a new localizer with the given motors.
+     */
+    fun fromMotors(lf: DcMotorEx, lb: DcMotorEx, rf: DcMotorEx, rb: DcMotorEx) =
+        MecanumDriveLocalizer(
+            hardwareMap,
+            inPerTick,
+            imu,
+            kinematics,
+            OverflowEncoder(RawEncoder(lf)),
+            OverflowEncoder(RawEncoder(lb)),
+            OverflowEncoder(RawEncoder(rf)),
+            OverflowEncoder(RawEncoder(rb)),
             initialPose,
         )
 }
 
 /**
- * Localizer based on tank drive encoders.
+ * Localizer based on tank drive encoders. This localizer is not recommended for use with dead wheels.
  *
  * @param hardwareMap hardware map
  * @param inPerTick inches per tick
  * @param kinematics tank kinematics
- * @param leftNames names of the left motors
- * @param rightNames names of the right motors
- * @param leftDirections directions of the left motors
- * @param rightDirections directions of the right motors
+ * @param leftEncoders left encoders
+ * @param rightEncoders right encoders
  * @param initialPose initial pose
  */
 @Config
@@ -828,14 +914,49 @@ class TankLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
     @JvmField var inPerTick: Double,
     val kinematics: TankKinematics,
-    val leftNames: List<String> = listOf("leftFront", "leftBack"),
-    val rightNames: List<String> = listOf("rightFront", "rightBack"),
-    val leftDirections: List<DcMotorSimple.Direction> = listOf(DcMotorSimple.Direction.FORWARD, DcMotorSimple.Direction.FORWARD),
-    val rightDirections: List<DcMotorSimple.Direction> = listOf(DcMotorSimple.Direction.FORWARD, DcMotorSimple.Direction.FORWARD),
+    val leftEncoders: List<Encoder>,
+    val rightEncoders: List<Encoder>,
     val initialPose: Pose2d = Pose2d.zero,
 ) : Localizer {
-    val leftEncoders: List<Encoder> = leftNames.map { hardwareMap.overflowEncoder(it) }
-    val rightEncoders: List<Encoder> = rightNames.map { hardwareMap.overflowEncoder(it) }
+    /**
+     * Creates a new localizer.
+     *
+     * @param hardwareMap hardware map
+     * @param kinematics tank kinematics
+     * @param inPerTick inches per tick
+     * @param leftNames names of the left motors
+     * @param rightNames names of the right motors
+     * @param leftDirections directions of the left motors
+     * @param rightDirections directions of the right motors
+     * @param initialPose initial pose
+     */
+    @JvmOverloads constructor(
+        hardwareMap: HardwareMap,
+        kinematics: TankKinematics,
+        inPerTick: Double,
+        leftNames: List<String> = listOf("leftFront", "leftBack"),
+        rightNames: List<String> = listOf("rightFront", "rightBack"),
+        leftDirections: List<DcMotorSimple.Direction> = listOf(DcMotorSimple.Direction.FORWARD, DcMotorSimple.Direction.FORWARD),
+        rightDirections: List<DcMotorSimple.Direction> = listOf(DcMotorSimple.Direction.FORWARD, DcMotorSimple.Direction.FORWARD),
+        initialPose: Pose2d = Pose2d.zero
+        ) : this(
+            hardwareMap,
+            inPerTick,
+            kinematics,
+            leftNames.map { hardwareMap.overflowEncoder(it) },
+            rightNames.map { hardwareMap.overflowEncoder(it) },
+            initialPose,
+        ) {
+            require(leftNames.size == leftDirections.size) { "each left motor must have a direction" }
+            require(rightNames.size == rightDirections.size) { "each right motor must have a direction" }
+
+            leftNames.indices.forEach {
+                leftEncoders[it].direction = leftDirections[it]
+            }
+            rightNames.indices.forEach {
+                rightEncoders[it].direction = rightDirections[it]
+            }
+        }
 
     private var lastLeftPos = 0.0
     private var lastRightPos = 0.0
@@ -847,11 +968,6 @@ class TankLocalizer @JvmOverloads constructor(
     override val poseHistory = mutableListOf<Pose2d>()
 
     private var initialized = false
-
-    init {
-        leftEncoders.zip(leftDirections).forEach { (encoder, direction) -> encoder.direction = direction }
-        rightEncoders.zip(rightDirections).forEach { (encoder, direction) -> encoder.direction = direction }
-    }
 
     override fun update(): PoseVelocity2d {
         val leftReadings = leftEncoders.map { it.getPositionAndVelocity() }
@@ -907,77 +1023,135 @@ class TankLocalizer @JvmOverloads constructor(
         return vel
     }
 
+    /**
+     * Returns a new localizer with the given motor names.
+     */
     fun withNames(leftNames: List<String>, rightNames: List<String>) =
         TankLocalizer(
             hardwareMap,
             inPerTick,
             kinematics,
-            leftNames,
-            rightNames,
-            leftDirections,
-            rightDirections,
+            leftNames.map { hardwareMap.overflowEncoder(it) },
+            rightNames.map { hardwareMap.overflowEncoder(it) },
             initialPose,
         )
 
+    /**
+     * Returns a new localizer with the given motor directions.
+     */
     fun withDirections(leftDirections: List<DcMotorSimple.Direction>, rightDirections: List<DcMotorSimple.Direction>) =
-        TankLocalizer(
-            hardwareMap,
-            inPerTick,
-            kinematics,
-            leftNames,
-            rightNames,
-            leftDirections,
-            rightDirections,
-            initialPose,
-        )
+        apply {
+            require(leftEncoders.size == leftDirections.size) { "each left encoder must have a direction" }
+            require(rightEncoders.size == rightDirections.size) { "each right encoder must have a direction" }
 
+            leftEncoders.indices.forEach {
+                leftEncoders[it].direction = leftDirections[it]
+            }
+            rightEncoders.indices.forEach {
+                rightEncoders[it].direction = rightDirections[it]
+        }
+    }
+
+    /**
+     * Returns a new localizer with the given initial pose.
+     */
     fun withInitialPose(initialPose: Pose2d) =
         TankLocalizer(
             hardwareMap,
             inPerTick,
             kinematics,
-            leftNames,
-            rightNames,
-            leftDirections,
-            rightDirections,
+            leftEncoders,
+            rightEncoders,
+            initialPose,
+        )
+
+    /**
+     * Returns a new localizer with the given motors.
+     */
+    fun fromMotors(leftMotors: List<DcMotorEx>, rightMotors: List<DcMotorEx>) =
+        TankLocalizer(
+            hardwareMap,
+            inPerTick,
+            kinematics,
+            leftMotors.map { OverflowEncoder(RawEncoder(it)) },
+            rightMotors.map { OverflowEncoder(RawEncoder(it)) },
             initialPose,
         )
 }
 
 /**
- * Localizer based on swerve drive encoders and an IMU.
+ * Localizer based on swerve drive encoders and an IMU. This localizer is not recommended for use with dead wheels.
  *
  * @param hardwareMap hardware map
  * @param cpr counts per revolution of the steering encoders
  * @param inPerTick inches per tick of the drive encoders
  * @param imu IMU
  * @param kinematics swerve kinematics
- * @param driveNames names of the drive motors
- * @param steeringNames names of the steering motors
- * @param driveDirections directions of the drive motors
- * @param steeringDirections directions of the steering motors
+ * @param driveEncoders drive encoders
+ * @param steeringEncoders steering encoders
  * @param initialPose initial pose
  */
 @Config
-class SwerveLocalizer(
+class SwerveLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
     val cpr: Int,
     @JvmField var inPerTick: Double,
     val imu: IMU,
     val kinematics: SwerveKinematics,
-    val driveNames: List<String> = listOf("lfDrive", "frDrive", "blDrive", "brDrive"),
-    val steeringNames: List<String> = listOf("lfSteering", "rfSteering", "lbSteering", "rbSteering"),
-    val driveDirections: List<DcMotorSimple.Direction> = driveNames.map { DcMotorSimple.Direction.FORWARD },
-    val steeringDirections: List<DcMotorSimple.Direction> = steeringNames.map { DcMotorSimple.Direction.FORWARD },
+    private val driveEncoders: List<Encoder>,
+    private val steeringEncoders: List<Encoder>,
     val initialPose: Pose2d = Pose2d.zero
 ) : Localizer {
-    private val driveEncoders: List<Encoder> = driveNames.map { hardwareMap.overflowEncoder(it) }
-    private val steeringEncoders: List<Encoder> = steeringNames.map {
-        WrappingEncoder(hardwareMap.overflowEncoder(it), cpr)
+    /**
+     * Creates a new localizer.
+     *
+     * @param hardwareMap hardware map
+     * @param cpr counts per revolution of the steering encoders
+     * @param inPerTick inches per tick of the drive encoders
+     * @param imu IMU
+     * @param kinematics swerve kinematics
+     * @param driveNames names of the drive motors
+     * @param steeringNames names of the steering motors
+     * @param driveDirections directions of the drive motors
+     * @param steeringDirections directions of the steering motors
+     * @param initialPose initial pose
+     */
+    constructor(
+        hardwareMap: HardwareMap,
+        cpr: Int,
+        inPerTick: Double,
+        imu: IMU,
+        kinematics: SwerveKinematics,
+        driveNames: List<String> = listOf("lfDrive", "frDrive", "blDrive", "brDrive"),
+        steeringNames: List<String> = listOf("lfSteering", "rfSteering", "lbSteering", "rbSteering"),
+        driveDirections: List<DcMotorSimple.Direction> = driveNames.map { DcMotorSimple.Direction.FORWARD },
+        steeringDirections: List<DcMotorSimple.Direction> = steeringNames.map { DcMotorSimple.Direction.FORWARD },
+        initialPose: Pose2d = Pose2d.zero,
+    ) : this(
+        hardwareMap,
+        cpr,
+        inPerTick,
+        imu,
+        kinematics,
+        driveNames.map { hardwareMap.overflowEncoder(it) },
+        steeringNames.map { WrappingEncoder(hardwareMap.overflowEncoder(it), cpr) },
+        initialPose,
+    ) {
+        require(driveNames.size == driveDirections.size) { "each drive motor must have a direction" }
+        require(steeringNames.size == steeringDirections.size) { "each steering motor must have a direction" }
+
+        driveNames.indices.forEach {
+            driveEncoders[it].direction = driveDirections[it]
+        }
+
+        steeringNames.indices.forEach {
+            steeringEncoders[it].direction = steeringDirections[it]
+        }
     }
 
-    private var lastDrivePositions = steeringNames.map { 0 }
-    private var lastSteeringPositions = steeringNames.map { 0 }
+
+    private var lastDrivePositions = driveEncoders.map { 0 }
+    private var lastSteeringPositions = steeringEncoders.map { 0 }
 
     private var lastHeading = Rotation2d.zero
 
@@ -1044,6 +1218,9 @@ class SwerveLocalizer(
         return vel
     }
 
+    /**
+     * Returns a new localizer with the given motor names.
+     */
     fun withNames(driveNames: List<String>, steeringNames: List<String>) =
         SwerveLocalizer(
             hardwareMap,
@@ -1051,27 +1228,31 @@ class SwerveLocalizer(
             inPerTick,
             imu,
             kinematics,
-            driveNames,
-            steeringNames,
-            driveDirections,
-            steeringDirections,
+            driveNames.map { hardwareMap.overflowEncoder(it) },
+            steeringNames.map { WrappingEncoder(hardwareMap.overflowEncoder(it), cpr) },
             initialPose,
         )
 
+    /**
+     * Returns a new localizer with the given motor directions.
+     */
     fun withDirections(driveDirections: List<DcMotorSimple.Direction>, steeringDirections: List<DcMotorSimple.Direction>) =
-        SwerveLocalizer(
-            hardwareMap,
-            cpr,
-            inPerTick,
-            imu,
-            kinematics,
-            driveNames,
-            steeringNames,
-            driveDirections,
-            steeringDirections,
-            initialPose
-        )
+        apply {
+            require(driveEncoders.size == driveDirections.size) { "each drive motor must have a direction" }
+            require(steeringEncoders.size == steeringDirections.size) { "each steering motor must have a direction" }
 
+            driveEncoders.indices.forEach {
+                driveEncoders[it].direction = driveDirections[it]
+            }
+
+            steeringEncoders.indices.forEach {
+                steeringEncoders[it].direction = steeringDirections[it]
+            }
+        }
+
+    /**
+     * Returns a new localizer with the given initial pose.
+     */
     fun withInitialPose(initialPose: Pose2d) =
         SwerveLocalizer(
             hardwareMap,
@@ -1079,10 +1260,24 @@ class SwerveLocalizer(
             inPerTick,
             imu,
             kinematics,
-            driveNames,
-            steeringNames,
-            driveDirections,
-            steeringDirections,
+            driveEncoders,
+            steeringEncoders,
             initialPose,
         )
+
+    /**
+     * Returns a new localizer with the given motors.
+     */
+    fun fromMotors(driveMotors: List<DcMotorEx>, steeringMotors: List<DcMotorEx>) =
+        SwerveLocalizer(
+            hardwareMap,
+            cpr,
+            inPerTick,
+            imu,
+            kinematics,
+            driveMotors.map { OverflowEncoder(RawEncoder(it)) },
+            steeringMotors.map { WrappingEncoder(OverflowEncoder(RawEncoder(it)), cpr) },
+            initialPose,
+        )
+
 }
