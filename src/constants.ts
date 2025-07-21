@@ -1,0 +1,1 @@
+export const BASE_HERMES_URL = '/hermes/'
