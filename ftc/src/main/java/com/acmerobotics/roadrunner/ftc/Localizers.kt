@@ -8,7 +8,6 @@ import com.acmerobotics.roadrunner.control.SwerveModuleIncrements
 import com.acmerobotics.roadrunner.control.TankKinematics
 import com.acmerobotics.roadrunner.control.TankKinematics.TankWheelIncrements
 import com.acmerobotics.roadrunner.geometry.*
-import com.acmerobotics.roadrunner.geometry.Rotation2d.Companion.fromDouble
 import com.acmerobotics.roadrunner.hardware.*
 import com.acmerobotics.roadrunner.logs.*
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
@@ -26,27 +25,58 @@ import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sign
 
+/**
+ * A localizer is responsible for tracking the robot's position and velocity (i.e., its pose) in the field frame.
+ */
 interface Localizer {
+    /**
+     * The current robot pose.
+     */
     var pose: Pose2d
+
+    /**
+     * The current robot velocity.
+     */
     val vel: PoseVelocity2d
+
+    /**
+     * A list of recent poses.
+     */
     val poseHistory: MutableList<Pose2d>
 
+    /**
+     * Updates the localizer and returns the new velocity.
+     */
     fun update(): PoseVelocity2d
 }
 
 internal fun HardwareMap.overflowEncoder(name: String) =
     OverflowEncoder(RawEncoder(get(DcMotorEx::class.java, name)))
 
+/**
+ * Localizer based on two dead wheels and an IMU.
+ *
+ * @param hardwareMap hardware map
+ * @param imu IMU
+ * @param inPerTick inches per tick
+ * @param parName name of the parallel encoder
+ * @param perpName name of the perpendicular encoder
+ * @param parYTicks y-position of the parallel encoder (in tick units)
+ * @param perpXTicks x-position of the perpendicular encoder (in tick units)
+ * @param parDirection direction of the parallel encoder
+ * @param perpDirection direction of the perpendicular encoder
+ * @param initialPose initial pose
+ */
 class TwoDeadWheelLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
     val imu: IMU,
     @JvmField var inPerTick: Double,
     val parName: String,
     val perpName: String,
-    @JvmField var parYTicks: Double = 0.0, // y position of the parallel encoder (in tick units)
+    @JvmField var parYTicks: Double = 0.0,
     @JvmField var perpXTicks: Double = 0.0,
     val parDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
-    val perpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD, // x position of the perpendicular encoder (in tick units)
+    val perpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
     val initialPose: Pose2d = Pose2d.zero,
 ) : Localizer {
     val par: Encoder = hardwareMap.overflowEncoder(parName)
@@ -202,19 +232,35 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
     )
 }
 
+/**
+ * Localizer based on three dead wheels.
+ *
+ * @param hardwareMap hardware map
+ * @param inPerTick inches per tick
+ * @param par0Name name of the first parallel encoder
+ * @param par1Name name of the second parallel encoder
+ * @param perpName name of the perpendicular encoder
+ * @param par0YTicks y-position of the first parallel encoder (in tick units)
+ * @param par1YTicks y-position of the second parallel encoder (in tick units)
+ * @param perpXTicks x-position of the perpendicular encoder (in tick units)
+ * @param par0Direction direction of the first parallel encoder
+ * @param par1Direction direction of the second parallel encoder
+ * @param perpDirection direction of the perpendicular encoder
+ * @param initialPose initial pose
+ */
 @Config
 class ThreeDeadWheelLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
-    @JvmField var inPerTick: Double, 
+    @JvmField var inPerTick: Double,
     val par0Name: String = "par0",
-    val par1Name: String = "par1", 
+    val par1Name: String = "par1",
     val perpName: String = "perp",
-    @JvmField var par0YTicks: Double = 0.0, // y position of the first parallel encoder (in tick units)
-    @JvmField var par1YTicks: Double = 1.0, // y position of the second parallel encoder (in tick units)
-    @JvmField var perpXTicks: Double = 0.0, // x position of the perpendicular encoder (in tick units)
+    @JvmField var par0YTicks: Double = 0.0,
+    @JvmField var par1YTicks: Double = 1.0,
+    @JvmField var perpXTicks: Double = 0.0,
     val par0Direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
     val par1Direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
-    val PerpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+    val perpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
     val initialPose: Pose2d = Pose2d.zero,
     ) : Localizer {
     val par0: Encoder = hardwareMap.overflowEncoder(par0Name)
@@ -306,7 +352,7 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
         perpXTicks,
         par0Direction,
         par1Direction,
-        PerpDirection,
+        perpDirection,
     )
 
     fun withLocations(par0YTicks: Double, par1YTicks: Double, perpXTicks: Double) =
@@ -321,7 +367,7 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
             perpXTicks,
             par0Direction,
             par1Direction,
-            PerpDirection,
+            perpDirection,
         )
 
     fun withDirections(par0Direction: DcMotorSimple.Direction, par1Direction: DcMotorSimple.Direction, perpDirection: DcMotorSimple.Direction) =
@@ -350,11 +396,23 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
         perpXTicks,
         par0Direction,
         par1Direction,
-        PerpDirection,
+        perpDirection,
         initialPose,
     )
 }
 
+/**
+ * Localizer based on the GoBilda Pinpoint dead wheel module.
+ *
+ * @param hardwareMap hardware map
+ * @param inPerTick inches per tick
+ * @param name name of the Pinpoint device
+ * @param parYTicks y-position of the parallel encoder (in tick units)
+ * @param perpXTicks x-position of the perpendicular encoder (in tick units)
+ * @param parDirection direction of the parallel encoder
+ * @param perpDirection direction of the perpendicular encoder
+ * @param initialPose initial pose
+ */
 @Config
 class PinpointLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
@@ -403,7 +461,7 @@ class PinpointLocalizer @JvmOverloads constructor(
                 driver.getHeading(UnnormalizedAngleUnit.RADIANS),
             )
             val worldVelocity = Vector2d(driver.getVelX(DistanceUnit.INCH), driver.getVelY(DistanceUnit.INCH))
-            val robotVelocity = fromDouble(-txPinpointRobot.heading.log()).times(worldVelocity)
+            val robotVelocity = Rotation2d.fromDouble(-txPinpointRobot.heading.log()).times(worldVelocity)
 
             currentPose = txWorldPinpoint.times(txPinpointRobot)
             poseHistory.add(0, currentPose)
@@ -464,6 +522,16 @@ class PinpointLocalizer @JvmOverloads constructor(
     )
 }
 
+/**
+ * Localizer based on the SparkFun OTOS sensor.
+ *
+ * @param hardwareMap hardware map
+ * @param otosName name of the OTOS sensor in the hardware map
+ * @param linearScalar scalar for the linear measurements
+ * @param angularScalar scalar for the angular measurements
+ * @param offset sensor offset
+ * @param initialPose initial pose
+ */
 @Config
 class OTOSLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
@@ -554,6 +622,24 @@ class OTOSLocalizer @JvmOverloads constructor(
     )
 }
 
+/**
+ * Localizer based on mecanum drive encoders and an IMU.
+ *
+ * @param hardwareMap hardware map
+ * @param inPerTick inches per tick
+ * @param imu IMU
+ * @param kinematics mecanum kinematics
+ * @param lfName name of the left front motor
+ * @param lbName name of the left back motor
+ * @param rfName name of the right front motor
+ * @param rbName name of the right back motor
+ * @param lfDirection direction of the left front motor
+ * @param lbDirection direction of the left back motor
+ * @param rfDirection direction of the right front motor
+ * @param rbDirection direction of the right back motor
+ * @param initialPose initial pose
+ */
+@Config
 class MecanumDriveLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
     @JvmField var inPerTick: Double,
@@ -725,6 +811,19 @@ class MecanumDriveLocalizer @JvmOverloads constructor(
         )
 }
 
+/**
+ * Localizer based on tank drive encoders.
+ *
+ * @param hardwareMap hardware map
+ * @param inPerTick inches per tick
+ * @param kinematics tank kinematics
+ * @param leftNames names of the left motors
+ * @param rightNames names of the right motors
+ * @param leftDirections directions of the left motors
+ * @param rightDirections directions of the right motors
+ * @param initialPose initial pose
+ */
+@Config
 class TankLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
     @JvmField var inPerTick: Double,
@@ -845,6 +944,21 @@ class TankLocalizer @JvmOverloads constructor(
         )
 }
 
+/**
+ * Localizer based on swerve drive encoders and an IMU.
+ *
+ * @param hardwareMap hardware map
+ * @param cpr counts per revolution of the steering encoders
+ * @param inPerTick inches per tick of the drive encoders
+ * @param imu IMU
+ * @param kinematics swerve kinematics
+ * @param driveNames names of the drive motors
+ * @param steeringNames names of the steering motors
+ * @param driveDirections directions of the drive motors
+ * @param steeringDirections directions of the steering motors
+ * @param initialPose initial pose
+ */
+@Config
 class SwerveLocalizer(
     val hardwareMap: HardwareMap,
     val cpr: Int,
