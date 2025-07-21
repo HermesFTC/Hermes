@@ -40,11 +40,11 @@ internal fun HardwareMap.overflowEncoder(name: String) =
 class TwoDeadWheelLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
     val imu: IMU,
-    val inPerTick: Double,
+    @JvmField var inPerTick: Double,
     val parName: String,
     val perpName: String,
-    val parYTicks: Double = 0.0, // y position of the parallel encoder (in tick units)
-    val perpXTicks: Double = 0.0,
+    @JvmField var parYTicks: Double = 0.0, // y position of the parallel encoder (in tick units)
+    @JvmField var perpXTicks: Double = 0.0,
     val parDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
     val perpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD, // x position of the perpendicular encoder (in tick units)
     val initialPose: Pose2d = Pose2d.zero,
@@ -205,13 +205,13 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
 @Config
 class ThreeDeadWheelLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
-    val inPerTick: Double, 
+    @JvmField var inPerTick: Double, 
     val par0Name: String = "par0",
     val par1Name: String = "par1", 
     val perpName: String = "perp",
-    val par0YTicks: Double = 0.0, // y position of the first parallel encoder (in tick units)
-    val par1YTicks: Double = 1.0, // y position of the second parallel encoder (in tick units)
-    val perpXTicks: Double = 0.0, // x position of the perpendicular encoder (in tick units)
+    @JvmField var par0YTicks: Double = 0.0, // y position of the first parallel encoder (in tick units)
+    @JvmField var par1YTicks: Double = 1.0, // y position of the second parallel encoder (in tick units)
+    @JvmField var perpXTicks: Double = 0.0, // x position of the perpendicular encoder (in tick units)
     val par0Direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
     val par1Direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
     val PerpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
@@ -358,10 +358,10 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
 @Config
 class PinpointLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
-    val inPerTick: Double,
+    @JvmField var inPerTick: Double,
     val name: String = "pinpoint",
-    val parYTicks: Double = 0.0,
-    val perpXTicks: Double = 0.0,
+    @JvmField var parYTicks: Double = 0.0,
+    @JvmField var perpXTicks: Double = 0.0,
     val parDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
     val perpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
     val initialPose: Pose2d = Pose2d.zero,
@@ -468,9 +468,9 @@ class PinpointLocalizer @JvmOverloads constructor(
 class OTOSLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
     val otosName: String = "sensor_otos",
-    val linearScalar: Double = 1.0,
-    val angularScalar: Double = 1.0,
-    val offset: Pose2d = Pose2d.zero,
+    @JvmField var linearScalar: Double = 1.0,
+    @JvmField var angularScalar: Double = 1.0,
+    @JvmField var offset: Pose2d = Pose2d.zero,
     val initialPose: Pose2d = Pose2d.zero,
 ) : Localizer {
     val otos: SparkFunOTOS = hardwareMap.get(SparkFunOTOS::class.java, "sensor_otos")
@@ -556,7 +556,7 @@ class OTOSLocalizer @JvmOverloads constructor(
 
 class MecanumDriveLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
-    val inPerTick: Double,
+    @JvmField var inPerTick: Double,
     val imu: IMU,
     val kinematics: MecanumKinematics,
     val lfName: String = "leftFront",
@@ -727,7 +727,7 @@ class MecanumDriveLocalizer @JvmOverloads constructor(
 
 class TankLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
-    val inPerTick: Double,
+    @JvmField var inPerTick: Double,
     val kinematics: TankKinematics,
     val leftNames: List<String> = listOf("leftFront", "leftBack"),
     val rightNames: List<String> = listOf("rightFront", "rightBack"),
@@ -848,7 +848,7 @@ class TankLocalizer @JvmOverloads constructor(
 class SwerveLocalizer(
     val hardwareMap: HardwareMap,
     val cpr: Int,
-    val inPerTick: Double,
+    @JvmField var inPerTick: Double,
     val imu: IMU,
     val kinematics: SwerveKinematics,
     val driveNames: List<String> = listOf("lfDrive", "frDrive", "blDrive", "brDrive"),
