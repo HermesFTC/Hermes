@@ -1,14 +1,17 @@
-import { getVariableValue, setVariableValue } from "@/api/config"
 import SingleConfig from "@/components/AssignableSingleConfig"
 import { ImportantInstruction } from "@/components/TextModifications"
 import BasicVariable from "@/components/views/ConfigView/BasicVariable"
 import CustomVariable from "@/components/views/ConfigView/CustomVariable"
 import EnumInput from "@/components/views/ConfigView/inputs/EnumInput"
+import { useConfigVariable, useSetConfigVariable } from "@/hooks/useConfigVariables"
 
 export default function GettingStarted() {
 
-    setVariableValue("Hermes/Localizer", "THREE_WHEEL")
-    console.log(getVariableValue("Hermes/Localizer"))
+    const setConfig = useSetConfigVariable()
+
+    const currentLocalizer = useConfigVariable("Hermes/Localizer")
+
+
 
     return (
 
@@ -26,9 +29,10 @@ export default function GettingStarted() {
                 <p>Before we get started, <ImportantInstruction>choose your localization (odometry) option.</ImportantInstruction></p>
             </div>
 
-            <div className="mt-4 flex justify-center items-center text-center">
-                <SingleConfig configName="Hermes" fieldName="Localizer"/>
-            </div>
+            <div className="mt-4 flex justify-center items-center text-center flex flex-col">
+                {currentLocalizer}
+                <button className="border-solid border-hermes-cyan-dark border-4 rounded-xl py-4 w-1/2 lg:w-full" onClick={() => {setConfig("Hermes/Localizer", "TWO_WHEEL");console.log("HBDSUAHD");}}>test</button>
+            </div>  
 
             
 
