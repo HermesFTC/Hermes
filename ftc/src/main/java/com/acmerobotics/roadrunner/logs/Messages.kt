@@ -42,8 +42,8 @@ class MecanumLocalizerInputsMessage(
 }
 
 class TankLocalizerInputsMessage(
-    left: MutableList<PositionVelocityPair>,
-    right: MutableList<PositionVelocityPair>
+    left: List<PositionVelocityPair>,
+    right: List<PositionVelocityPair>
 ) {
     var timestamp: Long = System.nanoTime()
     var left: Array<PositionVelocityPair> = left.toTypedArray<PositionVelocityPair>()

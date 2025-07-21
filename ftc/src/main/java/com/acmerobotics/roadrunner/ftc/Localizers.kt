@@ -1,19 +1,16 @@
 package com.acmerobotics.roadrunner.ftc
 
 import com.acmerobotics.dashboard.config.Config
+import com.acmerobotics.roadrunner.control.MecanumKinematics
+import com.acmerobotics.roadrunner.control.MecanumKinematics.MecanumWheelIncrements
+import com.acmerobotics.roadrunner.control.SwerveKinematics
+import com.acmerobotics.roadrunner.control.SwerveModuleIncrements
+import com.acmerobotics.roadrunner.control.TankKinematics
+import com.acmerobotics.roadrunner.control.TankKinematics.TankWheelIncrements
 import com.acmerobotics.roadrunner.geometry.*
-import com.acmerobotics.roadrunner.geometry.Rotation2d.Companion.exp
 import com.acmerobotics.roadrunner.geometry.Rotation2d.Companion.fromDouble
-import com.acmerobotics.roadrunner.hardware.Encoder
-import com.acmerobotics.roadrunner.hardware.OverflowEncoder
-import com.acmerobotics.roadrunner.hardware.PositionVelocityPair
-import com.acmerobotics.roadrunner.hardware.RawEncoder
-import com.acmerobotics.roadrunner.hardware.pinpointDirection
-import com.acmerobotics.roadrunner.hardware.toOTOSPose
-import com.acmerobotics.roadrunner.hardware.toRRPose
-import com.acmerobotics.roadrunner.logs.FlightRecorder
-import com.acmerobotics.roadrunner.logs.ThreeDeadWheelInputsMessage
-import com.acmerobotics.roadrunner.logs.TwoDeadWheelInputsMessage
+import com.acmerobotics.roadrunner.hardware.*
+import com.acmerobotics.roadrunner.logs.*
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS
 import com.qualcomm.robotcore.hardware.DcMotorEx
@@ -23,7 +20,9 @@ import com.qualcomm.robotcore.hardware.IMU
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles
 import java.util.*
+import kotlin.math.PI
 import kotlin.math.abs
 import kotlin.math.sign
 
@@ -357,7 +356,7 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
 }
 
 @Config
-class PinpointLocalizer(
+class PinpointLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
     val inPerTick: Double,
     val name: String = "pinpoint",
@@ -466,7 +465,7 @@ class PinpointLocalizer(
 }
 
 @Config
-class OTOSLocalizer(
+class OTOSLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
     val otosName: String = "sensor_otos",
     val linearScalar: Double = 1.0,
@@ -503,7 +502,7 @@ class OTOSLocalizer(
 
         pose = otosPose.toRRPose()
         val fieldVel = Vector2d(otosVel.x, otosVel.y)
-        val robotVel = exp(otosPose.h).inverse().times(fieldVel)
+        val robotVel = Rotation2d.exp(otosPose.h).inverse().times(fieldVel)
 
         poseHistory.add(0, pose)
 
@@ -553,4 +552,423 @@ class OTOSLocalizer(
         offset,
         initialPose,
     )
+}
+
+class MecanumDriveLocalizer @JvmOverloads constructor(
+    val hardwareMap: HardwareMap,
+    val inPerTick: Double,
+    val imu: IMU,
+    val kinematics: MecanumKinematics,
+    val lfName: String = "leftFront",
+    val lbName: String = "leftBack",
+    val rfName: String = "rightFront",
+    val rbName: String = "rightBack",
+    val lfDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+    val lbDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+    val rfDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+    val rbDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+    val initialPose: Pose2d = Pose2d.zero,
+) : Localizer {
+    val leftFront: Encoder = hardwareMap.overflowEncoder(lfName)
+    val leftBack: Encoder = hardwareMap.overflowEncoder(lbName)
+    val rightFront: Encoder = hardwareMap.overflowEncoder(rfName)
+    val rightBack: Encoder = hardwareMap.overflowEncoder(rbName)
+    private var lastLeftFrontPos = 0
+    private var lastLeftBackPos: Int = 0
+    private var lastRightBackPos: Int = 0
+    private var lastRightFrontPos: Int = 0
+    private var lastHeading = Rotation2d.zero
+
+    override var pose: Pose2d = initialPose
+    override var vel: PoseVelocity2d = PoseVelocity2d.zero
+        private set
+
+    override val poseHistory = mutableListOf<Pose2d>()
+
+    private var initialized = false
+
+    init {
+        leftFront.direction = lfDirection
+        leftBack.direction = lbDirection
+        rightFront.direction = rfDirection
+        rightBack.direction = rbDirection
+    }
+
+    override fun update(): PoseVelocity2d {
+        val leftFrontPosVel = leftFront.getPositionAndVelocity()
+        val leftBackPosVel = leftBack.getPositionAndVelocity()
+        val rightBackPosVel = rightBack.getPositionAndVelocity()
+        val rightFrontPosVel = rightFront.getPositionAndVelocity()
+
+        val angles = imu.robotYawPitchRollAngles
+
+        FlightRecorder.write(
+            "MECANUM_LOCALIZER_INPUTS",
+            MecanumLocalizerInputsMessage(
+                leftFrontPosVel, leftBackPosVel, rightBackPosVel, rightFrontPosVel, angles,
+            ),
+        )
+
+        val heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS))
+
+        if (!initialized) {
+            initialized = true
+
+            lastLeftFrontPos = leftFrontPosVel.position
+            lastLeftBackPos = leftBackPosVel.position
+            lastRightBackPos = rightBackPosVel.position
+            lastRightFrontPos = rightFrontPosVel.position
+
+            lastHeading = heading
+
+            return PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
+        }
+
+        val headingDelta = heading.minus(lastHeading)
+        val twist = kinematics.forward<Time>(
+            MecanumWheelIncrements(
+                DualNum<Time>(
+                    doubleArrayOf(
+                        ((leftFrontPosVel.position - lastLeftFrontPos).toDouble()),
+                        leftFrontPosVel.velocity.toDouble(),
+                    ),
+                ) * inPerTick,
+                DualNum<Time>(
+                    doubleArrayOf(
+                        ((leftBackPosVel.position - lastLeftBackPos).toDouble()),
+                        leftBackPosVel.velocity.toDouble(),
+                    ),
+                ) * inPerTick,
+                DualNum<Time>(
+                    doubleArrayOf(
+                        ((rightBackPosVel.position - lastRightBackPos).toDouble()),
+                        rightBackPosVel.velocity.toDouble(),
+                    ),
+                ) * inPerTick,
+                DualNum<Time>(
+                    doubleArrayOf(
+                        ((rightFrontPosVel.position - lastRightFrontPos).toDouble()),
+                        rightFrontPosVel.velocity.toDouble(),
+                    ),
+                ) * inPerTick,
+            ),
+        )
+
+        lastLeftFrontPos = leftFrontPosVel.position
+        lastLeftBackPos = leftBackPosVel.position
+        lastRightBackPos = rightBackPosVel.position
+        lastRightFrontPos = rightFrontPosVel.position
+
+        lastHeading = heading
+
+        pose += Twist2d(twist.line.value(), headingDelta)
+
+        poseHistory.add(0, pose)
+
+        if (poseHistory.size > 100) {
+            poseHistory.removeLast()
+        }
+
+        vel = twist.velocity().value()
+        return vel
+    }
+
+    fun withNames(lfName: String, lbName: String, rfName: String, rbName: String) =
+        MecanumDriveLocalizer(
+            hardwareMap,
+            inPerTick,
+            imu,
+            kinematics,
+            lfName,
+            lbName,
+            rfName,
+            rbName,
+            lfDirection,
+            lbDirection,
+            rfDirection,
+            rbDirection,
+            initialPose,
+        )
+
+    fun withDirections(lfDirection: DcMotorSimple.Direction, lbDirection: DcMotorSimple.Direction, rfDirection: DcMotorSimple.Direction, rbDirection: DcMotorSimple.Direction) =
+        MecanumDriveLocalizer(
+            hardwareMap,
+            inPerTick,
+            imu,
+            kinematics,
+            lfName,
+            lbName,
+            rfName,
+            rbName,
+            lfDirection,
+            lbDirection,
+            rfDirection,
+            rbDirection,
+            initialPose,
+        )
+
+    fun withInitialPose(initialPose: Pose2d) =
+        MecanumDriveLocalizer(
+            hardwareMap,
+            inPerTick,
+            imu,
+            kinematics,
+            lfName,
+            lbName,
+            rfName,
+            rbName,
+            lfDirection,
+            lbDirection,
+            rfDirection,
+            rbDirection,
+            initialPose,
+        )
+}
+
+class TankLocalizer @JvmOverloads constructor(
+    val hardwareMap: HardwareMap,
+    val inPerTick: Double,
+    val kinematics: TankKinematics,
+    val leftNames: List<String> = listOf("leftFront", "leftBack"),
+    val rightNames: List<String> = listOf("rightFront", "rightBack"),
+    val leftDirections: List<DcMotorSimple.Direction> = listOf(DcMotorSimple.Direction.FORWARD, DcMotorSimple.Direction.FORWARD),
+    val rightDirections: List<DcMotorSimple.Direction> = listOf(DcMotorSimple.Direction.FORWARD, DcMotorSimple.Direction.FORWARD),
+    val initialPose: Pose2d = Pose2d.zero,
+) : Localizer {
+    val leftEncoders: List<Encoder> = leftNames.map { hardwareMap.overflowEncoder(it) }
+    val rightEncoders: List<Encoder> = rightNames.map { hardwareMap.overflowEncoder(it) }
+
+    private var lastLeftPos = 0.0
+    private var lastRightPos = 0.0
+
+    override var pose: Pose2d = initialPose
+    override var vel: PoseVelocity2d = PoseVelocity2d.zero
+        private set
+
+    override val poseHistory = mutableListOf<Pose2d>()
+
+    private var initialized = false
+
+    init {
+        leftEncoders.zip(leftDirections).forEach { (encoder, direction) -> encoder.direction = direction }
+        rightEncoders.zip(rightDirections).forEach { (encoder, direction) -> encoder.direction = direction }
+    }
+
+    override fun update(): PoseVelocity2d {
+        val leftReadings = leftEncoders.map { it.getPositionAndVelocity() }
+        val rightReadings = rightEncoders.map { it.getPositionAndVelocity() }
+
+        val leftPos = leftReadings.sumOf { it.position.toDouble() } / leftReadings.size
+        val leftVel = leftReadings.sumOf { it.velocity.toDouble() } / leftReadings.size
+        val rightPos = rightReadings.sumOf { it.position.toDouble() } / rightReadings.size
+        val rightVel = rightReadings.sumOf { it.velocity.toDouble() } / rightReadings.size
+
+        FlightRecorder.write(
+            "TANK_LOCALIZER_INPUTS",
+            TankLocalizerInputsMessage(leftReadings, rightReadings),
+        )
+
+        if (!initialized) {
+            initialized = true
+
+            lastLeftPos = leftPos
+            lastRightPos = rightPos
+
+            return PoseVelocity2d.zero
+        }
+
+        val twist = kinematics.forward<Time>(
+            TankWheelIncrements(
+                DualNum<Time>(
+                    doubleArrayOf(
+                        (leftPos - lastLeftPos),
+                        leftVel,
+                    ),
+                ) * inPerTick,
+                DualNum<Time>(
+                    doubleArrayOf(
+                        (rightPos - lastRightPos),
+                        rightVel,
+                    ),
+                ) * inPerTick,
+            ),
+        )
+
+        lastLeftPos = leftPos
+        lastRightPos = rightPos
+
+        pose += twist.value()
+
+        poseHistory.add(0, pose)
+        if (poseHistory.size > 100) {
+            poseHistory.removeAt(poseHistory.lastIndex)
+        }
+
+        vel = twist.velocity().value()
+        return vel
+    }
+
+    fun withNames(leftNames: List<String>, rightNames: List<String>) =
+        TankLocalizer(
+            hardwareMap,
+            inPerTick,
+            kinematics,
+            leftNames,
+            rightNames,
+            leftDirections,
+            rightDirections,
+            initialPose,
+        )
+
+    fun withDirections(leftDirections: List<DcMotorSimple.Direction>, rightDirections: List<DcMotorSimple.Direction>) =
+        TankLocalizer(
+            hardwareMap,
+            inPerTick,
+            kinematics,
+            leftNames,
+            rightNames,
+            leftDirections,
+            rightDirections,
+            initialPose,
+        )
+
+    fun withInitialPose(initialPose: Pose2d) =
+        TankLocalizer(
+            hardwareMap,
+            inPerTick,
+            kinematics,
+            leftNames,
+            rightNames,
+            leftDirections,
+            rightDirections,
+            initialPose,
+        )
+}
+
+class SwerveLocalizer(
+    val hardwareMap: HardwareMap,
+    val cpr: Int,
+    val inPerTick: Double,
+    val imu: IMU,
+    val kinematics: SwerveKinematics,
+    val driveNames: List<String> = listOf("lfDrive", "frDrive", "blDrive", "brDrive"),
+    val steeringNames: List<String> = listOf("lfSteering", "rfSteering", "lbSteering", "rbSteering"),
+    val driveDirections: List<DcMotorSimple.Direction> = driveNames.map { DcMotorSimple.Direction.FORWARD },
+    val steeringDirections: List<DcMotorSimple.Direction> = steeringNames.map { DcMotorSimple.Direction.FORWARD },
+    val initialPose: Pose2d = Pose2d.zero
+) : Localizer {
+    private val driveEncoders: List<Encoder> = driveNames.map { hardwareMap.overflowEncoder(it) }
+    private val steeringEncoders: List<Encoder> = steeringNames.map {
+        WrappingEncoder(hardwareMap.overflowEncoder(it), cpr)
+    }
+
+    private var lastDrivePositions = steeringNames.map { 0 }
+    private var lastSteeringPositions = steeringNames.map { 0 }
+
+    private var lastHeading = Rotation2d.zero
+
+    override var pose = initialPose
+    override var vel: PoseVelocity2d = PoseVelocity2d.zero
+        private set
+
+    override val poseHistory = ArrayList<Pose2d>()
+
+    private var initialized = false
+    override fun update(): PoseVelocity2d {
+        val drivePositionsAndVelocities = driveEncoders.map { it.getPositionAndVelocity() }
+        val steeringPositionsAndVelocities = steeringEncoders.map { it.getPositionAndVelocity() }
+
+        val angles: YawPitchRollAngles = imu.robotYawPitchRollAngles
+        val heading = Rotation2d.exp(angles.getYaw(AngleUnit.RADIANS))
+
+        if (!initialized) {
+            initialized = true
+
+            lastDrivePositions = drivePositionsAndVelocities.map { it.position }
+            lastSteeringPositions = steeringPositionsAndVelocities.map { it.position }
+
+            lastHeading = heading
+
+            return PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
+        }
+
+        val headingDelta = heading.minus(lastHeading)
+
+        val wheelDeltas = drivePositionsAndVelocities.indices.map {
+            DualNum<Time>(doubleArrayOf(
+                (drivePositionsAndVelocities[it].position - lastDrivePositions[it]).toDouble(),
+                (drivePositionsAndVelocities[it].velocity - lastDrivePositions[it]).toDouble()
+            )) * inPerTick
+        }
+        val steeringAngles = steeringPositionsAndVelocities.indices.map {
+            DualNum<Time>(doubleArrayOf(
+                (steeringPositionsAndVelocities[it].position - lastDrivePositions[it]).toDouble(),
+                (steeringPositionsAndVelocities[it].velocity - lastDrivePositions[it]).toDouble()
+            )) * (cpr / 2 * PI)
+        }
+
+        lastDrivePositions = drivePositionsAndVelocities.map { it.position }
+        lastSteeringPositions = steeringPositionsAndVelocities.map { it.position }
+
+        val twist = kinematics.forward<Time>(SwerveKinematics.SwerveWheelIncrements(
+            List(wheelDeltas.size) {
+                SwerveModuleIncrements<Time>(wheelDeltas[it], steeringAngles[it].value())
+            }))
+
+        lastHeading = heading
+
+        // Update pose using the calculated twist
+        pose += Twist2d(twist.line.value(), headingDelta)
+
+
+        poseHistory.add(0, pose)
+        if (poseHistory.size > 100) {
+            poseHistory.removeAt(poseHistory.size - 1)
+        }
+
+        vel = twist.velocity().value()
+        return vel
+    }
+
+    fun withNames(driveNames: List<String>, steeringNames: List<String>) =
+        SwerveLocalizer(
+            hardwareMap,
+            cpr,
+            inPerTick,
+            imu,
+            kinematics,
+            driveNames,
+            steeringNames,
+            driveDirections,
+            steeringDirections,
+            initialPose,
+        )
+
+    fun withDirections(driveDirections: List<DcMotorSimple.Direction>, steeringDirections: List<DcMotorSimple.Direction>) =
+        SwerveLocalizer(
+            hardwareMap,
+            cpr,
+            inPerTick,
+            imu,
+            kinematics,
+            driveNames,
+            steeringNames,
+            driveDirections,
+            steeringDirections,
+            initialPose
+        )
+
+    fun withInitialPose(initialPose: Pose2d) =
+        SwerveLocalizer(
+            hardwareMap,
+            cpr,
+            inPerTick,
+            imu,
+            kinematics,
+            driveNames,
+            steeringNames,
+            driveDirections,
+            steeringDirections,
+            initialPose,
+        )
 }
