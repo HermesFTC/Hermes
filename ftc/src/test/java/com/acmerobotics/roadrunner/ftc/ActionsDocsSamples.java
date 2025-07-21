@@ -3,10 +3,7 @@ package com.acmerobotics.roadrunner.ftc;
 import androidx.annotation.NonNull;
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
-import com.acmerobotics.roadrunner.actions.Action;
-import com.acmerobotics.roadrunner.actions.Actions;
-import com.acmerobotics.roadrunner.actions.ParallelAction;
-import com.acmerobotics.roadrunner.actions.SequentialAction;
+import com.acmerobotics.roadrunner.actions.*;
 import com.acmerobotics.roadrunner.trajectories.Trajectory;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -55,13 +52,13 @@ public class ActionsDocsSamples {
     ActionsDocsSamples() {
         // sample: actionsMoveToPoint
         Drive drive = new Drive();
-        Actions.runBlocking(drive.moveToPoint(10, 20));
+        ActionRunner.runBlocking(drive.moveToPoint(10, 20));
         // end sample
 
         final Trajectory shootingTraj = null;
         final Shooter shooter = new Shooter();
         // sample: actionsCompositeAction
-        Actions.runBlocking(new SequentialAction(
+        ActionRunner.runBlocking(new SequentialAction(
                 drive.turn(Math.PI / 2),
                 new ParallelAction(
                         drive.followTrajectory(shootingTraj),
@@ -111,7 +108,7 @@ public class ActionsDocsSamples {
 
                 waitForStart();
 
-                Actions.runBlocking(shooter.spinUp());
+                ActionRunner.runBlocking(shooter.spinUp());
             }
         }
         // end sample

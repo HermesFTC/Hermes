@@ -11,24 +11,6 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier
 import org.firstinspires.ftc.ftccommon.external.OnCreateEventLoop
 
-/**
- * Run [a] to completion in a blocking loop.
- */
-fun runBlocking(a: Action) {
-    val dash = FtcDashboard.getInstance()
-    val c = Canvas()
-    a.preview(c)
-
-    var b = true
-    while (b && !Thread.currentThread().isInterrupted) {
-        val p = TelemetryPacket()
-        p.fieldOverlay().operations.addAll(c.operations)
-
-        b = a.run(p)
-
-        dash.sendTelemetryPacket(p)
-    }
-}
 
 /**
  * Singleton object responsible for managing and updating a queue of concurrent asynchronous tasks (actions).
@@ -107,5 +89,26 @@ object ActionRunner : OpModeManagerNotifier.Notifications {
 
     override fun onOpModePostStop(p0: OpMode?) {
         _actions.clear()
+    }
+
+
+    /**
+     * Run [a] to completion in a blocking loop.
+     */
+    @JvmStatic
+    fun runBlocking(a: Action) {
+        val dash = FtcDashboard.getInstance()
+        val c = Canvas()
+        a.preview(c)
+
+        var b = true
+        while (b && !Thread.currentThread().isInterrupted) {
+            val p = TelemetryPacket()
+            p.fieldOverlay().operations.addAll(c.operations)
+
+            b = a.run(p)
+
+            dash.sendTelemetryPacket(p)
+        }
     }
 }
