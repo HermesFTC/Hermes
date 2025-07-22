@@ -1,5 +1,5 @@
 import SingleConfig from "@/components/AssignableSingleConfig"
-import { ImportantInstruction } from "@/components/TextModifications"
+import { FadeIn, ImportantInstruction } from "@/components/TextModifications"
 import BasicVariable from "@/components/views/ConfigView/BasicVariable"
 import CustomVariable from "@/components/views/ConfigView/CustomVariable"
 import EnumInput from "@/components/views/ConfigView/inputs/EnumInput"
@@ -7,7 +7,8 @@ import { useConfigVariable, useSetConfigVariable } from "@/hooks/useConfigVariab
 
 export default function GettingStarted() {
 
-    const setConfig = useSetConfigVariable()
+    const setConfig = useSetConfigVariable();
+    const setLocalizer = (value: string) => setConfig("Hermes/Localizer", value)
 
     const currentLocalizer = useConfigVariable("Hermes/Localizer")
 
@@ -16,7 +17,7 @@ export default function GettingStarted() {
     return (
 
         <div>
-
+            <FadeIn>
             <h1 className="text-3xl">Welcome to Hermes!</h1>
 
             <div className="text-left">
@@ -31,8 +32,11 @@ export default function GettingStarted() {
 
             <div className="mt-4 flex justify-center items-center text-center flex flex-col">
                 {currentLocalizer}
-                <button className="border-solid border-hermes-cyan-dark border-4 rounded-xl py-4 w-1/2 lg:w-full" onClick={() => {setConfig("Hermes/Localizer", "TWO_WHEEL");console.log("HBDSUAHD");}}>test</button>
+                <button className="border-solid border-hermes-cyan-dark border-4 my-2 rounded-xl py-4 w-1/2 lg:w-full" onClick={() => {setLocalizer("GOBILDA_PINPOINT")}}>Pinpoint</button>
+                <button className="border-solid border-hermes-cyan-dark border-4 my-2 rounded-xl py-4 w-1/2 lg:w-full" onClick={() => {setLocalizer("TWO_WHEEL")}}>Two Wheel</button>
+                <button className="border-solid border-hermes-cyan-dark border-4 my-2 rounded-xl py-4 w-1/2 lg:w-full" onClick={() => {setLocalizer("THREE_WHEEL")}}>Three Wheel</button>
             </div>  
+            </FadeIn>
 
             
 
