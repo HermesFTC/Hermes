@@ -17,6 +17,8 @@ import { startSocketWatcher } from "@/store/middleware/socketMiddleware";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux/es/hooks/useDispatch";
 import DefaultLayout from './pages/DefaultLayout';
+import ForwardPush from './pages/ForwardPush';
+import LateralPush from './pages/LateralPush';
 
 export default function App() {
 
@@ -29,6 +31,8 @@ export default function App() {
             <Route index element={<Home/>}/>
             <Route element={<TuningPage/>}>
               <Route path="/getting-started" element={<GettingStarted/>}/>
+              <Route path="/forward-push" element={<ForwardPush/>}/>
+              <Route path="/lateral-push" element={<LateralPush/>}/>
             </Route>
           </Route>
         </Routes>
