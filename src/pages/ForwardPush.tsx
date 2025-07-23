@@ -47,10 +47,10 @@ export default function ForwardPush() {
     const drive3Dir = useConfigVariable("ForwardPush/Drive3MotorDirection"); // motor encoder only
     const drive4Dir = useConfigVariable("ForwardPush/Drive4MotorDirection"); // motor encoder only
 
-    // pinpoint: is everything plugged in right? (FORWARD / REVERSED / FLIPPED / DUAL / NONE) -> dual = both x and y increase, none = both x and y do nothing
+    // pinpoint: is everything plugged in right? (FORWARD / REVERSED / FLIPPED / FLIPPED_REVERSE / DUAL / NONE) -> dual = both x and y increase, none = both x and y do nothing
     const pinpointStatus = useConfigVariable("ForwardPush/PinpointStatus");
 
-    // otos: is everything working properly? (FORWARD / REVERSED / DUAL / NONE)
+    // otos: is everything working properly? (FORWARD / REVERSED / OFFSET / OFFSET_REVERSED / DUAL / NONE)
     const otosStatus = useConfigVariable("ForwardPush/OTOSStatus");
 
     // current localizer choice (should not update during opmode)
@@ -89,11 +89,21 @@ export default function ForwardPush() {
                 case "GOBILDA_PINPOINT":
                     if (pinpointStatus == "REVERSED" ) {
                         setConfig("HermesConfig/PinpointXDirection", "REVERSE");
+
                     } else if (pinpointStatus == "FLIPPED") {
-                        setConfig("HermesConfig/PinpointYDirection", "REVERSE");
+                        setConfig("HermesConfig/PinpointYDirection", "REVERSE"); // make Y negative so it matches up on a rotation matrix LOL
                         setConfig("HermesConfig/PinpointHeadingOffset", Math.PI / 2.0);
+                        alert("Your pinpoint pods are reversed. If you would like to use pinpoint outside of Hermes, switch the wires going into the pinpoint and run this tuner again.")
+                    
+                    } else if (pinpointStatus == "FLIPPED_REVERSE") {
+                        setConfig("HermesConfig/PinpointYDirection", "FORWARD"); // make Y negative so it matches up on a rotation matrix LOL
+                        setConfig("HermesConfig/PinpointHeadingOffset", Math.PI / 2.0);
+                        alert("Your pinpoint pods are reversed. If you would like to use pinpoint outside of Hermes, switch the wires going into the pinpoint and run this tuner again.")
+                    
                     } else if (pinpointStatus != "FORWARD" ) {
                         alert("Your pinpoint may have wiring issues. Please double check that the pods are plugged in correctly and tracking before continuing.");
+                    } else {
+                        setConfig("HermesConfig/PinpointXDirection", "FORWARD");
                     }
                     break;
 
@@ -126,7 +136,14 @@ export default function ForwardPush() {
 
                 case "SPARKFUN_OTOS":
                     if (otosStatus == "REVERSED" ) {
-                        setConfig("HermesConfig/OTOSXDirection", "REVERSE");
+                        setConfig("HermesConfig/OTOSHeadingOffset", Math.PI); // flip 180
+                        
+                    } else if (otosStatus == "OFFSET") { // +y -> correlates with a rotation of +90 deg
+                        setConfig("HermesConfig/OTOSHeadingOffset", Math.PI / 2.0);
+
+                    } else if (otosStatus == "OFFSET_REVERSED") { // -y -> correlates with a rotation of -90 deg
+                        setConfig("HermesConfig/OTOSHeadingOffset", -Math.PI / 2.0);
+                        
                     } else if (otosStatus != "FORWARD" ) {
                         alert("Your OTOS may have installation issues. Please double check that your OTOS is oriented properly before continuing.");
                     }
