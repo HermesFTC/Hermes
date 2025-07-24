@@ -91,12 +91,12 @@ export default function ForwardPush() {
                         setConfig("HermesConfig/PinpointXDirection", "REVERSE");
 
                     } else if (pinpointStatus == "FLIPPED") {
-                        setConfig("HermesConfig/PinpointYDirection", "REVERSE"); // make Y negative so it matches up on a rotation matrix LOL
+                        setConfig("HermesConfig/PinpointXDirection", "REVERSE"); // make Y negative so it matches up on a rotation matrix LOL
                         setConfig("HermesConfig/PinpointHeadingOffset", Math.PI / 2.0);
                         alert("Your pinpoint pods are reversed. If you would like to use pinpoint outside of Hermes, switch the wires going into the pinpoint and run this tuner again.")
                     
                     } else if (pinpointStatus == "FLIPPED_REVERSE") {
-                        setConfig("HermesConfig/PinpointYDirection", "FORWARD"); // make Y negative so it matches up on a rotation matrix LOL
+                        setConfig("HermesConfig/PinpointXDirection", "FORWARD"); // make Y negative so it matches up on a rotation matrix LOL
                         setConfig("HermesConfig/PinpointHeadingOffset", Math.PI / 2.0);
                         alert("Your pinpoint pods are reversed. If you would like to use pinpoint outside of Hermes, switch the wires going into the pinpoint and run this tuner again.")
                     
@@ -143,7 +143,7 @@ export default function ForwardPush() {
 
                     } else if (otosStatus == "OFFSET_REVERSED") { // -y -> correlates with a rotation of -90 deg
                         setConfig("HermesConfig/OTOSHeadingOffset", -Math.PI / 2.0);
-                        
+
                     } else if (otosStatus != "FORWARD" ) {
                         alert("Your OTOS may have installation issues. Please double check that your OTOS is oriented properly before continuing.");
                     }

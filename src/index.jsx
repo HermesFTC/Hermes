@@ -19,6 +19,7 @@ import { useDispatch } from "react-redux/es/hooks/useDispatch";
 import DefaultLayout from './pages/DefaultLayout';
 import ForwardPush from './pages/ForwardPush';
 import LateralPush from './pages/LateralPush';
+import AngularPush from './pages/AngularPush';
 
 export default function App() {
 
@@ -33,6 +34,7 @@ export default function App() {
               <Route path="/getting-started" element={<GettingStarted/>}/>
               <Route path="/forward-push" element={<ForwardPush/>}/>
               <Route path="/lateral-push" element={<LateralPush/>}/>
+              <Route path="/angular-push" element={<AngularPush/>}/>
             </Route>
           </Route>
         </Routes>
