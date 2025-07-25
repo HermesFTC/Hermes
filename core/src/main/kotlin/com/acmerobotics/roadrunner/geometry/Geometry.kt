@@ -58,6 +58,8 @@ data class Vector2dDual<Param>(@JvmField val x: DualNum<Param>, @JvmField val y:
     operator fun minus(v: Vector2dDual<Param>) = Vector2dDual(x - v.x, y - v.y)
     operator fun unaryMinus() = Vector2dDual(-x, -y)
 
+    operator fun times(z: Double) = Vector2dDual(x * z, y * z)
+
     operator fun div(z: Double) = Vector2dDual(x / z, y / z)
 
     infix fun dot(v: Vector2dDual<Param>) = x * v.x + y * v.y
@@ -318,6 +320,7 @@ data class Pose2dDual<Param>(
 
     fun value() = Pose2d(position.value(), heading.value())
     fun velocity() = PoseVelocity2dDual(position.drop(1), heading.velocity())
+    fun acceleration() = PoseVelocity2dDual(position.drop(2), heading.velocity().drop(1))
 }
 
 @Serializable
@@ -350,6 +353,8 @@ data class PoseVelocity2dDual<Param>(
     operator fun plus(other: PoseVelocity2d) = PoseVelocity2dDual(linearVel + other.linearVel, angVel + other.angVel)
 
     fun value() = PoseVelocity2d(linearVel.value(), angVel.value())
+
+    fun acceleration() = Acceleration2dDual(linearVel.drop(1), angVel.drop(1))
 }
 
 @Serializable
@@ -383,6 +388,45 @@ data class Acceleration2d(@JvmField val linearAcc: Vector2d, @JvmField val angAc
     @JvmOverloads
     fun integrateToVel(dt: Double, initial: PoseVelocity2d = PoseVelocity2d.zero) =
         PoseVelocity2d(initial.linearVel + linearAcc * dt, initial.angVel + angAcc * dt)
+}
+
+@Serializable
+data class Acceleration2dDual<Param>(@JvmField val linearAcc: Vector2dDual<Param>, @JvmField val angAcc: DualNum<Param>) {
+    companion object {
+        @JvmStatic
+        fun <Param> constant(pa: Acceleration2d, n: Int) =
+            Acceleration2dDual<Param>(Vector2dDual.constant(pa.linearAcc, n), DualNum.constant(pa.angAcc, n))
+
+        @JvmStatic
+        fun <Param> zero() = constant<Param>(Acceleration2d.zero, 1)
+    }
+
+    fun value() = Acceleration2d(linearAcc.value(), angAcc.value())
+
+    @JvmOverloads
+    fun integrateToVel(dt: Double, initial: PoseVelocity2dDual<Param> = PoseVelocity2dDual.zero()) =
+        PoseVelocity2dDual(linearAcc * dt + initial.linearVel, angAcc * dt + initial.angVel)
+}
+
+data class ChassisSpeeds(@JvmField val linearVel: Vector2d, @JvmField val angularVel: Double) {
+    companion object {
+        @JvmField
+        val zero = ChassisSpeeds(Vector2d.zero, 0.0)
+    }
+
+    operator fun plus(other: ChassisSpeeds) =
+        ChassisSpeeds(linearVel + other.linearVel, angularVel + other.angularVel)
+
+    operator fun minus(other: ChassisSpeeds) =
+        ChassisSpeeds(linearVel - other.linearVel, angularVel - other.angularVel)
+
+    operator fun times(scalar: Double) =
+        ChassisSpeeds(linearVel * scalar, angularVel * scalar)
+
+    operator fun div(scalar: Double) =
+        ChassisSpeeds(linearVel / scalar, angularVel / scalar)
+
+    operator fun unaryMinus() = ChassisSpeeds(-linearVel, -angularVel)
 }
 
 /**
