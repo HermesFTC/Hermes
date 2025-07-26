@@ -22,6 +22,11 @@ class Matrix(data: Array<DoubleArray>) {
     constructor(data: Collection<Collection<Double>>) : this(data.map { it.toDoubleArray() }.toTypedArray())
 
     /**
+     * Constructor to create a [Matrix] from multiple arrays.
+     */
+    constructor(vararg data: DoubleArray) : this(data.map { it.toList() })
+
+    /**
      * Constructor to create a [Matrix] from multiple collections.
      */
     constructor(vararg data: Collection<Double>) : this(data.map { it.toDoubleArray() }.toTypedArray())
@@ -55,21 +60,14 @@ class Matrix(data: Array<DoubleArray>) {
          * and all other elements set to 0.
          */
         @JvmStatic
-        fun diagonal(vararg data: Double) = Matrix(SimpleMatrix.diag(*data))
-
-        /**
-         * Creates a matrix with [data] along the diagonal
-         * and all other elements set to 0.
-         */
-        @JvmStatic
-        fun diagonal(data: Collection<Double>) = diagonal(*data.toDoubleArray())
+        fun diagonal(data: DoubleArray) = Matrix(SimpleMatrix.diag(*data))
 
         /**
          * Creates a 1 by n matrix with [data] as its elements,
          * where n is [data].size.
          */
         @JvmStatic
-        fun row(vararg data: Double) =
+        fun row(data: DoubleArray) =
             Matrix(SimpleMatrix(1, data.size, true, *data))
 
         /**
@@ -77,14 +75,21 @@ class Matrix(data: Array<DoubleArray>) {
          * where n is [data].size.
          */
         @JvmStatic
-        fun row(data: Collection<Double>) = row(*data.toDoubleArray())
+        fun row(data: Collection<Double>) = row(data.toDoubleArray())
+
+        /**
+         * Creates a 1 by n matrix with [data] as its elements,
+         * where n is [data].size.
+         */
+        @JvmStatic
+        fun row(vararg data: Double) = row(data)
 
         /**
          * Creates an n by 1 matrix with [data] as its elements,
          * where n is [data].size.
          */
         @JvmStatic
-        fun column(vararg data: Double) =
+        fun column(data: DoubleArray) =
             Matrix(SimpleMatrix(data.size, 1, false, *data))
 
         /**
@@ -92,7 +97,14 @@ class Matrix(data: Array<DoubleArray>) {
          * where n is [data].size.
          */
         @JvmStatic
-        fun column(data: Collection<Double>) = column(*data.toDoubleArray())
+        fun column(data: Collection<Double>) = column(data.toDoubleArray())
+
+        /**
+         * Creates an n by 1 matrix with [data] as its elements,
+         * where n is [data].size.
+         */
+        @JvmStatic
+        fun column(vararg data: Double) = column(data)
     }
 
     internal val simple = SimpleMatrix(data)
