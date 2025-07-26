@@ -11,6 +11,8 @@ mockk = "1.14.4"
 xchart = "3.8.8"
 ejml = "0.44.0"
 deployer = "0.18.0"
+quickbufRuntime = "1.3.3"
+wpilib = "2025.3.2"
 
 [libraries]
 dashboard-core = { module = "com.acmerobotics.dashboard:core", version.ref = "dash" }
@@ -29,11 +31,17 @@ mathjax-plugin = { module = "org.jetbrains.dokka:mathjax-plugin", version.ref = 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 xchart = { module = "org.knowm.xchart:xchart", version.ref = "xchart" }
 ejml = { module = "org.ejml:ejml-simple", version.ref = "ejml" }
+quickbuf-runtime = { module = "us.hebi.quickbuf:quickbuf-runtime", version.ref = "quickbufRuntime" }
+wpiutil = { module = "edu.wpi.first.wpiutil:wpiutil-java", version.ref = "wpilib" }
+wpimath = { module = "edu.wpi.first.wpimath:wpimath-java", version.ref = "wpilib" }
+wpiunits = { module = "edu.wpi.first.wpiunits:wpiunits-java", version.ref = "wpilib" }
+wpilibj = { module = "edu.wpi.first.wpilibj:wpilibj-java", version.ref = "wpilib" }
 
 [bundles]
 dashboard = ["dashboard-core", "dashboard-dashboard"]
 kotest = ["kotest-runner-junit5", "kotest-assertions-core", "kotest-property"]
 ftcsdk = ["ftcsdk-common", "ftcsdk-robotcore", "ftcsdk-hardware"]
+wpilib = ["wpiutil", "wpimath", "wpiunits", "wpilibj"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

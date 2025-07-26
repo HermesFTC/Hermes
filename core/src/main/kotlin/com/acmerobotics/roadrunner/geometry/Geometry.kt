@@ -330,6 +330,9 @@ data class PoseVelocity2d(@JvmField val linearVel: Vector2d, @JvmField val angVe
     companion object {
         @JvmField
         val zero = PoseVelocity2d(Vector2d.zero, 0.0)
+
+        @JvmStatic
+        fun fromChassisSpeeds(cs: ChassisSpeeds) = PoseVelocity2d(cs.linearVel, cs.angularVel)
     }
 }
 
@@ -412,6 +415,9 @@ data class ChassisSpeeds(@JvmField val linearVel: Vector2d, @JvmField val angula
     companion object {
         @JvmField
         val zero = ChassisSpeeds(Vector2d.zero, 0.0)
+
+        @JvmStatic
+        fun fromPoseVelocity(pv: PoseVelocity2d) = ChassisSpeeds(pv.linearVel, pv.angVel)
     }
 
     operator fun plus(other: ChassisSpeeds) =
