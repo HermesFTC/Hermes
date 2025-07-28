@@ -1,4 +1,4 @@
-package me.zharel.hermes.wpi
+package me.zharel.hermes.talaria
 
 import com.acmerobotics.roadrunner.control.RobotPosVelController
 import com.acmerobotics.roadrunner.profiles.AccelConstraint

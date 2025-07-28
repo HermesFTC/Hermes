@@ -2,7 +2,7 @@ rootProject.name = "Hermes"
 include("core")
 include("actions")
 include("ftc")
-include("wpilib")
+include("talaria")
 
 pluginManagement {
 

@@ -1,4 +1,4 @@
-package me.zharel.hermes.wpi
+package me.zharel.hermes.talaria
 
 import com.acmerobotics.roadrunner.geometry.Pose2dDual
 import edu.wpi.first.math.geometry.Pose2d

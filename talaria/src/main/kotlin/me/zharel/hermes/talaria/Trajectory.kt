@@ -1,4 +1,4 @@
-package me.zharel.hermes.wpi
+package me.zharel.hermes.talaria
 
 import com.acmerobotics.roadrunner.geometry.ChassisSpeeds.Companion.fromPoseVelocity
 import edu.wpi.first.math.geometry.Pose2d

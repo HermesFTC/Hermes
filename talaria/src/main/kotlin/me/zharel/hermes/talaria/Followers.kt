@@ -1,13 +1,10 @@
 @file:Suppress("DuplicatedCode")
 
-package me.zharel.hermes.wpi
+package me.zharel.hermes.talaria
 
 import com.acmerobotics.roadrunner.geometry.*
-import com.acmerobotics.roadrunner.paths.PosePath
 import com.acmerobotics.roadrunner.profiles.AccelConstraint
-import com.acmerobotics.roadrunner.profiles.TimeProfile
 import com.acmerobotics.roadrunner.profiles.VelConstraint
-import com.acmerobotics.roadrunner.profiles.forwardProfile
 import com.acmerobotics.roadrunner.trajectories.DisplacementTrajectory
 import com.acmerobotics.roadrunner.trajectories.TimeTrajectory
 import com.acmerobotics.roadrunner.trajectories.Trajectory
