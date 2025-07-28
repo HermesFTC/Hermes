@@ -14,7 +14,7 @@ plugins {
 
 repositories {
     mavenCentral()
-    maven("https://frcmaven.wpi.edu/artifactory/release/")
+    maven("https://frcmaven.wpi.edu/artifactory/release-2027/")
 }
 
 dependencies {
