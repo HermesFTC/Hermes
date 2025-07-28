@@ -5,7 +5,10 @@ import com.acmerobotics.dashboard.config.ValueProvider
 import com.acmerobotics.dashboard.config.variable.BasicVariable
 import com.acmerobotics.dashboard.config.variable.ConfigVariable
 import com.acmerobotics.dashboard.config.variable.CustomVariable
+import com.acmerobotics.roadrunner.serialization.HermesJsonFormat
 import com.google.gson.Gson
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.json.encodeToStream
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import java.io.File
 
@@ -20,10 +23,11 @@ open class PersistentConfig(val configName: String, var configFile: File) {
     private val configWriter get() = PersistentConfigWriter(configFile)
     private val configReader get() = PersistentConfigReader(configFile)
 
-    fun <T : Any?> addConfigVariable(name: String, value: T) {
+    @Suppress("UNCHECKED_CAST")
+    fun <T> addConfigVariable(name: String, value: T?) {
 
-        val provider = PersistentConfigValueProvider<T>(value, this)
-        FtcDashboard.getInstance().addConfigVariable<T>(configName, name, provider)
+        val provider: ValueProvider<T?> = PersistentConfigValueProvider(value, this)
+        FtcDashboard.getInstance().addConfigVariable(configName, name, provider)
         configVariables.putIfAbsent(name, provider as ValueProvider<Any?>) // legal typecast since T is a subclass of Any?
 
     }
@@ -73,14 +77,11 @@ class PersistentConfigValueProvider<T: Any?>(initalValue: T, val config: Persist
 
 }
 
-class PersistentConfigWriter(val configFile: File) {
-
-    private val gson = Gson()
-
-    fun writeConfig(config: PersistentConfig) {
-
+open class PersistentConfigWriter(val configFile: File) {
+    @OptIn(ExperimentalSerializationApi::class)
+    fun writeConfig() {
+        HermesJsonFormat.encodeToStream(this, configFile.outputStream())
     }
-
 }
 
 class PersistentConfigReader(val configFile: File) {
