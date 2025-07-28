@@ -12,7 +12,7 @@ xchart = "3.8.8"
 ejml = "0.44.0"
 deployer = "0.18.0"
 quickbufRuntime = "1.3.3"
-wpilib = "2025.3.2"
+wpilib = "2027.0.0-alpha-2"
 
 [libraries]
 dashboard-core = { module = "com.acmerobotics.dashboard:core", version.ref = "dash" }
