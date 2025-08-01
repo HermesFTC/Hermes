@@ -1,6 +1,7 @@
 package com.acmerobotics.roadrunner
 
 import com.acmerobotics.roadrunner.geometry.DualNum
+import com.acmerobotics.roadrunner.geometry.DualParameter
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.acmerobotics.roadrunner.geometry.Pose2dDual
 import com.acmerobotics.roadrunner.geometry.Rotation2d
@@ -10,7 +11,7 @@ import com.acmerobotics.roadrunner.geometry.Vector2dDual
 import io.kotest.matchers.Matcher
 import io.kotest.matchers.MatcherResult
 
-fun <P> dualEqual(other: DualNum<P>) = Matcher<DualNum<P>> { value ->
+fun <P : DualParameter> dualEqual(other: DualNum<P>) = Matcher<DualNum<P>> { value ->
     MatcherResult(
         value.values().size == other.values().size &&
                 (value.values().zip(other.values()).all { (a, b) -> a == b }),
@@ -46,7 +47,7 @@ fun poseEqual(other: Pose2d) = Matcher<Pose2d> { value ->
     )
 }
 
-fun <P> dualVectorEqual(other: Vector2dDual<P>) = Matcher<Vector2dDual<P>> { value ->
+fun <P : DualParameter> dualVectorEqual(other: Vector2dDual<P>) = Matcher<Vector2dDual<P>> { value ->
     MatcherResult(
         value.x.values().size == other.x.values().size &&
         value.y.values().size == other.y.values().size &&
@@ -57,7 +58,7 @@ fun <P> dualVectorEqual(other: Vector2dDual<P>) = Matcher<Vector2dDual<P>> { val
     )
 }
 
-fun <P> dualRotationEqual(other: Rotation2dDual<P>) = Matcher<Rotation2dDual<P>> { value ->
+fun <P : DualParameter> dualRotationEqual(other: Rotation2dDual<P>) = Matcher<Rotation2dDual<P>> { value ->
     MatcherResult(
         value.real.values().size == other.real.values().size &&
         value.imag.values().size == other.imag.values().size &&
@@ -68,7 +69,7 @@ fun <P> dualRotationEqual(other: Rotation2dDual<P>) = Matcher<Rotation2dDual<P>>
     )
 }
 
-fun <P> dualPoseEqual(other: Pose2dDual<P>) = Matcher<Pose2dDual<P>> { value ->
+fun <P : DualParameter> dualPoseEqual(other: Pose2dDual<P>) = Matcher<Pose2dDual<P>> { value ->
     MatcherResult(
         value.position.x.values().size == other.position.x.values().size &&
         value.position.y.values().size == other.position.y.values().size &&

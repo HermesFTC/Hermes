@@ -4,6 +4,7 @@ package com.acmerobotics.roadrunner.control
 
 import com.acmerobotics.roadrunner.geometry.Acceleration2d
 import com.acmerobotics.roadrunner.geometry.DualNum
+import com.acmerobotics.roadrunner.geometry.DualParameter
 import com.acmerobotics.roadrunner.geometry.Matrix
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.acmerobotics.roadrunner.geometry.Pose2dDual
@@ -157,7 +158,7 @@ class LQRController : RobotPosVelController{
      *              (position error AND velocity error).
      * @return The calculated optimal control acceleration.
      */
-    fun <Param> update(error: Twist2dDual<Param>): Acceleration2d {
+    fun <Param : DualParameter> update(error: Twist2dDual<Param>): Acceleration2d {
         require(error.size() >= 2) { "Position and velocity errors must be provided" }
 
         val posError = error.value()
@@ -288,19 +289,19 @@ internal fun discretizeSystem(A: SimpleMatrix, B: SimpleMatrix, dt: Double, tayl
     return Pair(Ad, Bd)
 }
 
-internal fun <Param> Twist2d.concat(other: Twist2d) = Twist2dDual<Param>(
+internal fun <Param : DualParameter> Twist2d.concat(other: Twist2d) = Twist2dDual<Param>(
     this.line.concat(other.line),
     DualNum(doubleArrayOf(angle, other.angle))
 )
 
-internal fun <Param> Vector2d.concat(other: Vector2d) = Vector2dDual<Param>(
+internal fun <Param : DualParameter> Vector2d.concat(other: Vector2d) = Vector2dDual<Param>(
     DualNum(doubleArrayOf(this.x, other.x)),
     DualNum(doubleArrayOf(this.y, other.y))
 )
 
-internal fun <Param> PoseVelocity2d.concat(other: Acceleration2d) = PoseVelocity2dDual<Param>(
+internal fun <Param : DualParameter> PoseVelocity2d.concat(other: Acceleration2d) = PoseVelocity2dDual<Param>(
     this.linearVel.concat(other.linearAcc),
     DualNum(doubleArrayOf(this.angVel, other.angAcc))
 )
 
-internal fun <Param> Twist2dDual<Param>.size() = angle.size()
+internal fun <Param : DualParameter> Twist2dDual<Param>.size() = angle.size()

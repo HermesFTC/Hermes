@@ -1,6 +1,7 @@
 package com.acmerobotics.roadrunner
 
 import com.acmerobotics.roadrunner.geometry.DualNum
+import com.acmerobotics.roadrunner.geometry.DualParameter
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.acmerobotics.roadrunner.geometry.Rotation2d
 import com.acmerobotics.roadrunner.geometry.Vector2d
@@ -9,7 +10,7 @@ import kotlin.random.Random
 import io.kotest.property.arbitrary.arbitrary
 import io.kotest.property.arbitrary.bind
 
-fun <Param> Arb.Companion.DualNum(n: Int) = arbitrary { rs ->
+fun <Param : DualParameter> Arb.Companion.DualNum(n: Int) = arbitrary { rs ->
     DualNum<Param>(List(n) { rs.random.nextDouble() })
 }
 

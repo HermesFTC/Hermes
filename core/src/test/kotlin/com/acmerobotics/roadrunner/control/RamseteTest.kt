@@ -1,6 +1,7 @@
 package com.acmerobotics.roadrunner.control
 
 import com.acmerobotics.roadrunner.TEST_PROFILE_PARAMS
+import com.acmerobotics.roadrunner.geometry.DualParameter
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
 import com.acmerobotics.roadrunner.geometry.Time
@@ -199,7 +200,7 @@ class RamseteTest {
     }
 }
 
-fun <Param> PoseVelocity2dDual<Param>.flatten() : List<Double> {
+fun <Param : DualParameter> PoseVelocity2dDual<Param>.flatten() : List<Double> {
     return linearVel.x.values() + linearVel.y.values() + angVel.values()
 }
 
