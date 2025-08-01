@@ -43,14 +43,14 @@ fun List<Vector2d>.ys() = map { it.asPair() }.unzip().second
  * Dual version of [Vector2d].
  */
 @Serializable
-data class Vector2dDual<Param>(@JvmField val x: DualNum<Param>, @JvmField val y: DualNum<Param>) {
+data class Vector2dDual<Param : DualParameter>(@JvmField val x: DualNum<Param>, @JvmField val y: DualNum<Param>) {
     companion object {
         @JvmStatic
-        fun <Param> constant(v: Vector2d, n: Int) =
+        fun <Param : DualParameter> constant(v: Vector2d, n: Int) =
             Vector2dDual<Param>(DualNum.constant(v.x, n), DualNum.constant(v.y, n))
 
         @JvmStatic
-        fun <Param> zero() = constant<Param>(Vector2d.zero, 1)
+        fun <Param : DualParameter> zero() = constant<Param>(Vector2d.zero, 1)
     }
 
     operator fun plus(v: Vector2d) = Vector2dDual(x + v.x, y + v.y)
@@ -66,7 +66,7 @@ data class Vector2dDual<Param>(@JvmField val x: DualNum<Param>, @JvmField val y:
 
     fun bind() = Vector2dDual(x, y)
 
-    fun <NewParam> reparam(oldParam: DualNum<NewParam>) =
+    fun <NewParam : DualParameter> reparam(oldParam: DualNum<NewParam>) =
         Vector2dDual(x.reparam(oldParam), y.reparam(oldParam))
 
     fun drop(n: Int) = Vector2dDual(x.drop(n), y.drop(n))
@@ -78,8 +78,8 @@ data class Vector2dDual<Param>(@JvmField val x: DualNum<Param>, @JvmField val y:
     fun asPair() = x to y
 }
 
-fun <Param> List<Vector2dDual<Param>>.xsDual() = map { it.asPair() }.unzip().first
-fun <Param> List<Vector2dDual<Param>>.ysDual() = map { it.asPair() }.unzip().second
+fun <Param : DualParameter> List<Vector2dDual<Param>>.xsDual() = map { it.asPair() }.unzip().first
+fun <Param : DualParameter> List<Vector2dDual<Param>>.ysDual() = map { it.asPair() }.unzip().second
 
 fun List<Vector2dDual<*>>.dva(): List<Triple<Double, Double, Double>> {
     require(first().x.size() >= 3)
@@ -162,7 +162,7 @@ data class Rotation2d(@JvmField val real: Double, @JvmField val imag: Double) {
  * Dual version of [Rotation2d].
  */
 @Serializable
-data class Rotation2dDual<Param>(@JvmField val real: DualNum<Param>, @JvmField val imag: DualNum<Param>) {
+data class Rotation2dDual<Param : DualParameter>(@JvmField val real: DualNum<Param>, @JvmField val imag: DualNum<Param>) {
     init {
         require(real.size() == imag.size()) { "Real and imaginary parts must have the same size" }
         require(real.size() <= 3) { "Only derivatives up to 2nd order are supported" }
@@ -170,14 +170,14 @@ data class Rotation2dDual<Param>(@JvmField val real: DualNum<Param>, @JvmField v
 
     companion object {
         @JvmStatic
-        fun <Param> exp(theta: DualNum<Param>) = Rotation2dDual(theta.cos(), theta.sin())
+        fun <Param : DualParameter> exp(theta: DualNum<Param>) = Rotation2dDual(theta.cos(), theta.sin())
 
         @JvmStatic
-        fun <Param> constant(r: Rotation2d, n: Int) =
+        fun <Param : DualParameter> constant(r: Rotation2d, n: Int) =
             Rotation2dDual<Param>(DualNum.constant(r.real, n), DualNum.constant(r.imag, n))
 
         @JvmStatic
-        fun <Param> zero() = constant<Param>(Rotation2d.zero, 1)
+        fun <Param : DualParameter> zero() = constant<Param>(Rotation2d.zero, 1)
     }
 
     fun size() = real.size()
@@ -196,7 +196,7 @@ data class Rotation2dDual<Param>(@JvmField val real: DualNum<Param>, @JvmField v
 
     fun inverse() = Rotation2dDual(real, -imag)
 
-    fun <NewParam> reparam(oldParam: DualNum<NewParam>) =
+    fun <NewParam : DualParameter> reparam(oldParam: DualNum<NewParam>) =
         Rotation2dDual(real.reparam(oldParam), imag.reparam(oldParam))
 
     // derivative of atan2 under unit norm assumption
@@ -283,9 +283,9 @@ data class Pose2d(
  * Dual version of [Pose2d].
  */
 @Serializable
-data class Pose2dDual<Param>(
+data class Pose2dDual<Param : DualParameter>(
     @JvmField
-    val position: Vector2dDual<Param>,
+    val position: Vector2dDual<Param >,
     @JvmField
     val heading: Rotation2dDual<Param>,
 ) {
@@ -296,11 +296,11 @@ data class Pose2dDual<Param>(
 
     companion object {
         @JvmStatic
-        fun <Param> constant(p: Pose2d, n: Int) =
+        fun <Param : DualParameter> constant(p: Pose2d, n: Int) =
             Pose2dDual<Param>(Vector2dDual.constant(p.position, n), Rotation2dDual.constant(p.heading, n))
 
         @JvmStatic
-        fun <Param> zero() = constant<Param>(Pose2d.zero, 1)
+        fun <Param : DualParameter> zero() = constant<Param>(Pose2d.zero, 1)
     }
 
     operator fun plus(t: Twist2d) = this * Pose2d.exp(t)
@@ -313,7 +313,7 @@ data class Pose2dDual<Param>(
         Pose2dDual(it * -position, it)
     }
 
-    fun <NewParam> reparam(oldParam: DualNum<NewParam>) =
+    fun <NewParam : DualParameter> reparam(oldParam: DualNum<NewParam>) =
         Pose2dDual(position.reparam(oldParam), heading.reparam(oldParam))
 
     fun value() = Pose2d(position.value(), heading.value())
@@ -334,22 +334,24 @@ data class PoseVelocity2d(@JvmField val linearVel: Vector2d, @JvmField val angVe
  * Dual version of [PoseVelocity2d].
  */
 @Serializable
-data class PoseVelocity2dDual<Param>(
+data class PoseVelocity2dDual<Param : DualParameter>(
     @JvmField val linearVel: Vector2dDual<Param>,
     @JvmField val angVel: DualNum<Param>
 ) {
     companion object {
         @JvmStatic
-        fun <Param> constant(pv: PoseVelocity2d, n: Int) =
+        fun <Param : DualParameter> constant(pv: PoseVelocity2d, n: Int) =
             PoseVelocity2dDual<Param>(Vector2dDual.constant(pv.linearVel, n), DualNum.constant(pv.angVel, n))
 
         @JvmStatic
-        fun <Param> zero() = constant<Param>(PoseVelocity2d.zero, 1)
+        fun <Param : DualParameter> zero() = constant<Param>(PoseVelocity2d.zero, 1)
     }
 
     operator fun plus(other: PoseVelocity2d) = PoseVelocity2dDual(linearVel + other.linearVel, angVel + other.angVel)
 
     fun value() = PoseVelocity2d(linearVel.value(), angVel.value())
+
+    fun acceleration() = Acceleration2d(linearVel.drop(1).value(), angVel.drop(1).value())
 }
 
 @Serializable
@@ -361,7 +363,7 @@ data class Twist2d(@JvmField val line: Vector2d, @JvmField val angle: Double) {
 }
 
 @Serializable
-data class Twist2dDual<Param>(
+data class Twist2dDual<Param : DualParameter>(
     @JvmField val line: Vector2dDual<Param>,
     @JvmField val angle: DualNum<Param>
 ) {
@@ -386,6 +388,29 @@ data class Acceleration2d(@JvmField val linearAcc: Vector2d, @JvmField val angAc
 }
 
 /**
+ * Represents a robot's pose on the field at a given time.
+ *
+ * @property pose The position and heading of the robot, in field coordinates.
+ * @property vel The linear and angular velocity of the robot, in the robot frame.
+ * @property accel The linear and angular acceleration of the robot, in the robot frame.
+ */
+data class RobotState(
+    @JvmField val pose: Pose2d,
+    @JvmField val vel: PoseVelocity2d,
+    @JvmField val accel: Acceleration2d,
+) {
+    companion object {
+        @JvmField val zero = RobotState(Pose2d.zero, PoseVelocity2d.zero, Acceleration2d.zero)
+
+        @JvmStatic fun <Param : DualParameter> fromDualPose(dualPose: Pose2dDual<Param>) = RobotState(
+            dualPose.value(),
+            dualPose.velocity().value(),
+            dualPose.acc
+        )
+    }
+}
+
+/**
  * Linearly interpolates between two Vector2d objects.
  *
  * @param start The starting Vector2d.
@@ -400,7 +425,7 @@ fun lerpVector2d(start: Vector2d, end: Vector2d, t: Double): Vector2d {
     return Vector2d(x, y)
 }
 
-fun <Param> lerpVector2dDual(start: Vector2dDual<Param>, end: Vector2dDual<Param>, t: Double): Vector2dDual<Param> {
+fun <Param : DualParameter> lerpVector2dDual(start: Vector2dDual<Param>, end: Vector2dDual<Param>, t: Double): Vector2dDual<Param> {
     val x = lerpDual(t, 0.0, 1.0, start.x, end.x)
     val y = lerpDual(t, 0.0, 1.0, start.y, end.y)
     return Vector2dDual(x, y)
@@ -422,7 +447,7 @@ fun lerpRotation2d(start: Rotation2d, end: Rotation2d, t: Double): Rotation2d {
     return Rotation2d.exp(start.log() + diff * t)
 }
 
-fun <Param> lerpRotation2dDual(start: Rotation2dDual<Param>, end: Rotation2dDual<Param>, t: Double): Rotation2dDual<Param> {
+fun <Param : DualParameter> lerpRotation2dDual(start: Rotation2dDual<Param >, end: Rotation2dDual<Param>, t: Double): Rotation2dDual<Param> {
     return Rotation2dDual.exp(lerpDual(t, 0.0, 1.0, start.log(), end.log()))
 }
 
@@ -453,7 +478,7 @@ fun lerpPose2d(start: Pose2d, end: Pose2d, t: Double): Pose2d {
     return Pose2d(position, heading)
 }
 
-fun <Param> lerpPose2dDual(start: Pose2dDual<Param>, end: Pose2dDual<Param>, t: Double): Pose2dDual<Param> {
+fun <Param : DualParameter> lerpPose2dDual(start: Pose2dDual<Param>, end: Pose2dDual<Param>, t: Double): Pose2dDual<Param> {
     require(t in 0.0..1.0) { "Interpolation parameter t must be between 0.0 and 1.0, but was $t" }
 
     // Interpolate position
@@ -480,7 +505,7 @@ fun lerpPoseLookup(times: List<Double>, poses: List<Pose2d>, query: Double): Pos
     )
 }
 
-fun <Param> lerpPoseLookupDual(times: List<Double>, poses: List<Pose2dDual<Param>>, query: Double): Pose2dDual<Param> {
+fun <Param : DualParameter> lerpPoseLookupDual(times: List<Double>, poses: List<Pose2dDual<Param>>, query: Double): Pose2dDual<Param> {
     val index = times.binarySearch(query)
 
     if (index >= 0) return poses[index]

@@ -2,6 +2,7 @@
 package com.acmerobotics.roadrunner.trajectories
 
 import com.acmerobotics.roadrunner.geometry.Arclength
+import com.acmerobotics.roadrunner.geometry.DualParameter
 import com.acmerobotics.roadrunner.geometry.Pose2dDual
 import com.acmerobotics.roadrunner.geometry.Time
 import com.acmerobotics.roadrunner.geometry.Vector2d
@@ -18,7 +19,7 @@ import kotlinx.serialization.Serializable
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
-interface Trajectory<Param> {
+interface Trajectory<Param : DualParameter> {
     fun length(): Double
     fun duration() = wrtTime().duration
 

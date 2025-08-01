@@ -1,28 +1,27 @@
 package com.acmerobotics.roadrunner.profiles
 
-import com.acmerobotics.roadrunner.geometry.Arclength
 import com.acmerobotics.roadrunner.geometry.MinMax
-import com.acmerobotics.roadrunner.geometry.Pose2dDual
+import com.acmerobotics.roadrunner.geometry.RobotState
 import com.acmerobotics.roadrunner.paths.PosePath
 import kotlin.math.abs
 
 fun interface VelConstraint {
-    fun maxRobotVel(robotPose: Pose2dDual<Arclength>, path: PosePath, s: Double): Double
+    fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double
 }
 
 fun interface AccelConstraint {
-    fun minMaxProfileAccel(robotPose: Pose2dDual<Arclength>, path: PosePath, s: Double): MinMax
+    fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double): MinMax
 }
 
 class TranslationalVelConstraint(
     @JvmField
-    val minTransVel: Double,
+    val maxTransVel: Double,
 ) : VelConstraint {
     init {
-        require(minTransVel > 0.0) { "minTransVel ($minTransVel) must be positive" }
+        require(maxTransVel > 0.0) { "maxTransVel ($maxTransVel) must be positive" }
     }
 
-    override fun maxRobotVel(robotPose: Pose2dDual<Arclength>, path: PosePath, s: Double) = minTransVel
+    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double) = maxTransVel
 }
 
 class AngularVelConstraint(
@@ -33,16 +32,16 @@ class AngularVelConstraint(
         require(maxAngVel > 0.0) { "maxAngVel ($maxAngVel) must be positive" }
     }
 
-    override fun maxRobotVel(robotPose: Pose2dDual<Arclength>, path: PosePath, s: Double) =
-        abs(maxAngVel / robotPose.heading.velocity().value())
+    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double) =
+        abs(maxAngVel / robotState.vel.angVel)
 }
 
 class MinVelConstraint(
     @JvmField
     val constraints: List<VelConstraint>,
 ) : VelConstraint {
-    override fun maxRobotVel(robotPose: Pose2dDual<Arclength>, path: PosePath, s: Double) =
-        constraints.minOf { it.maxRobotVel(robotPose, path, s) }
+    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double) =
+        constraints.minOf { it.maxRobotVel(robotState, path, s) }
 }
 
 class ProfileAccelConstraint(
@@ -58,7 +57,7 @@ class ProfileAccelConstraint(
 
     private val minMax = MinMax(minAccel, maxAccel)
 
-    override fun minMaxProfileAccel(robotPose: Pose2dDual<Arclength>, path: PosePath, s: Double) = minMax
+    override fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double) = minMax
 }
 
 class CompositeVelConstraint(
@@ -73,14 +72,14 @@ class CompositeVelConstraint(
         }
     }
 
-    override fun maxRobotVel(robotPose: Pose2dDual<Arclength>, path: PosePath, s: Double): Double {
+    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double {
         for ((offset, constraint) in offsets.zip(constraints).drop(1).reversed()) {
             if (s >= offset) {
-                return constraint.maxRobotVel(robotPose, path, s)
+                return constraint.maxRobotVel(robotState, path, s)
             }
         }
 
-        return constraints.first().maxRobotVel(robotPose, path, s)
+        return constraints.first().maxRobotVel(robotState, path, s)
     }
 }
 
@@ -96,13 +95,13 @@ class CompositeAccelConstraint(
         }
     }
 
-    override fun minMaxProfileAccel(robotPose: Pose2dDual<Arclength>, path: PosePath, s: Double): MinMax {
+    override fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double): MinMax {
         for ((offset, constraint) in offsets.zip(constraints).drop(1).reversed()) {
             if (s >= offset) {
-                return constraint.minMaxProfileAccel(robotPose, path, s)
+                return constraint.minMaxProfileAccel(robotState, path, s)
             }
         }
 
-        return constraints.first().minMaxProfileAccel(robotPose, path, s)
+        return constraints.first().minMaxProfileAccel(robotState, path, s)
     }
 }

@@ -4,20 +4,22 @@ import kotlinx.serialization.Serializable
 import kotlin.math.atan2
 import kotlin.math.min
 
+sealed interface DualParameter
+
 /**
  * Parameter for [DualNum] for internal use only.
  */
-@Serializable class Internal
+@Serializable class Internal : DualParameter
 
 /**
  * Arclength parameter for [DualNum]
  */
-@Serializable class Arclength
+@Serializable class Arclength : DualParameter
 
 /**
  * Time parameter for [DualNum]
  */
-@Serializable class Time
+@Serializable class Time : DualParameter
 
 /**
  * @usesMathJax
@@ -28,7 +30,7 @@ import kotlin.math.min
  * @property[values] \(\left(u, \frac{du}{dx}, \frac{d^2u}{dx^2}, \ldots, \frac{d^{n - 1} u}{dx^{n - 1}} \right)\)
  */
 @Serializable
-class DualNum<Param> constructor(private val values: DoubleArray) {
+class DualNum<Param : DualParameter>(private val values: DoubleArray) {
     constructor(values: List<Double>) : this(values.toDoubleArray())
 
     companion object {
@@ -41,7 +43,7 @@ class DualNum<Param> constructor(private val values: DoubleArray) {
          * @param[c] \(c\)
          */
         @JvmStatic
-        fun <Param> constant(c: Double, n: Int) = DualNum<Param>(
+        fun <Param : DualParameter> constant(c: Double, n: Int) = DualNum<Param>(
             DoubleArray(n) {
                 when (it) {
                     0 -> c
@@ -59,7 +61,7 @@ class DualNum<Param> constructor(private val values: DoubleArray) {
          * @param[x0] \(x_0\)
          */
         @JvmStatic
-        fun <Param> variable(x0: Double, n: Int) = DualNum<Param>(
+        fun <Param : DualParameter> variable(x0: Double, n: Int) = DualNum<Param>(
             DoubleArray(n) {
                 when (it) {
                     0 -> x0
@@ -70,7 +72,7 @@ class DualNum<Param> constructor(private val values: DoubleArray) {
         )
 
         @JvmStatic
-        fun <Param> cons(x: Double, d: DualNum<Param>) =
+        fun <Param : DualParameter> cons(x: Double, d: DualNum<Param>) =
             DualNum<Param>(
                 DoubleArray(d.size() + 1) {
                     if (it == 0) {
@@ -99,7 +101,7 @@ class DualNum<Param> constructor(private val values: DoubleArray) {
     operator fun get(i: Int) = values[i]
     fun values() = values.toList()
 
-    fun drop(n: Int) = DualNum<Param>(DoubleArray(size() - n) { values[it + n] })
+    fun drop(n: Int) = DualNum<Param>(values.drop(n))
 
     operator fun plus(d: DualNum<Param>): DualNum<Param> {
         val out = DualNum<Param>(DoubleArray(min(size(), d.size())))
@@ -260,7 +262,7 @@ class DualNum<Param> constructor(private val values: DoubleArray) {
      *
      * @param[oldParam] \(\left(u, \frac{du}{dt}, \frac{d^2u}{dt^2}, \ldots, \frac{d^{n - 1} u}{dt^{n - 1}}\right)\)
      */
-    fun <NewParam> reparam(oldParam: DualNum<NewParam>): DualNum<NewParam> {
+    fun <NewParam : DualParameter> reparam(oldParam: DualNum<NewParam>): DualNum<NewParam> {
         val out = DualNum<NewParam>(DoubleArray(min(size(), oldParam.size())))
         if (out.values.isEmpty()) return out
 
@@ -320,7 +322,7 @@ class DualNum<Param> constructor(private val values: DoubleArray) {
         Vector2dDual(this * c.x, this * c.y)
 }
 
-fun <Param> lerpDual(x: Double, fromLo: Double, fromHi: Double, toLo: DualNum<Param>, toHi: DualNum<Param>): DualNum<Param> {
+fun <Param : DualParameter> lerpDual(x: Double, fromLo: Double, fromHi: Double, toLo: DualNum<Param>, toHi: DualNum<Param>): DualNum<Param> {
     require(toLo.size() == toHi.size()) { "Lower and upper bounds must have the same size" }
 
     return DualNum(
@@ -330,7 +332,7 @@ fun <Param> lerpDual(x: Double, fromLo: Double, fromHi: Double, toLo: DualNum<Pa
     )
 }
 
-fun <Param> atan2(y: DualNum<Param>, x: DualNum<Param>): DualNum<Param> {
+fun <Param : DualParameter> atan2(y: DualNum<Param>, x: DualNum<Param>): DualNum<Param> {
     require(x.size() == y.size()) { "x and y must have the same size" }
 
     val out = DualNum<Param>(DoubleArray(x.size()))

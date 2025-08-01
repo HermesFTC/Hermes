@@ -2,8 +2,8 @@ package com.acmerobotics.roadrunner.control
 
 import com.acmerobotics.roadrunner.geometry.Arclength
 import com.acmerobotics.roadrunner.geometry.DualNum
-import com.acmerobotics.roadrunner.geometry.Pose2dDual
 import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
+import com.acmerobotics.roadrunner.geometry.RobotState
 import com.acmerobotics.roadrunner.geometry.Twist2dDual
 import com.acmerobotics.roadrunner.geometry.Vector2d
 import com.acmerobotics.roadrunner.geometry.Vector2dDual
@@ -287,9 +287,9 @@ class WheelVelConstraint(
     @JvmField
     val maxWheelVel: Double
 ) : VelConstraint {
-    override fun maxRobotVel(robotPose: Pose2dDual<Arclength>, path: PosePath, s: Double): Double {
-        val txRobotWorld = robotPose.value().inverse()
-        val robotVelWorld = robotPose.velocity().value()
+    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double {
+        val txRobotWorld = robotState.value().inverse()
+        val robotVelWorld = robotState.velocity().value()
         val robotVelRobot = txRobotWorld * robotVelWorld
 
         return kinematics.inverse(PoseVelocity2dDual.constant<Arclength>(robotVelRobot, 1))

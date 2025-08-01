@@ -13,7 +13,7 @@ import kotlinx.serialization.Serializable
  *
  * @param[Param] \(t\)
  */
-interface PositionPath<Param> {
+interface PositionPath<Param : DualParameter> {
 
     /**
      * @usesMathJax
@@ -95,7 +95,7 @@ interface PositionPath<Param> {
 }
 
 fun Double.toRotation() = Rotation2d.exp(this)
-fun Rotation2d.dual() = Rotation2dDual.Companion.constant<Arclength>(this, 1)
+fun Rotation2d.dual() = Rotation2dDual.constant<Arclength>(this, 1)
 
 /**
  * Project position [query] onto position path [path] starting with initial guess [init].
@@ -138,7 +138,7 @@ data class Line(
     )
 
     override fun get(param: Double, n: Int) =
-        DualNum.Companion.variable<Arclength>(param, n) * dir + begin
+        DualNum.variable<Arclength>(param, n) * dir + begin
 
     override fun length() = length
 }
@@ -197,7 +197,7 @@ data class ArclengthReparamCurve2d(
     override fun length() = length
 }
 
-private fun <Param> PositionPath<Param>.wrtArclength(): PositionPath<Arclength> = when(this) {
+private fun <Param : DualParameter> PositionPath<Param>.wrtArclength(): PositionPath<Arclength> = when(this) {
     is Line -> this
     is ArclengthReparamCurve2d -> this
     else -> ArclengthReparamCurve2d(this, 1e-6)
@@ -205,7 +205,7 @@ private fun <Param> PositionPath<Param>.wrtArclength(): PositionPath<Arclength> 
 
 @Serializable
 @SerialName("CompositePositionPath")
-data class CompositePositionPath<Param> @JvmOverloads constructor(
+data class CompositePositionPath<Param : DualParameter> @JvmOverloads constructor(
     @JvmField
     val paths: List<PositionPath<Param>>,
     @JvmField
@@ -239,7 +239,7 @@ data class CompositePositionPath<Param> @JvmOverloads constructor(
 
 @Serializable
 @SerialName("PositionPathView")
-data class PositionPathView<Param>(
+data class PositionPathView<Param : DualParameter>(
     @JvmField
     val path: PositionPath<Param>,
     @JvmField
