@@ -405,9 +405,15 @@ data class RobotState(
         @JvmStatic fun <Param : DualParameter> fromDualPose(dualPose: Pose2dDual<Param>) = RobotState(
             dualPose.value(),
             dualPose.velocity().value(),
-            dualPose.acc
+            dualPose.velocity().acceleration()
         )
     }
+
+    fun <Param : DualParameter> toDualPose() = Pose2dDual<Param>(
+        DualNum(doubleArrayOf(pose.position.x, vel.linearVel.x, accel.linearAcc.x)),
+        DualNum(doubleArrayOf(pose.position.y, vel.linearVel.y, accel.linearAcc.y)),
+        Rotation2dDual.exp(DualNum(doubleArrayOf(pose.heading.log(), vel.angVel, accel.angAcc)))
+    )
 }
 
 /**

@@ -2,6 +2,7 @@ package com.acmerobotics.roadrunner.control
 
 import com.acmerobotics.roadrunner.geometry.Arclength
 import com.acmerobotics.roadrunner.geometry.DualNum
+import com.acmerobotics.roadrunner.geometry.DualParameter
 import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
 import com.acmerobotics.roadrunner.geometry.RobotState
 import com.acmerobotics.roadrunner.geometry.Twist2dDual
@@ -15,12 +16,12 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-interface WheelIncrements<Param>
+interface WheelIncrements<Param : DualParameter>
 
 /**
  * Represents the velocities of the individual drive wheels.
  */
-interface WheelVelocities<Param> {
+interface WheelVelocities<Param : DualParameter> {
     /**
      * Returns a list of all wheel velocities.
      * The order should be consistent for a given implementation.
@@ -33,7 +34,7 @@ interface WheelVelocities<Param> {
  * inverse kinematics and velocity constraints based on wheel speeds.
  */
 interface RobotKinematics<in WI: WheelIncrements<*>, out WV: WheelVelocities<*>> {
-    fun <Param> forward(w: WI): Twist2dDual<Param>
+    fun <Param : DualParameter> forward(w: WI): Twist2dDual<Param>
 
     /**
      * Performs inverse kinematics: computes wheel velocities required to achieve
@@ -42,7 +43,7 @@ interface RobotKinematics<in WI: WheelIncrements<*>, out WV: WheelVelocities<*>>
      * @param t Robot velocity in the robot's local frame.
      * @return Wheel velocities.
      */
-    fun <Param> inverse(t: PoseVelocity2dDual<Param>): WheelVelocities<Param>
+    fun <Param : DualParameter> inverse(t: PoseVelocity2dDual<Param>): WheelVelocities<Param>
 }
 
 /**
@@ -66,7 +67,7 @@ data class MecanumKinematics @JvmOverloads constructor(
         lateralMultiplier: Double = 1.0
     ) : this((trackWidth + wheelbase) / 2, lateralMultiplier)
 
-    data class MecanumWheelIncrements<Param>(
+    data class MecanumWheelIncrements<Param : DualParameter>(
         @JvmField
         val leftFront: DualNum<Param>,
         @JvmField
@@ -77,7 +78,7 @@ data class MecanumKinematics @JvmOverloads constructor(
         val rightFront: DualNum<Param>,
     ) : WheelIncrements<Param>
 
-    override fun <Param> forward(w: MecanumWheelIncrements<*>): Twist2dDual<Param> {
+    override fun <Param : DualParameter> forward(w: MecanumWheelIncrements<*>): Twist2dDual<Param> {
         w as MecanumWheelIncrements<Param>
 
         return Twist2dDual(
@@ -89,7 +90,7 @@ data class MecanumKinematics @JvmOverloads constructor(
         )
     }
 
-    data class MecanumWheelVelocities<Param>(
+    data class MecanumWheelVelocities<Param : DualParameter>(
         @JvmField
         val leftFront: DualNum<Param>,
         @JvmField
@@ -102,7 +103,7 @@ data class MecanumKinematics @JvmOverloads constructor(
         override fun all() = listOf(leftFront, leftBack, rightBack, rightFront)
     }
 
-    override fun <Param> inverse(t: PoseVelocity2dDual<Param>) = MecanumWheelVelocities(
+    override fun <Param : DualParameter> inverse(t: PoseVelocity2dDual<Param>) = MecanumWheelVelocities(
         t.linearVel.x - t.linearVel.y * lateralMultiplier - t.angVel * trackWidth,
         t.linearVel.x + t.linearVel.y * lateralMultiplier - t.angVel * trackWidth,
         t.linearVel.x - t.linearVel.y * lateralMultiplier + t.angVel * trackWidth,
@@ -117,14 +118,14 @@ data class MecanumKinematics @JvmOverloads constructor(
 data class TankKinematics(@JvmField val trackWidth: Double) :
     RobotKinematics<TankKinematics.TankWheelIncrements<*>, TankKinematics.TankWheelVelocities<*>> {
 
-    data class TankWheelIncrements<Param>(
+    data class TankWheelIncrements<Param : DualParameter>(
         @JvmField
         val left: DualNum<Param>,
         @JvmField
         val right: DualNum<Param>,
     ) : WheelIncrements<Param>
 
-    override fun <Param> forward(w: TankWheelIncrements<*>): Twist2dDual<Param> {
+    override fun <Param : DualParameter> forward(w: TankWheelIncrements<*>): Twist2dDual<Param> {
         w as TankWheelIncrements<Param>
 
         return Twist2dDual(
@@ -136,7 +137,7 @@ data class TankKinematics(@JvmField val trackWidth: Double) :
         )
     }
 
-    data class TankWheelVelocities<Param>(
+    data class TankWheelVelocities<Param : DualParameter>(
         @JvmField
         val left: DualNum<Param>,
         @JvmField
@@ -145,7 +146,7 @@ data class TankKinematics(@JvmField val trackWidth: Double) :
         override fun all() = listOf(left, right)
     }
 
-    override fun <Param> inverse(t: PoseVelocity2dDual<Param>): TankWheelVelocities<Param> {
+    override fun <Param : DualParameter> inverse(t: PoseVelocity2dDual<Param>): TankWheelVelocities<Param> {
         require(t.linearVel.y.values().all { abs(it) < 1e-6 }) {
             "Tank drive does not support lateral motion"
         }
@@ -161,7 +162,7 @@ data class TankKinematics(@JvmField val trackWidth: Double) :
  * @param wheelDelta change in wheel position
  * @param angle absolute angle
  */
-data class SwerveModuleIncrements<Param>(
+data class SwerveModuleIncrements<Param : DualParameter>(
     @JvmField val wheelDelta: DualNum<Param>,
     @JvmField val angle: Double
 ) {
@@ -169,7 +170,7 @@ data class SwerveModuleIncrements<Param>(
             this(DualNum.constant(wheelDelta, 3), angle)
 }
 
-data class SwerveModuleState<Param>(
+data class SwerveModuleState<Param : DualParameter>(
     @JvmField val velocity: DualNum<Param>,
     @JvmField val angle: DualNum<Param>
 ) {
@@ -186,12 +187,12 @@ data class SwerveKinematics(
     val modules: List<Vector2d>
 ) : RobotKinematics<SwerveKinematics.SwerveWheelIncrements<*>, SwerveKinematics.SwerveWheelVelocities<*>> {
 
-    data class SwerveWheelIncrements<Param>(
+    data class SwerveWheelIncrements<Param : DualParameter>(
         @JvmField
         val deltas: List<SwerveModuleIncrements<Param>>
     ) : WheelIncrements<Param>
 
-    override fun <Param> forward(w: SwerveWheelIncrements<*>): Twist2dDual<Param> {
+    override fun <Param : DualParameter> forward(w: SwerveWheelIncrements<*>): Twist2dDual<Param> {
         w as SwerveWheelIncrements<Param>
 
         // Initialize accumulators for the robot's overall motion
@@ -233,14 +234,14 @@ data class SwerveKinematics(
         )
     }
 
-    data class SwerveWheelVelocities<Param>(
+    data class SwerveWheelVelocities<Param : DualParameter>(
         @JvmField
         val states: List<SwerveModuleState<Param>>
     ) : WheelVelocities<Param> {
         override fun all() = states.map { it.velocity }
     }
 
-    override fun <Param> inverse(t: PoseVelocity2dDual<Param>): SwerveWheelVelocities<Param> {
+    override fun <Param : DualParameter> inverse(t: PoseVelocity2dDual<Param>): SwerveWheelVelocities<Param> {
         val wheelVels = mutableListOf<DualNum<Param>>()
         val steeringAngles = mutableListOf<DualNum<Param>>()
 
@@ -288,8 +289,8 @@ class WheelVelConstraint(
     val maxWheelVel: Double
 ) : VelConstraint {
     override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double {
-        val txRobotWorld = robotState.value().inverse()
-        val robotVelWorld = robotState.velocity().value()
+        val txRobotWorld = robotState.pose.inverse()
+        val robotVelWorld = robotState.vel
         val robotVelRobot = txRobotWorld * robotVelWorld
 
         return kinematics.inverse(PoseVelocity2dDual.constant<Arclength>(robotVelRobot, 1))
