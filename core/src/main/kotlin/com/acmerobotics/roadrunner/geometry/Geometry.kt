@@ -351,7 +351,11 @@ data class PoseVelocity2dDual<Param : DualParameter>(
 
     fun value() = PoseVelocity2d(linearVel.value(), angVel.value())
 
-    fun acceleration() = Acceleration2d(linearVel.drop(1).value(), angVel.drop(1).value())
+    fun acceleration() = if (linearVel.x.size() > 1 && angVel.size() > 1) {
+        Acceleration2d(linearVel.drop(1).value(), angVel.drop(1).value())
+    } else {
+        Acceleration2d.zero
+    }
 }
 
 @Serializable

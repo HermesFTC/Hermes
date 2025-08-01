@@ -21,6 +21,8 @@ sealed interface DualParameter
  */
 @Serializable class Time : DualParameter
 
+@Serializable internal class TestParam : DualParameter
+
 /**
  * @usesMathJax
  *

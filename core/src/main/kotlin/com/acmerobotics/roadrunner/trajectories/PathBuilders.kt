@@ -194,7 +194,7 @@ class PositionPathSeqBuilder private constructor(
     fun build() = paths + listOf(CompositePositionPath(segments))
 }
 
-private fun <Param> DualNum<Param>.withValue(x: Double) =
+private fun <Param : DualParameter> DualNum<Param>.withValue(x: Double) =
     DualNum<Param>(
         DoubleArray(size()) {
             if (it == 0) {
@@ -205,7 +205,7 @@ private fun <Param> DualNum<Param>.withValue(x: Double) =
         }
     )
 
-private fun <Param> Rotation2dDual<Param>.withValue(r: Rotation2d) =
+private fun <Param : DualParameter> Rotation2dDual<Param>.withValue(r: Rotation2d) =
     Rotation2dDual(real.withValue(r.real), imag.withValue(r.imag))
 
 /**
@@ -258,10 +258,10 @@ class PosePathSeqBuilder private constructor(
 
         return when (state) {
             is Eager -> {
-                fun <Param> DualNum<Param>.epsilonEquals(n: DualNum<Param>) =
+                fun <Param : DualParameter> DualNum<Param>.epsilonEquals(n: DualNum<Param>) =
                     values().zip(n.values()).all { (x, y) -> abs(x - y) < 1e-6 }
 
-                fun <Param> Rotation2dDual<Param>.epsilonEquals(r: Rotation2dDual<Param>) =
+                fun <Param : DualParameter> Rotation2dDual<Param>.epsilonEquals(r: Rotation2dDual<Param>) =
                     real.epsilonEquals(r.real) && imag.epsilonEquals(r.imag)
 
                 if (state.endHeadingDual.epsilonEquals(beginHeadingDual)) {
