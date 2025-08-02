@@ -6,8 +6,10 @@ import com.acmerobotics.roadrunner.geometry.*
 import com.acmerobotics.roadrunner.paths.PosePath
 import com.acmerobotics.roadrunner.profiles.*
 import com.acmerobotics.roadrunner.trajectories.DisplacementTrajectory
+import com.acmerobotics.roadrunner.trajectories.Marker
 import com.acmerobotics.roadrunner.trajectories.TimeTrajectory
 import com.acmerobotics.roadrunner.trajectories.Trajectory
+import com.acmerobotics.roadrunner.trajectories.TrajectoryWithMarkers
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlin.math.ceil
 import kotlin.math.max
@@ -59,7 +61,7 @@ fun interface EndCondition {
 }
 
 interface Follower {
-    val trajectory: Trajectory<*>
+    val trajectory: TrajectoryWithMarkers<*>
     val drive: Drive
     val endConditions: Set<EndCondition>
 
@@ -72,15 +74,20 @@ interface Follower {
     fun follow()
 
     val points: List<Vector2d> get() = listOf(Vector2d.zero)
+
+    /**
+     * Tracks which markers have been triggered.
+     */
+    val triggeredMarkers: MutableSet<Marker>
 }
 
 class DisplacementFollower @JvmOverloads constructor(
-    override val trajectory: DisplacementTrajectory,
+    override val trajectory: TrajectoryWithMarkers<Arclength>,
     override val drive: Drive,
     override val endConditions: Set<EndCondition> = EndCondition.default
 ) : Follower {
     @JvmOverloads constructor(trajectory: Trajectory<*>, drive: Drive, endConditions: Set<EndCondition> = EndCondition.default) :
-            this(trajectory.wrtDisp(), drive, endConditions)
+            this(TrajectoryWithMarkers(trajectory.wrtDisp(), emptyList()), drive, endConditions)
 
     @JvmOverloads
     constructor(
@@ -90,15 +97,18 @@ class DisplacementFollower @JvmOverloads constructor(
         accelConstraintOverride: AccelConstraint = drive.defaultAccelConstraint,
         endConditions: Set<EndCondition> = EndCondition.default,
     ) : this(
-        DisplacementTrajectory(
-            path,
-            forwardProfile(
-                drive.followerParams.profileParams,
+        TrajectoryWithMarkers(
+            DisplacementTrajectory(
                 path,
-                0.0,
-                velConstraintOverride,
-                accelConstraintOverride,
+                forwardProfile(
+                    drive.followerParams.profileParams,
+                    path,
+                    0.0,
+                    velConstraintOverride,
+                    accelConstraintOverride,
+                ),
             ),
+            listOf()
         ),
         drive,
         endConditions
@@ -122,6 +132,10 @@ class DisplacementFollower @JvmOverloads constructor(
                trajectory[it].value().position
             }
 
+    override val triggeredMarkers: MutableSet<Marker> = mutableSetOf()
+
+    private val disptraj = trajectory.wrtDisp()
+
     val driveCommand: PoseVelocity2dDual<Time>
         get() {
             if (!started) {
@@ -134,14 +148,22 @@ class DisplacementFollower @JvmOverloads constructor(
 
             ds = trajectory.project(robotPose.position, ds)
 
-            val error = trajectory[trajectory.length()].value() - robotPose
             if (endConditions.any { it.shouldEnd(this) }) {
                 isDone = true
                 return PoseVelocity2dDual.zero()
             }
 
-            val target: Pose2dDual<Time> = trajectory[ds]
+            val target: Pose2dDual<Time> = disptraj[ds]
             currentTarget = target.value()
+
+            // Marker handling
+            trajectory.markers.forEach { marker ->
+                if (marker !in triggeredMarkers && marker.trigger.shouldTrigger(
+                        RobotState(robotPose, robotVel, Acceleration2d.zero), disptraj, ds)) {
+                    marker.callback.onTrigger()
+                    triggeredMarkers.add(marker)
+                }
+            }
 
             return drive.controller.compute(
                 target,
@@ -157,12 +179,12 @@ class DisplacementFollower @JvmOverloads constructor(
 }
 
 class TimeFollower @JvmOverloads constructor(
-    override val trajectory: TimeTrajectory,
+    override val trajectory: TrajectoryWithMarkers<Time>,
     override val drive: Drive,
     override val endConditions: Set<EndCondition> = EndCondition.default
 ) : Follower {
     @JvmOverloads constructor(trajectory: Trajectory<*>, drive: Drive, endConditions: Set<EndCondition> = EndCondition.default) :
-            this(trajectory.wrtTime(), drive, endConditions)
+            this(TrajectoryWithMarkers(trajectory.wrtTime(), emptyList()), drive, endConditions)
 
     @JvmOverloads
     constructor(
@@ -172,21 +194,26 @@ class TimeFollower @JvmOverloads constructor(
         accelConstraintOverride: AccelConstraint = drive.defaultAccelConstraint,
         endConditions: Set<EndCondition>,
     ) : this(
-        TimeTrajectory(
-            path,
-            TimeProfile(
-                forwardProfile(
-                    drive.followerParams.profileParams,
-                    path,
-                    0.0,
-                    velConstraintOverride,
-                    accelConstraintOverride,
+        TrajectoryWithMarkers(
+            TimeTrajectory(
+                path,
+                TimeProfile(
+                    forwardProfile(
+                        drive.followerParams.profileParams,
+                        path,
+                        0.0,
+                        velConstraintOverride,
+                        accelConstraintOverride,
+                    ),
                 ),
             ),
+            listOf()
         ),
         drive,
         endConditions
     )
+
+    private val timetraj = trajectory.wrtTime()
 
     override var currentTarget: Pose2d = trajectory[0.0].value()
         private set
@@ -197,7 +224,6 @@ class TimeFollower @JvmOverloads constructor(
     override val timer: ElapsedTime = ElapsedTime()
     private var started = false
 
-
     override val points: List<Vector2d> = range(
         0.0,
         trajectory.length(),
@@ -205,6 +231,8 @@ class TimeFollower @JvmOverloads constructor(
     ).map {
         trajectory[it].value().position
     }
+
+    override val triggeredMarkers: MutableSet<Marker> = mutableSetOf()
 
     val driveCommand: PoseVelocity2dDual<Time>
         get() {
@@ -218,7 +246,6 @@ class TimeFollower @JvmOverloads constructor(
             val robotVel = drive.localizer.update()
             val robotPose = drive.localizer.pose
 
-            val error = trajectory.endWrtTime().value() - robotPose
             if (endConditions.any { it.shouldEnd(this) }) {
                 isDone = true
                 return PoseVelocity2dDual.zero()
@@ -227,6 +254,17 @@ class TimeFollower @JvmOverloads constructor(
             val target: Pose2dDual<Time> = trajectory[dt]
 
             currentTarget = target.value()
+
+            // Marker handling
+            val s = timetraj.profile[dt].value()
+
+            trajectory.markers.forEach { marker ->
+                if (marker !in triggeredMarkers && marker.trigger.shouldTrigger(
+                        RobotState(robotPose, robotVel, Acceleration2d.zero), timetraj, s)) {
+                    marker.callback.onTrigger()
+                    triggeredMarkers.add(marker)
+                }
+            }
 
             return drive.controller.compute(
                 target,
