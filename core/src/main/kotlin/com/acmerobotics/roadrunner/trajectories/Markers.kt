@@ -21,7 +21,7 @@ fun interface MarkerTrigger {
      * @param trajectory The trajectory being followed, parameterized by arclength.
      * @param s The current progress along the trajectory, typically represented as arclength.
      */
-    fun shouldTrigger(robotState: RobotState, trajectory: Trajectory<*>, s: Double)
+    fun shouldTrigger(robotState: RobotState, trajectory: Trajectory<*>, s: Double): Boolean
 }
 
 /**
