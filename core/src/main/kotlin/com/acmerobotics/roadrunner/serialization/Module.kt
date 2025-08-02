@@ -44,15 +44,25 @@ private val module = SerializersModule {
         subclass(CancelableProfile::class)
     }
 
+    polymorphic(MarkerTrigger::class) {
+        subclass(AfterDispTrigger::class)
+        subclass(AfterTimeTrigger::class)
+        subclass(AtPointTrigger::class)
+        subclass(AtPoseTrigger::class)
+    }
+
     polymorphic(Trajectory::class) {
         subclass(DisplacementTrajectory::class)
         subclass(TimeTrajectory::class)
         subclass(CancelableTrajectory::class)
         subclass(CompositeTrajectory::class)
+        subclass(CompositeCancelableTrajectory::class)
+        subclass(serializer<TrajectoryWithMarkers<Arclength>>())
     }
 }
 
 val HermesJsonFormat = Json {
     serializersModule = module
     prettyPrint = true
+    ignoreUnknownKeys = true
 }

@@ -611,15 +611,13 @@ class TrajectoryBuilder private constructor(
      * Returns a [TrajectoryWithMarkers] using a [CompositeCancelableTrajectory] as the base trajectory.
      * @return the resulting [TrajectoryWithMarkers] object
      */
-    fun build(): TrajectoryWithMarkers<Arclength> {
-        val trajs = buildToList()
-        val composite = CompositeCancelableTrajectory(trajs)
-        return TrajectoryWithMarkers(composite, markers)
-    }
+    fun build(): TrajectoryWithMarkers<Arclength> =
+        TrajectoryWithMarkers(buildToComposite(), markers)
 
     /**
      * Builds the specified trajectories, creating a new CancelableTrajectory
      * object for each discontinuity.
+     * This does not include markers.
      * @return the resulting list of CancelableTrajectory objects
      */
     fun buildToList(): List<CancelableTrajectory> {
@@ -646,4 +644,13 @@ class TrajectoryBuilder private constructor(
             )
         }
     }
+
+    /**
+     * Builds the specified trajectories,
+     * creating a new CancelableTrajectory for each discontinuity,
+     * and then packing them into a [CompositeCancelableTrajectory] object.
+     * This does not include any markers.
+     * @return the resulting [CompositeCancelableTrajectory] object
+     */
+    fun buildToComposite() = CompositeCancelableTrajectory(buildToList())
 }

@@ -16,6 +16,7 @@ import com.acmerobotics.roadrunner.profiles.TimeProfile
 import com.acmerobotics.roadrunner.profiles.plus
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
@@ -124,8 +125,8 @@ class CompositeTrajectory @JvmOverloads constructor(
     constructor(vararg trajectories: DisplacementTrajectory) : this(trajectories.toList())
     constructor(vararg trajectories: Trajectory<*>) : this(trajectories.map { it.wrtDisp() })
 
-    val path = CompositePosePath(trajectories.map { it.path }, offsets)
-    val profile = trajectories.map { it.profile }.reduce { acc, profile -> acc + profile }
+    @Transient val path = CompositePosePath(trajectories.map { it.path }, offsets)
+    @Transient val profile = trajectories.map { it.profile }.reduce { acc, profile -> acc + profile }
 
     @JvmField
     val length = offsets.last()
