@@ -2,6 +2,7 @@ package com.acmerobotics.roadrunner.serialization
 
 import com.acmerobotics.roadrunner.*
 import com.acmerobotics.roadrunner.geometry.range
+import com.acmerobotics.roadrunner.trajectories.CompositeCancelableTrajectory
 import com.acmerobotics.roadrunner.trajectories.CompositeTrajectory
 import com.acmerobotics.roadrunner.trajectories.TrajectoryBuilder
 import io.kotest.core.spec.style.FunSpec
@@ -30,7 +31,7 @@ class SerializerTest : FunSpec(
                 .splineTo(randomPoint(), randomAngle())
                 .strafeTo(randomPoint())
                 .splineTo(randomPoint(), randomAngle())
-                .buildToComposite()
+                .build()
 
             HermesJsonFormat.encodeToStream(traj, outputFile.outputStream()) shouldBe Unit
         }
@@ -51,7 +52,7 @@ class SerializerTest : FunSpec(
 
             HermesJsonFormat.encodeToStream(expected, outputFile.outputStream())
 
-            val actual: CompositeTrajectory = HermesJsonFormat.decodeFromStream(outputFile.inputStream())
+            val actual: CompositeCancelableTrajectory = HermesJsonFormat.decodeFromStream(outputFile.inputStream())
 
             actual.length() shouldBe expected.length()
 
@@ -84,7 +85,7 @@ class SerializerTest : FunSpec(
                 }
 
                 val decTime = measureTime {
-                    HermesJsonFormat.decodeFromStream< CompositeTrajectory>(outputFile.inputStream())
+                    HermesJsonFormat.decodeFromStream<CompositeCancelableTrajectory>(outputFile.inputStream())
                 }
 
                 encTime to decTime
