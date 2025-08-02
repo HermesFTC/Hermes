@@ -158,5 +158,39 @@ class CompositeTrajectory @JvmOverloads constructor(
     override fun project(query: Vector2d, init: Double) = path.project(query, init)
 }
 
+/**
+ * Represents a composite trajectory made up of multiple [CancelableTrajectory] segments.
+ * Allows cancellation at any displacement along the combined trajectory, returning a new composite trajectory.
+ */
+@Serializable
+@SerialName("CompositeCancelableTrajectory")
+class CompositeCancelableTrajectory @JvmOverloads constructor(
+    @JvmField
+    val trajectories: List<CancelableTrajectory>,
+    @JvmField
+    val offsets: List<Double> = trajectories.scan(0.0) { acc, t -> acc + t.length() }
+) : Trajectory<Arclength> by CompositeTrajectory(trajectories, offsets) {
+
+    /**
+     * Cancels the composite trajectory at the given displacement,
+     * returning a new trajectory starting from that point.
+     * @param s The displacement at which to cancel.
+     * @return A new [DisplacementTrajectory] representing the remaining trajectory.
+     */
+    fun cancel(s: Double): DisplacementTrajectory {
+        if (s > length()) {
+            return trajectories.last().cancel(s - length())
+        }
+
+        for ((offset, traj) in offsets.zip(trajectories).reversed()) {
+            if (s >= offset) {
+                return traj.cancel(s - offset)
+            }
+        }
+
+        return trajectories.first().cancel(0.0)
+    }
+}
+
 fun compose(vararg trajectories: Trajectory<*>) = CompositeTrajectory(*trajectories)
 fun List<Trajectory<*>>.compose() = CompositeTrajectory(this)
