@@ -1,5 +1,6 @@
 package com.acmerobotics.roadrunner.trajectories
 
+import com.acmerobotics.roadrunner.geometry.Arclength
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.acmerobotics.roadrunner.geometry.Rotation2d
 import com.acmerobotics.roadrunner.geometry.Vector2d
@@ -29,6 +30,7 @@ class TrajectoryBuilder private constructor(
     private val poseMap: PoseMap,
     private val velConstraints: List<VelConstraint>,
     private val accelConstraints: List<AccelConstraint>,
+    private val markers: List<Marker> = listOf(),
 ) {
     @JvmOverloads
     constructor(
@@ -543,8 +545,79 @@ class TrajectoryBuilder private constructor(
         add(pathBuilder.splineToSplineHeading(pose, tangent), velConstraintOverride, accelConstraintOverride)
 
     /**
+     * Adds a marker to the trajectory builder.
+     * @param marker The [Marker] to add.
+     * @return A new [TrajectoryBuilder] with the marker added.
+     */
+    fun addMarker(marker: Marker): TrajectoryBuilder =
+        TrajectoryBuilder(
+            profileParams,
+            pathBuilder, beginEndVel, baseVelConstraint, baseAccelConstraint, poseMap,
+            velConstraints, accelConstraints,
+            markers + marker
+        )
+
+    /**
+     * Adds a marker to the trajectory at the current position.
+     * @param trigger The marker trigger function.
+     * @param callback The marker callback function.
+     * @return A new [TrajectoryBuilder] with the marker added.
+     */
+    fun addMarker(trigger: MarkerTrigger, callback: MarkerCallback) =
+        addMarker(Marker(trigger, callback))
+
+    /**
+     * Adds a marker that triggers after a specified displacement.
+     * @param disp The displacement value at which to trigger the marker.
+     * @param callback The callback to execute when triggered.
+     * @return A new [TrajectoryBuilder] with the marker added.
+     */
+    fun addDispMarker(disp: Double, callback: MarkerCallback) =
+        addMarker(Marker.afterDisp(disp, callback))
+
+    /**
+     * Adds a marker that triggers after a specified time.
+     * @param time The time value at which to trigger the marker.
+     * @param callback The callback to execute when triggered.
+     * @return A new [TrajectoryBuilder] with the marker added.
+     */
+    fun addTimeMarker(time: Double, callback: MarkerCallback) =
+        addMarker(Marker.afterTime(time, callback))
+
+    /**
+     * Adds a marker that triggers when the robot is within a certain tolerance of a given point.
+     * @param point The [Vector2d] point to check proximity against.
+     * @param tolerance The distance tolerance for triggering the marker (default: 2.0 units).
+     * @param callback The callback to execute when triggered.
+     * @return A new [TrajectoryBuilder] with the marker added.
+     */
+    fun addPointMarker(point: Vector2d, tolerance: Double = 2.0, callback: MarkerCallback) =
+        addMarker(Marker.atPoint(point, tolerance, callback))
+
+    /**
+     * Adds a marker that triggers when the robot is within a certain linear and angular tolerance of a given pose.
+     * @param pose The [Pose2d] to check proximity and orientation against.
+     * @param linearTolerance The distance tolerance for triggering the marker (default: 2.0 units).
+     * @param angularTolerance The angular tolerance in radians for triggering the marker (default: 5 degrees).
+     * @param callback The callback to execute when triggered.
+     * @return A new [TrajectoryBuilder] with the marker added.
+     */
+    fun addPoseMarker(pose: Pose2d, linearTolerance: Double = 2.0, angularTolerance: Double = Math.toRadians(5.0), callback: MarkerCallback) =
+        addMarker(Marker.atPose(pose, linearTolerance, angularTolerance, callback))
+
+    /**
      * Builds the specified trajectories, creating a new CancelableTrajectory
      * object for each discontinuity.
+     * Returns a [TrajectoryWithMarkers] using a [CompositeCancelableTrajectory] as the base trajectory.
+     * @return the resulting [TrajectoryWithMarkers] object
+     */
+    fun build(): TrajectoryWithMarkers<Arclength> =
+        TrajectoryWithMarkers(buildToComposite(), markers)
+
+    /**
+     * Builds the specified trajectories, creating a new CancelableTrajectory
+     * object for each discontinuity.
+     * This does not include markers.
      * @return the resulting list of CancelableTrajectory objects
      */
     fun buildToList(): List<CancelableTrajectory> {
@@ -573,18 +646,11 @@ class TrajectoryBuilder private constructor(
     }
 
     /**
-     * Builds the trajectory, creating a new CancelableTrajectory object
-     * for each discontinuity, and then composes them into a single CompositeTrajectory object.
-     * There may be complete stops in this composite based on where its components start and end.
-     * @return the resulting CompositeTrajectory object
+     * Builds the specified trajectories,
+     * creating a new CancelableTrajectory for each discontinuity,
+     * and then packing them into a [CompositeCancelableTrajectory] object.
+     * This does not include any markers.
+     * @return the resulting [CompositeCancelableTrajectory] object
      */
-    fun buildToComposite() = CompositeTrajectory(buildToList())
-
-    /**
-     * Builds the specified trajectories, creating a new CancelableTrajectory
-     * object for each discontinuity.
-     * Equivalent to [buildToList].
-     * @return the resulting list of CancelableTrajectory objects
-     */
-    fun build() = buildToList()
+    fun buildToComposite() = CompositeCancelableTrajectory(buildToList())
 }

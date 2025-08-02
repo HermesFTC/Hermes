@@ -472,7 +472,7 @@ fun chartSpline(q: QuinticSpline1d): XYChart {
                     ProfileAccelConstraint(-10.0, 15.0),
                 )
                     .splineTo(Vector2d(20.0, -20.0), -PI / 2)
-                    .build()
+                    .buildToList()
                     .first()
 
                 saveChart(

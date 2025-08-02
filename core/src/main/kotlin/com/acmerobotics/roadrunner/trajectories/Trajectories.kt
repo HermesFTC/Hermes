@@ -16,6 +16,7 @@ import com.acmerobotics.roadrunner.profiles.TimeProfile
 import com.acmerobotics.roadrunner.profiles.plus
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
@@ -124,8 +125,8 @@ class CompositeTrajectory @JvmOverloads constructor(
     constructor(vararg trajectories: DisplacementTrajectory) : this(trajectories.toList())
     constructor(vararg trajectories: Trajectory<*>) : this(trajectories.map { it.wrtDisp() })
 
-    val path = CompositePosePath(trajectories.map { it.path }, offsets)
-    val profile = trajectories.map { it.profile }.reduce { acc, profile -> acc + profile }
+    @Transient val path = CompositePosePath(trajectories.map { it.path }, offsets)
+    @Transient val profile = trajectories.map { it.profile }.reduce { acc, profile -> acc + profile }
 
     @JvmField
     val length = offsets.last()
@@ -156,6 +157,40 @@ class CompositeTrajectory @JvmOverloads constructor(
     override fun wrtTime() = TimeTrajectory(path, TimeProfile(profile))
 
     override fun project(query: Vector2d, init: Double) = path.project(query, init)
+}
+
+/**
+ * Represents a composite trajectory made up of multiple [CancelableTrajectory] segments.
+ * Allows cancellation at any displacement along the combined trajectory, returning a new composite trajectory.
+ */
+@Serializable
+@SerialName("CompositeCancelableTrajectory")
+class CompositeCancelableTrajectory @JvmOverloads constructor(
+    @JvmField
+    val trajectories: List<CancelableTrajectory>,
+    @JvmField
+    val offsets: List<Double> = trajectories.scan(0.0) { acc, t -> acc + t.length() }
+) : Trajectory<Arclength> by CompositeTrajectory(trajectories, offsets) {
+
+    /**
+     * Cancels the composite trajectory at the given displacement,
+     * returning a new trajectory starting from that point.
+     * @param s The displacement at which to cancel.
+     * @return A new [DisplacementTrajectory] representing the remaining trajectory.
+     */
+    fun cancel(s: Double): DisplacementTrajectory {
+        if (s > length()) {
+            return trajectories.last().cancel(s - length())
+        }
+
+        for ((offset, traj) in offsets.zip(trajectories).reversed()) {
+            if (s >= offset) {
+                return traj.cancel(s - offset)
+            }
+        }
+
+        return trajectories.first().cancel(0.0)
+    }
 }
 
 fun compose(vararg trajectories: Trajectory<*>) = CompositeTrajectory(*trajectories)
