@@ -154,7 +154,7 @@ class TrajectoryActionBuilder private constructor(
 
             this
         } else {
-            val ts = tb.build()
+            val ts = tb.buildToList()
             val endPoseUnmapped = when (ts.last().path) {
                 is MappedPosePath -> (ts.last().path as MappedPosePath).basePath.end(2)
                 else -> ts.last().path.end(2)

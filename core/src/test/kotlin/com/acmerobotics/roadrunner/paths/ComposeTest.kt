@@ -68,7 +68,7 @@ class ComposeTest {
             .splineTo(randomPoint(), randomAngle())
             .strafeTo(randomPoint())
             .splineTo(randomPoint(), randomAngle())
-            .buildToComposite()
+            .build()
 
         val samples = (0..100).map { Random.Default.nextDouble(0.0, traj.length()) }.sorted()
 

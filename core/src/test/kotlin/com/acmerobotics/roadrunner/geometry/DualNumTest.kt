@@ -7,15 +7,15 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class RefDualNum<Param>(
+class RefDualNum<Param : DualParameter>(
     val values: List<Double>
 ) {
     companion object {
-        fun <Param> constant(x: Double, n: Int): RefDualNum<Param> =
+        fun <Param : DualParameter> constant(x: Double, n: Int): RefDualNum<Param> =
             if (n <= 1) RefDualNum(listOf(x))
             else RefDualNum(listOf(x) + List(n - 1) { 0.0 })
 
-        fun <Param> variable(x: Double, n: Int): RefDualNum<Param> =
+        fun <Param : DualParameter> variable(x: Double, n: Int): RefDualNum<Param> =
             when {
                 n <= 1 -> RefDualNum(listOf(x))
                 n == 2 -> RefDualNum(listOf(x, 1.0))
@@ -67,7 +67,7 @@ class RefDualNum<Param>(
     fun sin(): RefDualNum<Param> = lift(::sin, RefDualNum<Param>::cos)
     fun cos(): RefDualNum<Param> = lift(::cos) { -sin() }
 
-    fun <NewParam> reparam(oldParam: RefDualNum<NewParam>): RefDualNum<NewParam> =
+    fun <NewParam : DualParameter> reparam(oldParam: RefDualNum<NewParam>): RefDualNum<NewParam> =
         if (values.isEmpty()) {
             RefDualNum(emptyList())
         } else {
@@ -81,9 +81,7 @@ class RefDualNum<Param>(
     fun value() = values.first()
 }
 
-object TestParam
-
-fun assertDualEquals(expected: RefDualNum<TestParam>, actual: DualNum<TestParam>) {
+internal fun assertDualEquals(expected: RefDualNum<TestParam>, actual: DualNum<TestParam>) {
     assertEquals(expected.values.size, actual.size())
 
     expected.values
@@ -93,7 +91,7 @@ fun assertDualEquals(expected: RefDualNum<TestParam>, actual: DualNum<TestParam>
         }
 }
 
-fun <Param> assertDualEquals(expected: DualNum<Param>, actual: DualNum<Param>, absoluteTolerance: Double = 1e-6) {
+internal fun <Param : DualParameter> assertDualEquals(expected: DualNum<Param>, actual: DualNum<Param>, absoluteTolerance: Double = 1e-6) {
     assertEquals(expected.size(), actual.size())
 
     expected.values()
@@ -103,7 +101,7 @@ fun <Param> assertDualEquals(expected: DualNum<Param>, actual: DualNum<Param>, a
         }
 }
 
-fun testRandomMonadic(
+internal fun testRandomMonadic(
     expected: (RefDualNum<TestParam>) -> RefDualNum<TestParam>,
     actual: (DualNum<TestParam>) -> DualNum<TestParam>,
     n: Int = 100
@@ -118,7 +116,7 @@ fun testRandomMonadic(
     }
 }
 
-fun testRandomDyadic(
+internal fun testRandomDyadic(
     expected: (RefDualNum<TestParam>, RefDualNum<TestParam>) -> RefDualNum<TestParam>,
     actual: (DualNum<TestParam>, DualNum<TestParam>) -> DualNum<TestParam>,
     n: Int = 100
@@ -134,7 +132,7 @@ fun testRandomDyadic(
     }
 }
 
-fun testRandomDyadicDouble(
+internal fun testRandomDyadicDouble(
     expected: (RefDualNum<TestParam>, Double) -> RefDualNum<TestParam>,
     actual: (DualNum<TestParam>, Double) -> DualNum<TestParam>,
     n: Int = 100

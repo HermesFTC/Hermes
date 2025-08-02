@@ -142,13 +142,13 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
 
         val twist = Twist2dDual(
             Vector2dDual(
-                DualNum<Time?>(
+                DualNum<Time>(
                     doubleArrayOf(
                         parPosDelta - parYTicks * headingDelta,
                         parPosVel.velocity - parYTicks * headingVel,
                     ),
                 ).times(inPerTick),
-                DualNum<Time?>(
+                DualNum<Time>(
                     doubleArrayOf(
                         perpPosDelta - perpXTicks * headingDelta,
                         perpPosVel.velocity - perpXTicks * headingVel,

@@ -22,11 +22,6 @@ class Matrix(data: Array<DoubleArray>) {
     constructor(data: Collection<Collection<Double>>) : this(data.map { it.toDoubleArray() }.toTypedArray())
 
     /**
-     * Constructor to create a [Matrix] from multiple collections.
-     */
-    constructor(vararg data: Collection<Double>) : this(data.map { it.toDoubleArray() }.toTypedArray())
-
-    /**
      * Internal constructor to create a [Matrix] from an EJML [SimpleMatrix].
      */
     internal constructor(matrix: SimpleMatrix) : this(matrix.toArray2())
@@ -57,10 +52,6 @@ class Matrix(data: Array<DoubleArray>) {
         @JvmStatic
         fun diagonal(vararg data: Double) = Matrix(SimpleMatrix.diag(*data))
 
-        /**
-         * Creates a matrix with [data] along the diagonal
-         * and all other elements set to 0.
-         */
         @JvmStatic
         fun diagonal(data: Collection<Double>) = diagonal(*data.toDoubleArray())
 

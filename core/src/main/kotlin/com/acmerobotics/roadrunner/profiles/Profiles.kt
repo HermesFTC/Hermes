@@ -597,9 +597,9 @@ fun profile(
     for (s in samples) {
         val pose = path[s, 2]
 
-        maxVels.add(velConstraint.maxRobotVel(pose, path, s))
+        maxVels.add(velConstraint.maxRobotVel(RobotState.fromDualPose(pose), path, s))
 
-        val (minAccel, maxAccel) = accelConstraint.minMaxProfileAccel(pose, path, s)
+        val (minAccel, maxAccel) = accelConstraint.minMaxProfileAccel(RobotState.fromDualPose(pose), path, s)
         minAccels.add(minAccel)
         maxAccels.add(maxAccel)
     }
@@ -628,9 +628,9 @@ fun forwardProfile(
     for (s in samples) {
         val pose = path[s, 2]
 
-        maxVels.add(velConstraint.maxRobotVel(pose, path, s))
+        maxVels.add(velConstraint.maxRobotVel(RobotState.fromDualPose(pose), path, s))
 
-        val (_, maxAccel) = accelConstraint.minMaxProfileAccel(pose, path, s)
+        val (_, maxAccel) = accelConstraint.minMaxProfileAccel(RobotState.fromDualPose(pose), path, s)
         maxAccels.add(maxAccel)
     }
 
@@ -658,9 +658,9 @@ fun backwardProfile(
     for (s in samples) {
         val pose = path[s, 2]
 
-        maxVels.add(velConstraint.maxRobotVel(pose, path, s))
+        maxVels.add(velConstraint.maxRobotVel(RobotState.fromDualPose(pose), path, s))
 
-        val (minAccel, _) = accelConstraint.minMaxProfileAccel(pose, path, s)
+        val (minAccel, _) = accelConstraint.minMaxProfileAccel(RobotState.fromDualPose(pose), path, s)
         minAccels.add(minAccel)
     }
 

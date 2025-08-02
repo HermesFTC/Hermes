@@ -4,6 +4,7 @@ import com.acmerobotics.roadrunner.TEST_PROFILE_PARAMS
 import com.acmerobotics.roadrunner.TEST_TRAJECTORY_BUILDER_PARAMS
 import com.acmerobotics.roadrunner.control.MecanumKinematics
 import com.acmerobotics.roadrunner.control.WheelVelConstraint
+import com.acmerobotics.roadrunner.geometry.DualParameter
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.acmerobotics.roadrunner.geometry.Rotation2d
 import com.acmerobotics.roadrunner.geometry.Rotation2dDual
@@ -75,7 +76,7 @@ fun chartSpline(q: QuinticSpline1d): XYChart {
             }
         }
 
-        fun <Param> chartPosPath(posPath: PositionPath<Param>): XYChart {
+        fun <Param : DualParameter> chartPosPath(posPath: PositionPath<Param>): XYChart {
             val params = range(-1.0, posPath.length() + 1.0, 1000)
             val positions = params.map { posPath[it, 4] }
 
@@ -471,7 +472,7 @@ fun chartSpline(q: QuinticSpline1d): XYChart {
                     ProfileAccelConstraint(-10.0, 15.0),
                 )
                     .splineTo(Vector2d(20.0, -20.0), -PI / 2)
-                    .build()
+                    .buildToList()
                     .first()
 
                 saveChart(
