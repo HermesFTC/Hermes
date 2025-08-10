@@ -13,7 +13,6 @@ import com.acmerobotics.roadrunner.profiles.ProfileAccelConstraint
 import com.acmerobotics.roadrunner.paths.TangentPath
 import com.acmerobotics.roadrunner.profiles.TimeProfile
 import com.acmerobotics.roadrunner.profiles.profile
-import com.acmerobotics.roadrunner.paths.project
 import com.acmerobotics.roadrunner.saveChart
 import com.acmerobotics.roadrunner.trajectories.PositionPathSeqBuilder
 import org.junit.jupiter.api.Test

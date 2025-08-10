@@ -4,6 +4,8 @@ import com.acmerobotics.roadrunner.geometry.MinMax
 import com.acmerobotics.roadrunner.geometry.RobotState
 import com.acmerobotics.roadrunner.paths.PosePath
 import kotlin.math.abs
+import kotlin.math.absoluteValue
+import kotlin.math.pow
 
 fun interface VelConstraint {
     fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double

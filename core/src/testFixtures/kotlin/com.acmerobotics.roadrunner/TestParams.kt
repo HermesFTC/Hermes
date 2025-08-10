@@ -14,7 +14,6 @@ import com.acmerobotics.roadrunner.profiles.TranslationalVelConstraint
 import com.acmerobotics.roadrunner.profiles.VelConstraint
 import com.acmerobotics.roadrunner.trajectories.PositionPathSeqBuilder
 import com.acmerobotics.roadrunner.trajectories.TrajectoryBuilderParams
-import kotlin.random.Random
 
 val TEST_PROFILE_PARAMS = ProfileParams(
     0.25,

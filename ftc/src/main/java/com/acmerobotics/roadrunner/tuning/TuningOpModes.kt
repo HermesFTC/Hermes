@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.acmerobotics.roadrunner.geometry.PoseVelocity2d
 import com.acmerobotics.roadrunner.geometry.Rotation2d
 import com.acmerobotics.roadrunner.geometry.Vector2d
-import com.acmerobotics.roadrunner.hardware.Encoder
 import com.acmerobotics.roadrunner.hardware.OTOSEncoderGroup
 import com.acmerobotics.roadrunner.hardware.OTOSIMU
 import com.acmerobotics.roadrunner.hardware.RollingThreeMedian
