@@ -1,5 +1,6 @@
 package com.acmerobotics.roadrunner.tuning
 
+import com.acmerobotics.dashboard.config.ValueProvider
 import com.acmerobotics.roadrunner.hardware.Encoder
 import com.acmerobotics.roadrunner.hardware.EncoderGroup
 import com.acmerobotics.roadrunner.hardware.LynxQuadratureEncoderGroup
@@ -37,10 +38,6 @@ internal fun recordUnwrappedEncoderData(gs: List<EncoderGroup>, ts: List<Double>
 
     vs.times.add(t)
     vs.values.add(pv.velocity.toDouble())
-}
-
-fun shouldFixVels(view: DriveView, er: EncoderRef): Boolean {
-    return view.encoderGroups[er.groupIndex] is LynxQuadratureEncoderGroup
 }
 
 internal fun avgPos(es: List<Encoder>) = es.sumOf { it.getPositionAndVelocity().position.toDouble() } / es.size

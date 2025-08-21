@@ -92,7 +92,7 @@ class ForwardPushPinpointView(hardwareMap: HardwareMap) : ForwardPushLocalizerVi
         val ticksPerInch = when (podConfig) {
             PinpointEncoderType.PARALLEL -> pinpointParPod.value
             PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.value
-        } / (HermesConfig["ForwardPush"] as CustomVariable).getVariable("InchesTravelled").value as Double
+        } / (ForwardPushTest.actualInchesTravelled)
 
         return ForwardPushPinpointParameters(
             pinpoint.deviceName,
