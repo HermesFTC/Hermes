@@ -1,6 +1,7 @@
 package com.acmerobotics.roadrunner.tuning
 
 import com.acmerobotics.roadrunner.control.MotorFeedforward
+import com.acmerobotics.roadrunner.hardware.Encoder
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import kotlinx.serialization.Serializable
 
@@ -35,4 +36,19 @@ data class FeedforwardParameters(
     val kA: Double = 0.0
 ) {
     operator fun invoke() = MotorFeedforward(kStatic, kV, kA)
+}
+
+sealed interface ForwardPushLocalizerParameters
+
+@Serializable
+data class ForwardPushPinpointParameters(
+    val pinpointName: String,
+    val forwardEncoder: PinpointEncoderType,
+    val forwardEncoderDirection: DcMotorSimple.Direction,
+    val ticksPerInch: Double
+): ForwardPushLocalizerParameters
+
+enum class PinpointEncoderType {
+    PARALLEL,
+    PERPENDICULAR
 }
