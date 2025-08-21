@@ -2,7 +2,7 @@ package com.acmerobotics.roadrunner.tuning
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 
-class ForwardPushTest(val drive: DriveView) : OpMode() {
+class ForwardPushTest() : OpMode() {
 
     override fun init() {
 

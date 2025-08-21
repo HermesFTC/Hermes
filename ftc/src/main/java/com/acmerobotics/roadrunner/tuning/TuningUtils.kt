@@ -44,3 +44,4 @@ fun shouldFixVels(view: DriveView, er: EncoderRef): Boolean {
 }
 
 internal fun avgPos(es: List<Encoder>) = es.sumOf { it.getPositionAndVelocity().position.toDouble() } / es.size
+

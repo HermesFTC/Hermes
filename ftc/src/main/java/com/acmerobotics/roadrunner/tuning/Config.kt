@@ -16,12 +16,9 @@ object HermesConfig : PersistentConfig("HermesConfig", AppUtil.ROOT_FOLDER.resol
 
 }
 
-open class PersistentConfig(val configName: String, var configFile: File) {
+open class PersistentConfig(val configName: String, configFile: File) : PersistentConfigWriter(configFile) {
 
     private val configVariables: MutableMap<String, ValueProvider<Any?>> = mutableMapOf()
-
-    private val configWriter get() = PersistentConfigWriter(configFile)
-    private val configReader get() = PersistentConfigReader(configFile)
 
     @Suppress("UNCHECKED_CAST")
     fun <T> addConfigVariable(name: String, value: T?) {
