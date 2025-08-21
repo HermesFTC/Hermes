@@ -82,10 +82,11 @@ class ForwardPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
         }
 
         // clean up this cursed config code later
-        val inPerTick = actualInchesTravelled / when (podConfig) {
-            PinpointEncoderType.PARALLEL -> pinpointParPod.value
-            PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.value
-        }
+        val inPerTick =
+            HermesConfig.tuningConfig.odometryPodType.inPerTick ?: (actualInchesTravelled / when (podConfig) {
+                PinpointEncoderType.PARALLEL -> pinpointParPod.value
+                PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.value
+            })
 
         return ForwardPushPinpointParameters(
             pinpoint.deviceName,
