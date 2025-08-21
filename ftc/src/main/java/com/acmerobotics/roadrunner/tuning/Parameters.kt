@@ -7,8 +7,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RobotConfig(
-    val drive: DriveParameters,
-    val feedforward: FeedforwardParameters
+    val drive: DriveParameters?,
+    val feedforward: FeedforwardParameters?,
 )
 
 sealed interface DriveParameters
@@ -45,7 +45,7 @@ data class ForwardPushPinpointParameters(
     val pinpointName: String,
     val forwardEncoder: PinpointEncoderType,
     val forwardEncoderDirection: DcMotorSimple.Direction,
-    val ticksPerInch: Double
+    val ticksPerInch: Double,
 ): ForwardPushLocalizerParameters
 
 enum class PinpointEncoderType {

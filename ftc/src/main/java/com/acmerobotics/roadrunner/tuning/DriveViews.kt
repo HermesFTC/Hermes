@@ -50,11 +50,17 @@ const val MOVEMENT_PERCENTAGE_THRESHOLD = 0.1
 
 interface ForwardPushLocalizerView {
 
-    val parameters: ForwardPushLocalizerParameters
+    fun getParameters(actualInchesTravelled: Double): ForwardPushLocalizerParameters
 
 }
 
 class ForwardPushPinpointView(hardwareMap: HardwareMap) : ForwardPushLocalizerView {
+
+    val pinpoint: GoBildaPinpointDriver = hardwareMap.getAll(GoBildaPinpointDriver::class.java).iterator().next()
+        ?: throw ConfigurationException("No pinpoints detected in configuration.")
+
+    val pinpointParPod = TuningAxialSensor({ pinpoint.encoderX.toDouble() })
+    val pinpointPerpPod = TuningAxialSensor({ pinpoint.encoderY.toDouble() })
 
     // safety checks
     init {
@@ -69,13 +75,7 @@ class ForwardPushPinpointView(hardwareMap: HardwareMap) : ForwardPushLocalizerVi
         }
     }
 
-    val pinpoint: GoBildaPinpointDriver = hardwareMap.getAll(GoBildaPinpointDriver::class.java).iterator().next()
-        ?: throw ConfigurationException("No pinpoints detected in configuration.")
-
-    val pinpointParPod = TuningAxialSensor({ pinpoint.encoderX.toDouble() })
-    val pinpointPerpPod = TuningAxialSensor({ pinpoint.encoderY.toDouble() })
-
-    override val parameters: ForwardPushPinpointParameters get() {
+    override fun getParameters(actualInchesTravelled: Double): ForwardPushPinpointParameters {
 
         if (!(pinpointPerpPod.moved xor pinpointParPod.moved)) {
             throw ConfigurationException("your pinpoint is plugged in wrong silly")
@@ -92,7 +92,7 @@ class ForwardPushPinpointView(hardwareMap: HardwareMap) : ForwardPushLocalizerVi
         val ticksPerInch = when (podConfig) {
             PinpointEncoderType.PARALLEL -> pinpointParPod.value
             PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.value
-        } / (ForwardPushTest.actualInchesTravelled)
+        } / actualInchesTravelled
 
         return ForwardPushPinpointParameters(
             pinpoint.deviceName,
