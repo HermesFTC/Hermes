@@ -1,8 +1,5 @@
 package com.acmerobotics.roadrunner.tuning
 
-import com.acmerobotics.dashboard.FtcDashboard
-import com.acmerobotics.dashboard.config.ValueProvider
-import com.acmerobotics.dashboard.config.reflection.FieldProvider
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
 

@@ -1,8 +1,8 @@
 package com.acmerobotics.roadrunner.tuning
 
 import com.acmerobotics.roadrunner.control.MotorFeedforward
-import com.acmerobotics.roadrunner.hardware.Encoder
 import com.qualcomm.robotcore.hardware.DcMotorSimple
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -20,6 +20,7 @@ data class MotorConfig(
 )
 
 @Serializable
+@SerialName("MecanumParameters")
 data class MecanumParameters(
     var trackWidth: Double = 0.0,
     var wheelBase: Double = 0.0,
@@ -28,6 +29,15 @@ data class MecanumParameters(
     var rightFront: MotorConfig,
     var rightBack: MotorConfig
 ) : DriveParameters
+
+@Serializable
+@SerialName("TankParameters")
+data class TankParameeters(
+    var trackWidth: Double = 0.0,
+    var wheelBase: Double = 0.0,
+    var leftMotors: MutableList<MotorConfig>,
+    var rightMotors: MutableList<MotorConfig>
+)
 
 @Serializable
 data class FeedforwardParameters(
@@ -41,6 +51,7 @@ data class FeedforwardParameters(
 sealed interface ForwardPushLocalizerParameters
 
 @Serializable
+@SerialName("ForwardPushPinpointParameters")
 data class ForwardPushPinpointParameters(
     val pinpointName: String,
     val forwardEncoder: PinpointEncoderType,
