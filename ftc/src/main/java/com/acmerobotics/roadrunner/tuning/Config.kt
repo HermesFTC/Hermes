@@ -44,7 +44,7 @@ open class PersistentConfig(val configName: String, configFile: File) {
         }
 
         FtcDashboard.getInstance().addConfigVariable(configName, name, provider)
-        configVariables.put(name, provider as ValueProvider<Any?>)
+        configVariables[name] = provider as ValueProvider<Any?>
 
     }
 
@@ -84,8 +84,8 @@ open class PersistentConfig(val configName: String, configFile: File) {
 
 }
 
-class PersistentConfigValueProvider<T: Any?>(initalValue: T, val config: PersistentConfig) : ValueProvider<T> {
-    private var value: T? = initalValue
+class PersistentConfigValueProvider<T: Any?>(initialValue: T, val config: PersistentConfig) : ValueProvider<T> {
+    private var value: T? = initialValue
 
     override fun get(): T? {
         return value

@@ -1,9 +1,7 @@
 package com.acmerobotics.roadrunner.tuning
 
-import com.acmerobotics.dashboard.config.ValueProvider
 import com.acmerobotics.roadrunner.hardware.Encoder
 import com.acmerobotics.roadrunner.hardware.EncoderGroup
-import com.acmerobotics.roadrunner.hardware.LynxQuadratureEncoderGroup
 
 class MidpointTimer {
     private val beginTs = System.nanoTime()

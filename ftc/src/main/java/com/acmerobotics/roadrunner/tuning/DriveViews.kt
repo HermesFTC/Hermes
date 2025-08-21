@@ -1,36 +1,20 @@
 package com.acmerobotics.roadrunner.tuning
 
-import com.acmerobotics.dashboard.config.variable.CustomVariable
-import com.acmerobotics.roadrunner.control.MecanumKinematics
 import com.acmerobotics.roadrunner.control.MotorFeedforward
-import com.acmerobotics.roadrunner.control.TankKinematics
-import com.acmerobotics.roadrunner.ftc.PinpointLocalizer
-import com.acmerobotics.roadrunner.geometry.PoseVelocity2d
-import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
-import com.acmerobotics.roadrunner.geometry.Time
-import com.acmerobotics.roadrunner.hardware.Encoder
-import com.acmerobotics.roadrunner.hardware.EncoderGroup
-import com.acmerobotics.roadrunner.hardware.LazyImu
-import com.acmerobotics.roadrunner.hardware.LynxQuadratureEncoderGroup
-import com.acmerobotics.roadrunner.hardware.PinpointParEncoder
 import com.acmerobotics.roadrunner.logs.FlightRecorder
-import com.google.gson.annotations.SerializedName
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
-import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.hardware.VoltageSensor
+import kotlinx.serialization.SerialName
 import kotlin.math.abs
-import kotlin.math.absoluteValue
-import kotlin.math.max
 
 
 enum class DriveType {
-    @SerializedName("mecanum")
+    @SerialName("mecanum")
     MECANUM,
 
-    @SerializedName("tank")
+    @SerialName("tank")
     TANK
 }
 
@@ -56,8 +40,9 @@ interface ForwardPushLocalizerView {
 
 class ForwardPushPinpointView(hardwareMap: HardwareMap) : ForwardPushLocalizerView {
 
-    val pinpoint: GoBildaPinpointDriver = hardwareMap.getAll(GoBildaPinpointDriver::class.java).iterator().next()
-        ?: throw ConfigurationException("No pinpoints detected in configuration.")
+    val pinpoint: GoBildaPinpointDriver =
+        hardwareMap.getAll(GoBildaPinpointDriver::class.java).iterator().next()
+            ?: throw ConfigurationException("No pinpoints detected in configuration.")
 
     val pinpointParPod = TuningAxialSensor({ pinpoint.encoderX.toDouble() })
     val pinpointPerpPod = TuningAxialSensor({ pinpoint.encoderY.toDouble() })
@@ -108,12 +93,10 @@ class ForwardPushPinpointView(hardwareMap: HardwareMap) : ForwardPushLocalizerVi
  * Relative axial sensor class that measures movement throughout the OpMode.
  * Examples: motor encoder, odometry pod.
  */
-open class TuningAxialSensor(val sensorOutput: Function0<Double>, val movementThreshold: Double = 100.0) {
-
-    val moved get() = abs(sensorOutput.invoke()) > movementThreshold
-    val direction get() = if (sensorOutput.invoke() > 0) DcMotorSimple.Direction.FORWARD else DcMotorSimple.Direction.REVERSE
-    val value get() = sensorOutput.invoke()
-
+open class TuningAxialSensor(val sensorOutput: () -> Double, val movementThreshold: Double = 100.0) {
+    val moved get() = abs(sensorOutput()) > movementThreshold
+    val direction get() = if (sensorOutput() > 0) DcMotorSimple.Direction.FORWARD else DcMotorSimple.Direction.REVERSE
+    val value get() = sensorOutput()
 }
 
 class TuningMotorEncoder(motor: DcMotorEx) : TuningAxialSensor({ motor.currentPosition.toDouble() }, 30.0)
