@@ -10,6 +10,7 @@ import com.acmerobotics.roadrunner.control.TankKinematics.TankWheelIncrements
 import com.acmerobotics.roadrunner.geometry.*
 import com.acmerobotics.roadrunner.hardware.*
 import com.acmerobotics.roadrunner.logs.*
+import com.acmerobotics.roadrunner.tuning.PinpointParameters
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS
 import com.qualcomm.robotcore.hardware.DcMotorEx
@@ -437,19 +438,45 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
  * @param perpDirection direction of the perpendicular encoder
  * @param initialPose initial pose
  */
-@Config
 class PinpointLocalizer @JvmOverloads constructor(
     val hardwareMap: HardwareMap,
-    @JvmField var inPerTick: Double,
-    val name: String = "pinpoint",
-    @JvmField var parYTicks: Double = 0.0,
-    @JvmField var perpXTicks: Double = 0.0,
-    val parDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
-    val perpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+    val parameters: PinpointParameters,
     val initialPose: Pose2d = Pose2d.zero,
 ) : Localizer {
+
+    val inPerTick: Double by parameters::inPerTick
+    val name: String by parameters::name
+    val parYTicks: Double by parameters::parYTicks
+    val perpXTicks: Double by parameters::perpXTicks
+    val parDirection: DcMotorSimple.Direction by parameters::parDirection
+    val perpDirection: DcMotorSimple.Direction by parameters::perpDirection
+
+    // old constructor
+    constructor(
+        hardwareMap: HardwareMap,
+        inPerTick: Double,
+        name: String = "pinpoint",
+        parYTicks: Double = 0.0,
+        perpXTicks: Double = 0.0,
+        parDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        perpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+        initialPose: Pose2d = Pose2d.zero,
+    ) : this(
+        hardwareMap,
+        PinpointParameters(
+            inPerTick,
+            name,
+            parYTicks,
+            perpXTicks,
+            parDirection,
+            perpDirection,
+        ),
+        initialPose
+    )
+
+
     val driver: GoBildaPinpointDriver =
-        hardwareMap.get(GoBildaPinpointDriver::class.java, name)
+        hardwareMap.get(GoBildaPinpointDriver::class.java, parameters.name)
 
     private var txWorldPinpoint: Pose2d
     private var txPinpointRobot = Pose2d(0.0, 0.0, 0.0)
@@ -458,7 +485,7 @@ class PinpointLocalizer @JvmOverloads constructor(
     override val poseHistory = mutableListOf<Pose2d>()
 
     init {
-        driver.setEncoderResolution(inPerTick, DistanceUnit.INCH)
+        driver.setEncoderResolution(parameters.inPerTick, DistanceUnit.INCH)
         driver.setOffsets(inPerTick * parYTicks, inPerTick * perpXTicks, DistanceUnit.INCH)
 
         driver.setEncoderDirections(parDirection.pinpointDirection, perpDirection.pinpointDirection)
