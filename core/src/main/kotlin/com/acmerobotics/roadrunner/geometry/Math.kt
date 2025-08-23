@@ -68,6 +68,10 @@ fun lerp(x: Double, fromLo: Double, fromHi: Double, toLo: Double, toHi: Double) 
     else
         toLo + (x - fromLo) * (toHi - toLo) / (fromHi - fromLo)
 
+fun lerp(low: Double, high: Double, t: Double) = low + (high - low) * t
+
+fun antiLerp(value: Double, low: Double, high: Double) = (value - low) / (high - low)
+
 @Serializable
 data class IntegralScanResult(
     @JvmField
