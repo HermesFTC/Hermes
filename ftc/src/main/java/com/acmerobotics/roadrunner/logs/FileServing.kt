@@ -139,6 +139,7 @@ object TuningFiles {
 
     enum class FileType(val baseName: String) {
         FORWARD_RAMP("forward-ramp"),
+        FORWARD_STEP("forward-step"),
         LATERAL_RAMP("lateral-ramp"),
         ANGULAR_RAMP("angular-ramp"),
         ACCEL("accel");

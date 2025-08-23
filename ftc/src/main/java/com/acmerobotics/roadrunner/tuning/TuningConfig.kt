@@ -5,15 +5,28 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class TuningConfig(
     val odometryPodType: OdometryPodType = OdometryPodType.OTHER,
+    val localizer: LocalizerType = LocalizerType.CUSTOM,
+    var warnings: List<String> = arrayListOf(),
     val forwardPush: ForwardPushConfig = ForwardPushConfig(),
     val lateralPush: LateralPushConfig = LateralPushConfig(),
-    val angularPush: AngularPushConfig = AngularPushConfig()
+    val angularPush: AngularPushConfig = AngularPushConfig(),
+    val forwardRamp: ForwardRampConfig = ForwardRampConfig(),
+    val forwardStep: ForwardStepConfig = ForwardStepConfig()
 )
 
 enum class OdometryPodType {
     GOBILDA_4_BAR,
     GOBILDA_SWINGARM,
     OTHER
+}
+
+enum class LocalizerType {
+    CUSTOM,
+    TWO_WHEEL,
+    THREE_WHEEL,
+    GOBILDA_PINPOINT,
+    SPARKFUN_OTOS,
+    MOTOR_ENCODERS
 }
 
 /**
@@ -38,4 +51,15 @@ data class LateralPushConfig(
 @Serializable
 data class AngularPushConfig(
     var actualRevolutions: Double = 1.0,
+)
+
+@Serializable
+data class ForwardRampConfig(
+    var thresholdInchesPerSecond: Double = 0.1,
+    var voltagePerSecond: Double = 1.0
+)
+
+@Serializable
+data class ForwardStepConfig(
+    var voltageStep: Double = 10.0
 )
