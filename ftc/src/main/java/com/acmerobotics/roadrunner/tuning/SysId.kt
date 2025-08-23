@@ -50,7 +50,7 @@ object DataFilter {
         nextInterpolationPoint.addAll(this.asPair())
 
         if (nextInterpolationPoint.isEmpty()) {
-            return arrayListOf()
+            return MutableSignal(times, mutableListOf())
         }
 
         var prevInterpolationPoint: Pair<Double, Double> = nextInterpolationPoint.first()
