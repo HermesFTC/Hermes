@@ -1,7 +1,18 @@
 package com.acmerobotics.roadrunner.tuning
 
+import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
+import com.acmerobotics.roadrunner.ftc.Localizer
+import com.acmerobotics.roadrunner.logs.TuningFiles
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.math.sign
 
 class ForwardPushTest(val localizerView: ForwardPushLocalizerView) : OpMode() {
 
@@ -61,4 +72,106 @@ class AngularPushTest(val localizerView: AngularPushLocalizerView) : OpMode() {
         HermesConfig.config.localizer = HermesConfig.config.localizer?.assembleIfAble()
     }
 
+}
+
+/**
+ * Quasistatic SysID routine for the drivetrain.
+ * Determines: kV, kS
+ * @param direction +direction = forward
+ */
+class ForwardRampTest(val driveView: DriveView, val localizer: Localizer, val direction: Double) : LinearOpMode() {
+
+    val sign = sign(direction)
+
+    // cap voltage at current voltage to prevent overflow
+    fun voltage(seconds: Double) = if (sign == 1.0)
+            min(HermesConfig.tuningConfig.forwardRamp.voltagePerSecond * seconds, VoltageCache.currentVoltage)
+        else
+            max(HermesConfig.tuningConfig.forwardRamp.voltagePerSecond * seconds * sign, VoltageCache.currentVoltage * sign)
+
+    override fun runOpMode() {
+
+        val forwardVoltage = MutableSignal()
+        val forwardVelocity = MutableSignal()
+
+        waitForStart()
+
+        val t = MidpointTimer()
+        while (opModeIsActive()) {
+            val voltage = voltage(t.seconds()) // for consistency, use the same voltage throughout the entire loop
+
+            forwardVoltage.times.add(t.addSplit())
+            forwardVoltage.values.add(voltage * sign) // always log voltage as positive, even if backwards. hey it works
+
+            forwardVelocity.times.add(t.addSplit())
+            forwardVelocity.values.add(localizer.vel.linearVel.x * sign) // same with velocity
+
+            driveView.voltageDrive(voltage, 0.0)
+            localizer.update()
+        }
+
+        driveView.voltageDrive(0.0, 0.0)
+
+        TuningFiles.save(TuningFiles.FileType.FORWARD_RAMP,
+            DataFilter.filterQuasistaticByVelocity(0.1,
+                QuasistaticParameters(
+                    forwardVoltage,
+                    forwardVelocity
+                )
+            )
+        )
+    }
+}
+
+/**
+ * Dynamic SysID routine for the drivetrain.
+ * Determines: kA
+ * @param direction +direction = forward
+ */
+class ForwardStepTest(val driveView: DriveView, val localizer: Localizer, val direction: Double) : LinearOpMode() {
+
+    val sign = sign(direction)
+
+    fun voltage(seconds: Double) = if (seconds > 0.5) HermesConfig.tuningConfig.forwardStep.voltageStep * sign else 0.0
+
+    override fun runOpMode() {
+
+        val deltaVoltage = MutableSignal()
+        val forwardAcceleration = MutableSignal()
+
+        waitForStart()
+
+        val t = MidpointTimer()
+        var lastVelX = 0.0
+        var lastSeconds = 0.0
+        while (opModeIsActive()) {
+            val voltage = voltage(t.seconds()) // for consistency, use the same voltage throughout the entire loop
+
+            deltaVoltage.times.add(t.addSplit())
+            if (HermesConfig.config.feedforward == null) {
+                throw IllegalStateException("go do forward ramp u troll")
+            }
+
+            // u - kV * v gives voltage difference between being stable at velocity and voltage we are actually providing
+            deltaVoltage.values.add((voltage - (HermesConfig.config.feedforward!!.kV * localizer.vel.linearVel.x)) * sign)
+
+            forwardAcceleration.times.add(t.addSplit())
+            forwardAcceleration.values.add((localizer.vel.linearVel.x - lastVelX) * sign / (t.seconds() - lastSeconds))
+
+            lastVelX = localizer.vel.linearVel.x
+            lastSeconds = t.seconds()
+
+            driveView.voltageDrive(voltage, 0.0)
+            localizer.update()
+        }
+
+        driveView.voltageDrive(0.0, 0.0)
+
+        TuningFiles.save(TuningFiles.FileType.FORWARD_STEP,
+            DynamicParameters(
+                forwardAcceleration,
+                deltaVoltage
+            )
+        )
+    }
 }

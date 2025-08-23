@@ -1,11 +1,20 @@
 package com.acmerobotics.roadrunner.tuning
 
+import com.acmerobotics.roadrunner.control.MecanumKinematics
 import com.acmerobotics.roadrunner.control.MotorFeedforward
+import com.acmerobotics.roadrunner.geometry.DualNum
+import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
+import com.acmerobotics.roadrunner.geometry.Time
+import com.acmerobotics.roadrunner.geometry.Vector2d
+import com.acmerobotics.roadrunner.geometry.Vector2dDual
 import com.acmerobotics.roadrunner.logs.FlightRecorder
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
+import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.VoltageSensor
+import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.serialization.SerialName
 import kotlin.math.PI
 import kotlin.math.abs
@@ -29,9 +38,43 @@ data class EncoderRef(
 )
 
 /**
- * % of max movement. for instance, if encoder a moves 1000 ticks and encoder b moves 100, we consider b to also have moved.
+ * Global object for synchronized and IO-efficient voltage reads.
  */
-const val MOVEMENT_PERCENTAGE_THRESHOLD = 0.1
+object VoltageCache {
+
+    private lateinit var voltageSensor: VoltageSensor
+    private var cachedVoltage: Double = 0.0
+    private val timeElapsed: ElapsedTime = ElapsedTime()
+
+    private val voltageConfig: VoltageConfig by PersistentConfigDelegate(
+        "Voltage Configuration", VoltageConfig(),
+        HermesConfig,
+    )
+
+    val nominalVoltage: Double by voltageConfig::nominalVoltage
+
+    private val readIntervalSeconds: Double by voltageConfig::readIntervalSeconds
+
+    val currentVoltage: Double
+        get() {
+            if (timeElapsed.seconds() > readIntervalSeconds) {
+                cachedVoltage = voltageSensor.voltage
+                timeElapsed.reset()
+            }
+            return cachedVoltage
+        }
+
+    /**
+     * Initializes the VoltageCache with the voltage sensor for the OpMode.
+     */
+    fun init(hardwareMap: HardwareMap) {
+        this.voltageSensor = hardwareMap.voltageSensor.iterator().next()
+        cachedVoltage = voltageSensor.voltage
+        timeElapsed.reset()
+    }
+
+
+}
 
 interface ForwardPushLocalizerView {
 
@@ -42,7 +85,7 @@ interface ForwardPushLocalizerView {
 open class PinpointView(hardwareMap: HardwareMap) {
     val pinpoint: GoBildaPinpointDriver =
         hardwareMap.getAll(GoBildaPinpointDriver::class.java).iterator().next()
-        ?: throw ConfigurationException("No pinpoints detected in configuration.")
+            ?: throw ConfigurationException("No pinpoints detected in configuration.")
 
     val pinpointParPod = TuningAxialSensor({ pinpoint.encoderX.toDouble() })
     val pinpointPerpPod = TuningAxialSensor({ pinpoint.encoderY.toDouble() })
@@ -123,6 +166,7 @@ class LateralPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
             podConfig,
             podDirection,
         )
+
     }
 
 }
@@ -131,7 +175,7 @@ class LateralPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
  * Relative axial sensor class that measures movement throughout the OpMode.
  * Examples: motor encoder, odometry pod.
  */
-open class TuningAxialSensor(val sensorOutput: () -> Double, val movementThreshold: Double = 100.0) {
+open class TuningAxialSensor(val sensorOutput: () -> Double, val movementThreshold: Double = 10000.0) {
     val moved get() = abs(sensorOutput()) > movementThreshold
     val direction get() = if (sensorOutput() > 0) DcMotorSimple.Direction.FORWARD else DcMotorSimple.Direction.REVERSE
     val value get() = sensorOutput()
@@ -140,13 +184,13 @@ open class TuningAxialSensor(val sensorOutput: () -> Double, val movementThresho
 class TuningMotorEncoder(motor: DcMotorEx) : TuningAxialSensor({ motor.currentPosition.toDouble() }, 30.0)
 
 
-
 interface AngularPushLocalizerView {
 
     fun getParameters(actualRevolutions: Double): AngularPushLocalizerParameters
 
 }
 
+// TODO: add validation that the user is actually turning the robot ccw (and the pinpoint IMU is mounted correctly.)
 class AngularPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareMap), AngularPushLocalizerView {
 
     override fun getParameters(actualRevolutions: Double): AngularPushLocalizerParameters {
@@ -168,13 +212,79 @@ class AngularPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
 
         return AngularPushPinpointParameters(
             parYTicks,
-            perpXTicks
+            perpXTicks,
         )
 
     }
 
 }
 
+interface DriveView {
+
+    /**
+     * Voltage overflows scale both to max voltage.
+     * @param rotationVoltage Counter-clockwise (standard).
+     */
+    fun voltageDrive(forwardVoltage: Double, rotationVoltage: Double)
+
+}
+
+interface HolonomicDriveView : DriveView {
+
+    /**
+     * Voltage overflows scale all to max voltage.
+     * @param strafeVoltage Positive goes left.
+     * @param rotationVoltage Counter-clockwise (standard).
+     */
+    fun voltageDrive(forwardVoltage: Double, strafeVoltage: Double, rotationVoltage: Double)
+
+}
+
+class MecanumDriveView(parameters: MecanumParameters, hardwareMap: HardwareMap) : HolonomicDriveView {
+
+    private val motors: List<DcMotor> = arrayListOf(
+        parameters.leftFront.toDcMotor(hardwareMap),
+        parameters.leftBack.toDcMotor(hardwareMap),
+        parameters.rightBack.toDcMotor(hardwareMap),
+        parameters.rightFront.toDcMotor(hardwareMap),
+    )
+
+    /**
+     * Voltage overflows scale all to max voltage.
+     * @param strafeVoltage Positive goes left.
+     * @param rotationVoltage Counter-clockwise (standard).
+     */
+    override fun voltageDrive(
+        forwardVoltage: Double,
+        strafeVoltage: Double,
+        rotationVoltage: Double,
+    ) {
+        // normalize by voltage
+        val (x, y, r) = arrayListOf(
+            forwardVoltage,
+            strafeVoltage,
+            rotationVoltage,
+        ).map { it / VoltageCache.currentVoltage }
+
+        val wheelPowers = MecanumKinematics(1.0).inverse(
+            PoseVelocity2dDual(
+                Vector2dDual.constant<Time>(Vector2d(x, y), 1),
+                DualNum.constant<Time>(rotationVoltage, 1),
+            ),
+        )
+
+        motors.zip(wheelPowers.all()).forEach { (motor, power) -> motor.power = power.value() }
+    }
+
+    /**
+     * Voltage overflows scale both to max voltage.
+     * @param rotationVoltage Counter-clockwise (standard).
+     */
+    override fun voltageDrive(forwardVoltage: Double, rotationVoltage: Double) {
+        voltageDrive(forwardVoltage, 0.0, rotationVoltage)
+    }
+
+}
 
 /**
  * you fucked up your config and now i am mad at you

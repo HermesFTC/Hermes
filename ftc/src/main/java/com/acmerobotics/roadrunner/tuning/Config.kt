@@ -14,9 +14,9 @@ import kotlin.reflect.KProperty
 
 object HermesConfig : PersistentConfig("HermesConfig", AppUtil.ROOT_FOLDER.resolve("hermes/config/config.json")) {
 
-    var config: RobotConfig by PersistentConfigDelegate("RobotConfig", RobotConfig(null, null, null))
+    var config: RobotConfig by PersistentConfigDelegate("RobotConfig", RobotConfig(null, null, null), this)
 
-    var tuningConfig: TuningConfig by PersistentConfigDelegate("TuningConfig", TuningConfig())
+    var tuningConfig: TuningConfig by PersistentConfigDelegate("TuningConfig", TuningConfig(), this)
 
 }
 
@@ -114,9 +114,9 @@ class PersistentConfigReader(val configFile: File) {
 
 val CustomVariable.values get() = this.value as Map<String, ConfigVariable<Any?>> // legal typecast because that's what the return actually is
 
-class PersistentConfigDelegate<T : Any?>(val keyName: String, val defaultValue: T) {
+class PersistentConfigDelegate<T : Any?>(val keyName: String, val defaultValue: T, val config: PersistentConfig) {
 
-    operator fun getValue(config: PersistentConfig, property: KProperty<*>): T {
+    operator fun getValue(ref: Any?, property: KProperty<*>): T {
         val v = config[keyName]
         if (v == null) {
             config.addConfigVariable(keyName, defaultValue)
@@ -124,7 +124,7 @@ class PersistentConfigDelegate<T : Any?>(val keyName: String, val defaultValue: 
         return config[keyName] as T
     }
 
-    operator fun setValue(config: PersistentConfig, property: KProperty<*>, value: T) {
+    operator fun setValue(ref: Any?, property: KProperty<*>, value: T) {
         config[keyName] = value
     }
 

@@ -2,6 +2,8 @@ package com.acmerobotics.roadrunner.tuning
 
 import com.acmerobotics.roadrunner.control.MotorFeedforward
 import com.acmerobotics.roadrunner.geometry.Pose2d
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlinx.serialization.SerialName
@@ -20,7 +22,17 @@ sealed interface DriveParameters
 data class MotorConfig(
     @JvmField var name: String,
     @JvmField var direction: DcMotorSimple.Direction
-)
+) {
+    fun toDcMotor(hardwareMap: HardwareMap): DcMotor {
+        val motor = hardwareMap.dcMotor.get(name)
+        motor.direction = DcMotorSimple.Direction.REVERSE
+        return motor
+    }
+
+    fun toDcMotorEx(hardwareMap: HardwareMap): DcMotorEx {
+        return toDcMotor(hardwareMap) as DcMotorEx
+    }
+}
 
 @Serializable
 @SerialName("MecanumParameters")
@@ -127,3 +139,9 @@ data class AngularPushPinpointParameters(
     val parYTicks: Double,
     val perpXTicks: Double
 ): AngularPushLocalizerParameters
+
+@Serializable
+data class VoltageConfig(
+    val nominalVoltage: Double = 12.5,
+    val readIntervalSeconds: Double = 0.5,
+)

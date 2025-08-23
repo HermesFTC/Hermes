@@ -19,10 +19,14 @@ class MidpointTimer {
     }
 }
 
-internal class MutableSignal(
+class MutableSignal(
     val times: MutableList<Double> = mutableListOf(),
     val values: MutableList<Double> = mutableListOf()
-)
+) {
+    fun asPair(): MutableList<Pair<Double, Double>> {
+        return this.times.zip(this.values) as MutableList<Pair<Double, Double>>
+    }
+}
 
 
 // designed for manual bulk caching
