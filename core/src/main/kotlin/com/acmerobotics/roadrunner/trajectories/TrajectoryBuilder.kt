@@ -545,6 +545,136 @@ class TrajectoryBuilder private constructor(
         add(pathBuilder.splineToSplineHeading(pose, tangent), velConstraintOverride, accelConstraintOverride)
 
     /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading follows the path tangent.
+     */
+    @JvmOverloads
+    fun bezierTo(
+        controlPoints: List<Vector2d>,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = add(
+        pathBuilder.bezierTo(controlPoints),
+        velConstraintOverride,
+        accelConstraintOverride
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     */
+    fun bezierTo(
+        vararg controlPoints: Vector2d,
+    ) = add(
+        pathBuilder.bezierTo(*controlPoints),
+        null,
+        null
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading remains constant at its current heading.
+     */
+    @JvmOverloads
+    fun bezierToConstantHeading(
+        controlPoints: List<Vector2d>,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = add(
+        pathBuilder.bezierToConstantHeading(controlPoints),
+        velConstraintOverride,
+        accelConstraintOverride
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading is linearly interpolated
+     * from its current heading to [heading].
+     */
+    @JvmOverloads
+    fun bezierToLinearHeading(
+        controlPoints: List<Vector2d>,
+        heading: Rotation2d,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = add(
+        pathBuilder.bezierToLinearHeading(controlPoints, heading),
+        velConstraintOverride,
+        accelConstraintOverride
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading is linearly interpolated
+     * from its current heading to [heading].
+     */
+    @JvmOverloads
+    fun bezierToLinearHeading(
+        controlPoints: List<Vector2d>,
+        heading: Double,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = add(
+        pathBuilder.bezierToLinearHeading(controlPoints, heading),
+        velConstraintOverride,
+        accelConstraintOverride
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading is interpolated from
+     * its current heading to [heading] using a spline.
+     */
+    @JvmOverloads
+    fun bezierToSplineHeading(
+        controlPoints: List<Vector2d>,
+        heading: Rotation2d,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = add(
+        pathBuilder.bezierToSplineHeading(controlPoints, heading),
+        velConstraintOverride,
+        accelConstraintOverride
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading is interpolated from
+     * its current heading to [heading] using a spline.
+     */
+    @JvmOverloads
+    fun bezierToSplineHeading(
+        controlPoints: List<Vector2d>,
+        heading: Double,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = add(
+        pathBuilder.bezierToSplineHeading(controlPoints, heading),
+        velConstraintOverride,
+        accelConstraintOverride
+    )
+
+    /**
      * Adds a marker to the trajectory builder.
      * @param marker The [Marker] to add.
      * @return A new [TrajectoryBuilder] with the marker added.

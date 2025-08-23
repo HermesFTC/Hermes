@@ -951,6 +951,136 @@ class TrajectoryActionBuilder private constructor(
     )
 
     /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading follows the path tangent.
+     */
+    @JvmOverloads
+    fun bezierTo(
+        controlPoints: List<Vector2d>,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = TrajectoryActionBuilder(
+        this,
+        tb.bezierTo(controlPoints, velConstraintOverride, accelConstraintOverride),
+        n + 1, lastPoseUnmapped, lastPose, lastTangent, ms, cont
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     */
+    fun bezierTo(
+        vararg controlPoints: Vector2d,
+    ) = TrajectoryActionBuilder(
+        this,
+        tb.bezierTo(*controlPoints),
+        n + 1, lastPoseUnmapped, lastPose, lastTangent, ms, cont
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading remains constant at its current heading.
+     */
+    @JvmOverloads
+    fun bezierToConstantHeading(
+        controlPoints: List<Vector2d>,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = TrajectoryActionBuilder(
+        this,
+        tb.bezierToConstantHeading(controlPoints, velConstraintOverride, accelConstraintOverride),
+        n + 1, lastPoseUnmapped, lastPose, lastTangent, ms, cont
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading is linearly interpolated
+     * from its current heading to [heading].
+     */
+    @JvmOverloads
+    fun bezierToLinearHeading(
+        controlPoints: List<Vector2d>,
+        heading: Rotation2d,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = TrajectoryActionBuilder(
+        this,
+        tb.bezierToLinearHeading(controlPoints, heading, velConstraintOverride, accelConstraintOverride),
+        n + 1, lastPoseUnmapped, lastPose, lastTangent, ms, cont
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading is linearly interpolated
+     * from its current heading to [heading].
+     */
+    @JvmOverloads
+    fun bezierToLinearHeading(
+        controlPoints: List<Vector2d>,
+        heading: Double,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = TrajectoryActionBuilder(
+        this,
+        tb.bezierToLinearHeading(controlPoints, heading, velConstraintOverride, accelConstraintOverride),
+        n + 1, lastPoseUnmapped, lastPose, lastTangent, ms, cont
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading is interpolated from
+     * its current heading to [heading] using a spline.
+     */
+    @JvmOverloads
+    fun bezierToSplineHeading(
+        controlPoints: List<Vector2d>,
+        heading: Rotation2d,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = TrajectoryActionBuilder(
+        this,
+        tb.bezierToSplineHeading(controlPoints, heading, velConstraintOverride, accelConstraintOverride),
+        n + 1, lastPoseUnmapped, lastPose, lastTangent, ms, cont
+    )
+
+    /**
+     * Adds a curved path using a Bezier curve,
+     * with the current pose of this builder
+     * as the first control point and [controlPoints]
+     * as the remaining control points.
+     * The robot's heading is interpolated from
+     * its current heading to [heading] using a spline.
+     */
+    @JvmOverloads
+    fun bezierToSplineHeading(
+        controlPoints: List<Vector2d>,
+        heading: Double,
+        velConstraintOverride: VelConstraint? = null,
+        accelConstraintOverride: AccelConstraint? = null
+    ) = TrajectoryActionBuilder(
+        this,
+        tb.bezierToSplineHeading(controlPoints, heading, velConstraintOverride, accelConstraintOverride),
+        n + 1, lastPoseUnmapped, lastPose, lastTangent, ms, cont
+    )
+
+    /**
      * Creates a new builder with the same settings at the current pose, tangent.
      */
     fun fresh() = endTrajectory().let {

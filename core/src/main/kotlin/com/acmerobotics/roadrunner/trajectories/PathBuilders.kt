@@ -191,6 +191,22 @@ class PositionPathSeqBuilder private constructor(
      */
     fun splineTo(pos: Vector2d, tangent: Double) = splineTo(pos, Rotation2d.exp(tangent))
 
+    /**
+     * Adds a Bézier curve using this position as the first control point,
+     * and [controlPoints] as the remaining points.
+     */
+    fun bezierTo(controlPoints: List<Vector2d>): PositionPathSeqBuilder {
+        require(controlPoints.isNotEmpty()) { "At least two control points required" }
+        return addSegment(
+            ArclengthReparamCurve2d(
+                BezierCurve2dInternal(
+                    listOf(nextBeginPos) + controlPoints.toList()
+                ),
+                eps
+            )
+        )
+    }
+
     fun build() = paths + listOf(CompositePositionPath(segments))
 }
 
@@ -568,6 +584,46 @@ class PathBuilder private constructor(
         headingSegments + listOf { splineUntil(it, pose.heading) }, pose.heading
     )
     fun splineToSplineHeading(pose: Pose2d, tangent: Double) = splineToSplineHeading(pose, Rotation2d.exp(tangent))
+
+    fun bezierTo(controlPoints: List<Vector2d>) = copyTangent(
+        positionPathSeqBuilder.bezierTo(controlPoints),
+        headingSegments + listOf { tangentUntil(it) }
+    )
+
+    fun bezierTo(vararg controlPoints: Vector2d) = copyTangent(
+        positionPathSeqBuilder.bezierTo(controlPoints.toList()),
+        headingSegments + listOf { tangentUntil(it) }
+    )
+
+    fun bezierToConstantHeading(controlPoints: List<Vector2d>) = copy(
+        positionPathSeqBuilder.bezierTo(controlPoints),
+        headingSegments + listOf { constantUntil(it) },
+        endHeading
+    )
+
+    fun bezierToConstantHeading(vararg controlPoints: Vector2d) = copy(
+        positionPathSeqBuilder.bezierTo(controlPoints.toList()),
+        headingSegments + listOf { constantUntil(it) },
+        endHeading
+    )
+
+    fun bezierToLinearHeading(controlPoints: List<Vector2d>, heading: Rotation2d) = copy(
+        positionPathSeqBuilder.bezierTo(controlPoints),
+        headingSegments + listOf { linearUntil(it, heading) },
+        heading
+    )
+
+    fun bezierToLinearHeading(controlPoints: List<Vector2d>, heading: Double) =
+        bezierToLinearHeading(controlPoints, Rotation2d.exp(heading))
+
+    fun bezierToSplineHeading(controlPoints: List<Vector2d>, heading: Rotation2d) = copy(
+        positionPathSeqBuilder.bezierTo(controlPoints),
+        headingSegments + listOf { splineUntil(it, heading) },
+        heading
+    )
+
+    fun bezierToSplineHeading(controlPoints: List<Vector2d>, heading: Double) =
+        bezierToSplineHeading(controlPoints, Rotation2d.exp(heading))
 
     fun build(): List<CompositePosePath> {
         val posPaths = positionPathSeqBuilder.build()
