@@ -5,6 +5,8 @@ package com.acmerobotics.roadrunner.ftc
 import com.acmerobotics.roadrunner.geometry.*
 import com.acmerobotics.roadrunner.paths.PosePath
 import com.acmerobotics.roadrunner.profiles.*
+import com.acmerobotics.roadrunner.trajectories.CancelableTrajectory
+import com.acmerobotics.roadrunner.trajectories.CompositeCancelableTrajectory
 import com.acmerobotics.roadrunner.trajectories.DisplacementTrajectory
 import com.acmerobotics.roadrunner.trajectories.Marker
 import com.acmerobotics.roadrunner.trajectories.TimeTrajectory
@@ -79,6 +81,15 @@ interface Follower {
      * Tracks which markers have been triggered.
      */
     val triggeredMarkers: MutableSet<Marker>
+
+    /**
+     * Cancels the follower. If [trajectory] is cancelable,
+     * this function will cancel smoothly,
+     * otherwise, it will simply stop the robot.
+     *
+     * **Note: This function blocks until the robot is stopped.**
+     */
+    fun cancel()
 }
 
 class DisplacementFollower @JvmOverloads constructor(
@@ -175,6 +186,19 @@ class DisplacementFollower @JvmOverloads constructor(
     override fun follow() {
         lastCommand = this.driveCommand
         drive.setDrivePowersWithFF(lastCommand)
+    }
+
+    override fun cancel() {
+        if (trajectory.trajectory is CancelableTrajectory) {
+            val traj = (trajectory.trajectory as CancelableTrajectory).cancel(ds)
+            val follower = DisplacementFollower(traj, drive, endConditions)
+            while (!follower.isDone) {
+                follower.follow()
+            }
+            return
+        } else {
+            drive.setDrivePowers(PoseVelocity2d.zero)
+        }
     }
 }
 
@@ -276,5 +300,18 @@ class TimeFollower @JvmOverloads constructor(
     override fun follow() {
         lastCommand = this.driveCommand
         drive.setDrivePowersWithFF(lastCommand)
+    }
+
+    override fun cancel() {
+        if (trajectory.trajectory is CancelableTrajectory) {
+            val traj = (trajectory.trajectory as CancelableTrajectory).cancel(timetraj.profile[timer.seconds()].value())
+            val follower = DisplacementFollower(traj, drive, endConditions)
+            while (!follower.isDone) {
+                follower.follow()
+            }
+            return
+        } else {
+            drive.setDrivePowers(PoseVelocity2d.zero)
+        }
     }
 }
