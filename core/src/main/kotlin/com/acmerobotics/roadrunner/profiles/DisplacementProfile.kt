@@ -516,23 +516,24 @@ fun backwardProfile(
 }
 
 fun velocity(kV: Double): (Double) -> Double {
-    return {availableVoltage: Double -> availableVoltage * kV}
+    return { availableVoltage: Double -> availableVoltage * kV }
 }
 
 fun voltageFromVelocity(kV: Double): (Double) -> Double {
-    return {velocity: Double -> velocity / kV}
+    return { velocity: Double -> velocity / kV }
 }
 
 fun acceleration(kA: Double): (Double) -> Double {
-    return {availableVoltage: Double -> availableVoltage * kA}
+    return { availableVoltage: Double -> availableVoltage * kA }
 }
 
 fun voltageFromAcceleration(kA: Double): (Double) -> Double {
-    return {velocity: Double -> velocity / kA}
+    return { velocity: Double -> velocity / kA }
 }
 
 operator fun DisplacementProfile.plus(other: DisplacementProfile): DisplacementProfile {
-    require(this.vels.last() == other.vels.first()) { "this.vels.last() (${this.vels.last()}) != other.vels.first() (${other.vels.first()})" }
+    require(this.vels.last() == other.vels.first())
+        { "this.vels.last() (${this.vels.last()}) != other.vels.first() (${other.vels.first()})" }
 
     return DisplacementProfile(
         this.disps + other.disps.drop(1),
