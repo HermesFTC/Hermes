@@ -1,0 +1,19 @@
+import React from 'react';
+import { DriveEncoderAngularRampRegression } from '../components/graph';
+
+const DriveEncoderAngularRampPage: React.FC = () => {
+  return (
+    <div className="content p-6 w-full max-w-7xl mx-auto">
+      <header className="mb-8">
+        <h1 className="text-3xl font-bold mb-2">RR Drive Encoder Angular Ramp Regression</h1>
+        <p className="text-gray-600 mb-4">Version: {import.meta.env.VITE_APP_VERSION || 'dev'}</p>
+      </header>
+      
+      <div className="w-full">
+        <DriveEncoderAngularRampRegression />
+      </div>
+    </div>
+  );
+};
+
+export default DriveEncoderAngularRampPage; 

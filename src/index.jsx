@@ -11,6 +11,7 @@ import { BASE_HERMES_URL } from './constants';
 import Home from './pages/Home';
 import TuningPage from './pages/TuningPage';
 import GettingStarted from './pages/GettingStarted';
+import GraphPage from './pages/GraphPage';
 
 import { getLayoutPreset } from "@/store/actions/settings";
 import { startSocketWatcher } from "@/store/middleware/socketMiddleware";
@@ -20,6 +21,10 @@ import DefaultLayout from './pages/DefaultLayout';
 import ForwardPush from './pages/ForwardPush';
 import LateralPush from './pages/LateralPush';
 import AngularPush from './pages/AngularPush';
+import ForwardRampPage from './pages/ForwardRampPage';
+import LateralRampPage from './pages/LateralRampPage';
+import DriveEncoderAngularRampPage from './pages/DriveEncoderAngularRampPage';
+import DeadWheelAngularRampPage from './pages/DeadWheelAngularRampPage';
 
 export default function App() {
 
@@ -36,6 +41,12 @@ export default function App() {
               <Route path="/lateral-push" element={<LateralPush/>}/>
               <Route path="/angular-push" element={<AngularPush/>}/>
             </Route>
+          </Route>
+          <Route element={<GraphPage/>}>
+            <Route path="/forward-ramp" element={<ForwardRampPage/>}/>
+            <Route path="/lateral-ramp" element={<LateralRampPage/>}/>
+            <Route path="/drive-encoder-angular-ramp" element={<DriveEncoderAngularRampPage/>}/>
+            <Route path="/dead-wheel-angular-ramp" element={<DeadWheelAngularRampPage/>}/>
           </Route>
         </Routes>
       </BrowserRouter>
