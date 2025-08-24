@@ -488,6 +488,14 @@ fun forwardProfile(
     return DisplacementProfile(newDisps, vels, accels)
 }
 
+fun forwardProfile(
+    path: PosePath,
+    beginVel: Double,
+    kV: Double,
+    kA: Double,
+    maxVoltage: Double
+) {}
+
 /**
  * Computes an approximately time-optimal backward profile from voltage constraints. No restriction is imposed
  * on the maximum acceleration.
