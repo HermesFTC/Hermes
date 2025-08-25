@@ -25,8 +25,17 @@ data class Vector2d(@JvmField val x: Double, @JvmField val y: Double) {
     fun sqrNorm() = this dot this
     fun norm() = sqrt(sqrNorm())
 
-    // precondition: this is normalized
+    /**
+     * Returns the angle of this vector as a [Rotation2d],
+     * assuming this is normalized.
+     */
     fun angleCast() = Rotation2d(x, y)
+
+    /**
+     * Returns the angle of this vector as a [Rotation2d],
+     * normalizing this first.
+     */
+    fun angle() = (this/norm()).angleCast()
 
     fun asPair() = x to y
 
@@ -74,6 +83,8 @@ data class Vector2dDual<Param : DualParameter>(@JvmField val x: DualNum<Param>, 
 
     // precondition: this is normalized
     fun angleCast() = Rotation2dDual(x, y)
+
+    fun angle() = (this/norm().value()).angleCast()
 
     fun asPair() = x to y
 }

@@ -5,7 +5,7 @@ import com.acmerobotics.roadrunner.geometry.Arclength
 import com.acmerobotics.roadrunner.geometry.Rotation2d
 import com.acmerobotics.roadrunner.geometry.Vector2d
 import com.acmerobotics.roadrunner.paths.CompositePosePath
-import com.acmerobotics.roadrunner.profiles.forwardProfile
+import com.acmerobotics.roadrunner.profiles.DisplacementProfile
 import com.acmerobotics.roadrunner.trajectories.DisplacementTrajectory
 import com.acmerobotics.roadrunner.trajectories.PathBuilder
 import com.acmerobotics.roadrunner.trajectories.Trajectory
@@ -22,7 +22,7 @@ fun Drive.lineTo(target: Vector2d) = GenerableTrajectory {
         .let {
             DisplacementTrajectory(
                 it,
-                forwardProfile(
+                DisplacementProfile.generate(
                     followerParams.profileParams,
                     it,
                     0.0,
@@ -40,7 +40,7 @@ fun Drive.splineTo(target: Vector2d, tangent: Rotation2d) = PathBuilder(localize
     .let {
         DisplacementTrajectory(
             it,
-            forwardProfile(
+            DisplacementProfile.generate(
                 followerParams.profileParams,
                 it,
                 0.0,

@@ -10,7 +10,7 @@ import com.acmerobotics.roadrunner.geometry.range
 import com.acmerobotics.roadrunner.profiles.ProfileAccelConstraint
 import com.acmerobotics.roadrunner.paths.TangentPath
 import com.acmerobotics.roadrunner.profiles.TimeProfile
-import com.acmerobotics.roadrunner.profiles.profile
+import com.acmerobotics.roadrunner.profiles.CancelableProfile
 import com.acmerobotics.roadrunner.paths.saveProfiles
 import com.acmerobotics.roadrunner.trajectories.PositionPathSeqBuilder
 import kotlin.math.PI
@@ -66,7 +66,7 @@ class KinematicsTest {
             .first()
 
         val path = TangentPath(posPath, 0.0)
-        val profile = profile(
+        val profile = CancelableProfile.generate(
             TEST_PROFILE_PARAMS,
             path, 0.0,
             WheelVelConstraint(kinematics, 10.0),
@@ -133,7 +133,7 @@ class KinematicsTest {
             .first()
 
         val path = TangentPath(posPath, 0.0)
-        val profile = profile(
+        val profile = CancelableProfile.generate(
             TEST_PROFILE_PARAMS,
             path, 0.0,
             WheelVelConstraint(kinematics,10.0),

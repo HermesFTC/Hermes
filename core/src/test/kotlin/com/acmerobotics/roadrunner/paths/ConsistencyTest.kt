@@ -12,7 +12,7 @@ import com.acmerobotics.roadrunner.geometry.Rotation2d
 import com.acmerobotics.roadrunner.geometry.Vector2d
 import com.acmerobotics.roadrunner.geometry.range
 import com.acmerobotics.roadrunner.posPathSeqBuilder
-import com.acmerobotics.roadrunner.profiles.forwardProfile
+import com.acmerobotics.roadrunner.profiles.generatePathBasedForwardProfile
 import com.acmerobotics.roadrunner.randomAngle
 import com.acmerobotics.roadrunner.randomPoint
 import com.acmerobotics.roadrunner.trajectories.PositionPathSeqBuilder
@@ -71,7 +71,7 @@ class ConsistencyTest : FunSpec(
 
             test("multiple profile builds are the same") {
                 checkAll(targetArb, targetArb, targetArb) { tA, tB, tC ->
-                    val profile1 = forwardProfile(
+                    val profile1 = generatePathBasedForwardProfile(
                         TEST_PROFILE_PARAMS,
                         posPathSeqBuilder()
                             .splineTo(tA.pos, tA.tangent)
@@ -83,13 +83,60 @@ class ConsistencyTest : FunSpec(
                         TEST_ACCEL_CONSTRAINT
                     )
 
-                    val profile2 = forwardProfile(
+                    val profile2 = generatePathBasedForwardProfile(
                         TEST_PROFILE_PARAMS,
                         posPathSeqBuilder()
                             .splineTo(tA.pos, tA.tangent)
                             .splineTo(tB.pos, tB.tangent)
                             .splineTo(tC.pos, tC.tangent)
                             .buildToComposite(),
+                        0.0,
+                        TEST_VEL_CONSTRAINT,
+                        TEST_ACCEL_CONSTRAINT
+                    )
+
+                    profile1.length shouldBe profile2.length
+
+                    val samples = range(0.0, profile1.length, 100)
+
+                    samples.forEach {
+                        profile1[it] should dualEqual(profile2[it])
+                    }
+                }
+            }
+
+            test("profile generation is deterministic") {
+                checkAll(random3SplinePath) { pathBuilder ->
+                    val path = pathBuilder.buildToComposite()
+
+                    val profile1 = generatePathBasedForwardProfile(TEST_PROFILE_PARAMS, path, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
+                    val profile2 = generatePathBasedForwardProfile(TEST_PROFILE_PARAMS, path, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
+
+                    profile1.length shouldBe profile2.length
+
+                    val samples = range(0.0, profile1.length, 100)
+
+                    samples.forEach {
+                        profile1[it] should dualEqual(profile2[it])
+                    }
+                }
+            }
+
+            test("trajectories are deterministic") {
+                checkAll(random3SplinePath) { pathBuilder ->
+                    val path = pathBuilder.buildToComposite()
+
+                    val profile1 = generatePathBasedForwardProfile(
+                        TEST_PROFILE_PARAMS,
+                        path,
+                        0.0,
+                        TEST_VEL_CONSTRAINT,
+                        TEST_ACCEL_CONSTRAINT
+                    )
+
+                    val profile2 = generatePathBasedForwardProfile(
+                        TEST_PROFILE_PARAMS,
+                        path,
                         0.0,
                         TEST_VEL_CONSTRAINT,
                         TEST_ACCEL_CONSTRAINT
