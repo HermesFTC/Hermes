@@ -1,18 +1,11 @@
 package com.acmerobotics.roadrunner.control
 
 import com.acmerobotics.roadrunner.TEST_PROFILE_PARAMS
-import com.acmerobotics.roadrunner.geometry.DualNum
-import com.acmerobotics.roadrunner.geometry.Pose2d
-import com.acmerobotics.roadrunner.geometry.PoseVelocity2d
-import com.acmerobotics.roadrunner.geometry.Rotation2d
-import com.acmerobotics.roadrunner.geometry.Time
-import com.acmerobotics.roadrunner.geometry.Vector2d
-import com.acmerobotics.roadrunner.geometry.Vector2dDual
-import com.acmerobotics.roadrunner.geometry.clamp
-import com.acmerobotics.roadrunner.profiles.ProfileAccelConstraint
+import com.acmerobotics.roadrunner.geometry.*
 import com.acmerobotics.roadrunner.paths.TangentPath
+import com.acmerobotics.roadrunner.profiles.CancelableProfile
+import com.acmerobotics.roadrunner.profiles.ProfileAccelConstraint
 import com.acmerobotics.roadrunner.profiles.TimeProfile
-import com.acmerobotics.roadrunner.profiles.profile
 import com.acmerobotics.roadrunner.saveChart
 import com.acmerobotics.roadrunner.trajectories.PositionPathSeqBuilder
 import org.junit.jupiter.api.Test
@@ -50,7 +43,7 @@ class MecanumFollowerTest {
         )
 
         val profile = TimeProfile(
-            profile(
+            CancelableProfile.generate(
                 TEST_PROFILE_PARAMS,
                 path,
                 0.0,
@@ -155,7 +148,7 @@ class MecanumFollowerTest {
         )
 
         val profile =
-            profile(
+            CancelableProfile.generate(
                 TEST_PROFILE_PARAMS,
                 path,
                 5.0,

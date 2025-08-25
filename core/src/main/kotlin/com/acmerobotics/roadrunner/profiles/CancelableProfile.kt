@@ -69,6 +69,50 @@ class CancelableProfile(
      * Shortcut for the original displacement profile.
      */
     operator fun invoke() = baseProfile
+
+    companion object {
+        /**
+         * Creates a path-based cancelable profile using the given constraints.
+         *
+         * @param params Profile generation parameters
+         * @param path The path to follow
+         * @param beginEndVel Beginning and ending velocity (must be the same to guarantee feasibility)
+         * @param velConstraint Velocity constraint function
+         * @param accelConstraint Acceleration constraint function
+         * @return CancelableProfile optimized for the given path and constraints
+         */
+        fun generate(
+            params: ProfileParams,
+            path: PosePath,
+            beginEndVel: Double,
+            velConstraint: VelConstraint,
+            accelConstraint: AccelConstraint,
+        ): CancelableProfile {
+            val len = path.length()
+            val dispSamples = rangeCentered(0.0, len, max(1, ceil(len / params.dispResolution).toInt()))
+            val angSamples = samplePathByRotation(path, params.angResolution, params.angSamplingEps)
+            val samples = (dispSamples + angSamples).sorted()
+
+            val maxVels = mutableListOf<Double>()
+            val minAccels = mutableListOf<Double>()
+            val maxAccels = mutableListOf<Double>()
+
+            for (s in samples) {
+                val pose = path[s, 2]
+
+                maxVels.add(velConstraint.maxRobotVel(RobotState.fromDualPose(pose), path, s))
+
+                val (minAccel, maxAccel) = accelConstraint.minMaxProfileAccel(RobotState.fromDualPose(pose), path, s)
+                minAccels.add(minAccel)
+                maxAccels.add(maxAccel)
+            }
+
+            return generateCancelableProfile(
+                listOf(0.0) + samples.zip(samples.drop(1)).map { (a, b) -> 0.5 * (a + b) } + listOf(path.length()),
+                beginEndVel, maxVels, minAccels, maxAccels
+            )
+        }
+    }
 }
 
 /**
@@ -85,7 +129,7 @@ fun constantProfile(
     maxVel: Double,
     minAccel: Double,
     maxAccel: Double,
-) = profile(length, beginEndVel, { maxVel }, { minAccel }, { maxAccel }, length)
+) = generateCancelableProfile(length, beginEndVel, { maxVel }, { minAccel }, { maxAccel }, length)
 
 /**
  * Computes an approximately time-optimal profile by sampling the constraints according to the resolution [resolution].
@@ -95,7 +139,7 @@ fun constantProfile(
  * @param[minAccel] always returns negative
  * @param[maxAccel] always returns positive
  */
-fun profile(
+fun generateCancelableProfile(
     length: Double,
     beginEndVel: Double,
     maxVel: (Double) -> Double,
@@ -114,7 +158,7 @@ fun profile(
     val minAccels = disps.map(minAccel)
     val maxAccels = disps.map(maxAccel)
 
-    return profile(
+    return generateCancelableProfile(
         range(0.0, length, samples + 1),
         beginEndVel, maxVels, minAccels, maxAccels
     )
@@ -128,7 +172,7 @@ fun profile(
  * @param[minAccels] all negative
  * @param[maxAccels] all positive
  */
-fun profile(
+fun generateCancelableProfile(
     disps: List<Double>,
     beginEndVel: Double,
     maxVels: List<Double>,
@@ -143,42 +187,10 @@ fun profile(
     }
 
     return CancelableProfile(
-        merge(
-            forwardProfile(disps, beginEndVel, maxVels, maxAccels),
-            backwardProfile(disps, maxVels, beginEndVel, minAccels),
+        mergeDisplacementProfiles(
+            generateForwardProfile(disps, beginEndVel, maxVels, maxAccels),
+            generateBackwardProfile(disps, maxVels, beginEndVel, minAccels),
         ),
         disps, minAccels
-    )
-}
-
-fun profile(
-    params: ProfileParams,
-    path: PosePath,
-    beginEndVel: Double,
-    velConstraint: VelConstraint,
-    accelConstraint: AccelConstraint,
-): CancelableProfile {
-    val len = path.length()
-    val dispSamples = rangeCentered(0.0, len, max(1, ceil(len / params.dispResolution).toInt()))
-    val angSamples = samplePathByRotation(path, params.angResolution, params.angSamplingEps)
-    val samples = (dispSamples + angSamples).sorted()
-
-    val maxVels = mutableListOf<Double>()
-    val minAccels = mutableListOf<Double>()
-    val maxAccels = mutableListOf<Double>()
-
-    for (s in samples) {
-        val pose = path[s, 2]
-
-        maxVels.add(velConstraint.maxRobotVel(RobotState.Companion.fromDualPose(pose), path, s))
-
-        val (minAccel, maxAccel) = accelConstraint.minMaxProfileAccel(RobotState.Companion.fromDualPose(pose), path, s)
-        minAccels.add(minAccel)
-        maxAccels.add(maxAccel)
-    }
-
-    return profile(
-        listOf(0.0) + samples.zip(samples.drop(1)).map { (a, b) -> 0.5 * (a + b) } + listOf(path.length()),
-        beginEndVel, maxVels, minAccels, maxAccels
     )
 }

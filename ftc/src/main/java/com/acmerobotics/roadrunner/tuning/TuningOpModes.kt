@@ -399,15 +399,7 @@ class ManualFeedforwardTuner(val dvf: DriveViewFactory) : LinearOpMode() {
                         val ref = view.forwardEncs[i]
 
                         val pv = view.encoder(ref).getPositionAndVelocity()
-                        val v = if (pv.velocity == null) {
-                            val lastPos = lastPositions[i]
-                            val currVelocity = velEstimates[i].update((pv.position - lastPos) / lastTimes[i].seconds())
-                            lastPositions[i] = pv.position
-                            lastTimes[i].reset()
-                            currVelocity
-                        } else {
-                            pv.velocity.toDouble()
-                        }
+                        val v = pv.velocity.toDouble()
 
                         telemetry.addData("v$i", view.inPerTick * v)
                     }

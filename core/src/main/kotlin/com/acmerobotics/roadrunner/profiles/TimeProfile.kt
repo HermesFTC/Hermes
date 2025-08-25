@@ -2,6 +2,7 @@ package com.acmerobotics.roadrunner.profiles
 
 import com.acmerobotics.roadrunner.geometry.DualNum
 import com.acmerobotics.roadrunner.geometry.Time
+import com.acmerobotics.roadrunner.paths.PosePath
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.math.sqrt
@@ -100,6 +101,29 @@ data class TimeProfile @JvmOverloads constructor(
                 }
             }
         }
+    }
+
+    companion object {
+        /**
+         * Creates an optimal time profile using forward and backward passes.
+         * This is the main entry point for generating time-optimal profiles.
+         *
+         * @param params Profile generation parameters
+         * @param path The path to follow
+         * @param beginVel Beginning and ending velocity (must be the same to guarantee feasibility)
+         * @param velConstraint Velocity constraint function
+         * @param accelConstraint Acceleration constraint function
+         * @return TimeProfile optimized for the given path and constraints
+         */
+        fun generate(
+            params: ProfileParams,
+            path: PosePath,
+            beginVel: Double,
+            velConstraint: VelConstraint,
+            accelConstraint: AccelConstraint,
+        ): TimeProfile = TimeProfile(createOptimalDisplacementProfile(
+            params, path, beginVel, velConstraint, accelConstraint
+        ))
     }
 }
 

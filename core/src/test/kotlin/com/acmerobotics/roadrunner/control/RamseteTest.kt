@@ -1,16 +1,11 @@
 package com.acmerobotics.roadrunner.control
 
 import com.acmerobotics.roadrunner.TEST_PROFILE_PARAMS
-import com.acmerobotics.roadrunner.geometry.DualParameter
-import com.acmerobotics.roadrunner.geometry.Pose2d
-import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
-import com.acmerobotics.roadrunner.geometry.Time
-import com.acmerobotics.roadrunner.geometry.Twist2d
-import com.acmerobotics.roadrunner.geometry.Vector2d
-import com.acmerobotics.roadrunner.profiles.ProfileAccelConstraint
+import com.acmerobotics.roadrunner.geometry.*
 import com.acmerobotics.roadrunner.paths.TangentPath
+import com.acmerobotics.roadrunner.profiles.CancelableProfile
+import com.acmerobotics.roadrunner.profiles.ProfileAccelConstraint
 import com.acmerobotics.roadrunner.profiles.TimeProfile
-import com.acmerobotics.roadrunner.profiles.profile
 import com.acmerobotics.roadrunner.saveChart
 import com.acmerobotics.roadrunner.trajectories.PositionPathSeqBuilder
 import org.junit.jupiter.api.Test
@@ -51,14 +46,12 @@ class RamseteTest {
         val trackWidth = 15.0
         val kinematics = TankKinematics(trackWidth)
 
-        val profile = TimeProfile(
-            profile(
-                TEST_PROFILE_PARAMS,
-                path, 0.0,
-                WheelVelConstraint(kinematics, 10.0),
-                ProfileAccelConstraint(-20.0, 20.0),
-            ).baseProfile
-        )
+        val profile = TimeProfile(CancelableProfile.generate(
+            TEST_PROFILE_PARAMS,
+            path, 0.0,
+            WheelVelConstraint(kinematics, 10.0),
+            ProfileAccelConstraint(-20.0, 20.0),
+        ).baseProfile)
 
         val controller = RamseteController(trackWidth, bBar = 2.0)
 
@@ -148,7 +141,7 @@ class RamseteTest {
         val kinematics = TankKinematics(trackWidth)
 
         val profile = TimeProfile(
-            profile(
+            CancelableProfile.generate(
                 TEST_PROFILE_PARAMS,
                 path, 0.0,
                 WheelVelConstraint(kinematics, 10.0),

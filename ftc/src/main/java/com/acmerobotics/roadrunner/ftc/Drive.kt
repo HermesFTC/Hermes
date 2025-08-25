@@ -8,7 +8,7 @@ import com.acmerobotics.roadrunner.geometry.Time
 import com.acmerobotics.roadrunner.paths.PosePath
 import com.acmerobotics.roadrunner.profiles.AccelConstraint
 import com.acmerobotics.roadrunner.profiles.VelConstraint
-import com.acmerobotics.roadrunner.profiles.forwardProfile
+import com.acmerobotics.roadrunner.profiles.DisplacementProfile
 import com.acmerobotics.roadrunner.trajectories.DisplacementTrajectory
 import com.acmerobotics.roadrunner.trajectories.TrajectoryBuilder
 import com.acmerobotics.roadrunner.trajectories.TurnConstraints
@@ -40,13 +40,14 @@ interface Drive {
     /**
      * Creates and returns a time-optimal profile for the given path.
      */
-    fun createProfile(path: PosePath) = forwardProfile(
-            followerParams.profileParams,
-            path,
-            0.0,
-            followerParams.velConstraint,
-            followerParams.accelConstraint,
-        )
+    fun createProfile(path: PosePath) = DisplacementProfile.generate(
+                followerParams.profileParams,
+                path,
+                0.0,
+                followerParams.velConstraint,
+                followerParams.accelConstraint,
+            )
+
 
     /**
      * Creates and returns a time-optimal profile for the given path.
@@ -56,4 +57,3 @@ interface Drive {
         createProfile(path)
     )
 }
-

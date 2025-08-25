@@ -6,7 +6,6 @@ import com.acmerobotics.roadrunner.geometry.*
 import com.acmerobotics.roadrunner.paths.PosePath
 import com.acmerobotics.roadrunner.profiles.*
 import com.acmerobotics.roadrunner.trajectories.CancelableTrajectory
-import com.acmerobotics.roadrunner.trajectories.CompositeCancelableTrajectory
 import com.acmerobotics.roadrunner.trajectories.DisplacementTrajectory
 import com.acmerobotics.roadrunner.trajectories.Marker
 import com.acmerobotics.roadrunner.trajectories.TimeTrajectory
@@ -111,7 +110,7 @@ class DisplacementFollower @JvmOverloads constructor(
         TrajectoryWithMarkers(
             DisplacementTrajectory(
                 path,
-                forwardProfile(
+                createOptimalDisplacementProfile(
                     drive.followerParams.profileParams,
                     path,
                     0.0,
@@ -222,7 +221,7 @@ class TimeFollower @JvmOverloads constructor(
             TimeTrajectory(
                 path,
                 TimeProfile(
-                    forwardProfile(
+                    DisplacementProfile.generate(
                         drive.followerParams.profileParams,
                         path,
                         0.0,

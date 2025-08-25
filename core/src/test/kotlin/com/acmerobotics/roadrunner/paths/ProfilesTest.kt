@@ -13,10 +13,10 @@ import com.acmerobotics.roadrunner.profiles.MinVelConstraint
 import com.acmerobotics.roadrunner.profiles.ProfileAccelConstraint
 import com.acmerobotics.roadrunner.profiles.TimeProfile
 import com.acmerobotics.roadrunner.profiles.TranslationalVelConstraint
-import com.acmerobotics.roadrunner.profiles.backwardProfile
+import com.acmerobotics.roadrunner.profiles.createSimpleDisplacementProfile
+import com.acmerobotics.roadrunner.profiles.generateSimpleBackwardProfile
 import com.acmerobotics.roadrunner.profiles.constantProfile
-import com.acmerobotics.roadrunner.profiles.forwardProfile
-import com.acmerobotics.roadrunner.profiles.profile
+import com.acmerobotics.roadrunner.profiles.createVoltageConstrainedProfile
 import com.acmerobotics.roadrunner.saveChart
 import com.acmerobotics.roadrunner.trajectories.TrajectoryBuilder
 import org.junit.jupiter.api.Test
@@ -98,7 +98,7 @@ class ProfilesTest {
         saveProfiles(
             "forwardProfile",
             TimeProfile(
-                forwardProfile(
+                createSimpleDisplacementProfile(
                     10.0, 0.0,
                     { (it - 5.0).pow(4.0) + 1.0 },
                     { 5.0 },
@@ -112,7 +112,7 @@ class ProfilesTest {
         saveProfiles(
             "backwardProfile",
             TimeProfile(
-                backwardProfile(
+                generateSimpleBackwardProfile(
                     10.0,
                     { (it - 5.0).pow(4.0) + 1.0 },
                     0.0,
@@ -127,12 +127,13 @@ class ProfilesTest {
         saveProfiles(
             "profile",
             TimeProfile(
-                profile(
+                createVoltageConstrainedProfile(
                     10.0,
                     0.0,
-                    { (it - 5.0).pow(4.0) + 1.0 },
-                    { -5.0 },
-                    { 5.0 },
+                    1.0, // kV
+                    1.0, // kA
+                    0.0, // kS
+                    { (it - 5.0).pow(4.0) + 1.0 + 5.0 }, // maxVoltage
                     0.01,
                 ).baseProfile
             )
@@ -143,12 +144,13 @@ class ProfilesTest {
         saveProfiles(
             "profileNonZero",
             TimeProfile(
-                profile(
+                createVoltageConstrainedProfile(
                     10.0,
                     3.0,
-                    { (it - 5.0).pow(4.0) + 1.0 },
-                    { -5.0 },
-                    { 5.0 },
+                    1.0, // kV
+                    1.0, // kA
+                    0.0, // kS
+                    { (it - 5.0).pow(4.0) + 1.0 + 5.0 }, // maxVoltage
                     0.01,
                 ).baseProfile
             )
@@ -159,12 +161,13 @@ class ProfilesTest {
         saveProfiles(
             "profileNonZeroCancel",
             TimeProfile(
-                profile(
+                createVoltageConstrainedProfile(
                     10.0,
                     3.0,
-                    { (it - 5.0).pow(4.0) + 1.0 },
-                    { -5.0 },
-                    { 5.0 },
+                    1.0, // kV
+                    1.0, // kA
+                    0.0, // kS
+                    { (it - 5.0).pow(4.0) + 1.0 + 5.0 }, // maxVoltage
                     0.01,
                 ).cancel(2.0)
             )
@@ -172,12 +175,13 @@ class ProfilesTest {
 
     @Test
     fun testProfileComplexNonZeroMinCancel2() {
-        val profile = profile(
+        val profile = createVoltageConstrainedProfile(
             10.0,
             3.0,
-            { (it - 5.0).pow(4.0) + 1.0 },
-            { -5.0 },
-            { 5.0 },
+            1.0, // kV
+            1.0, // kA
+            0.0, // kS
+            { (it - 5.0).pow(4.0) + 1.0 + 5.0 }, // maxVoltage
             0.01,
         ).cancel(-2.0)
 
@@ -199,12 +203,13 @@ class ProfilesTest {
     @Test
     fun testTimeProfileInverse() {
         val profile = TimeProfile(
-            profile(
+            createVoltageConstrainedProfile(
                 10.0,
                 3.0,
-                { (it - 5.0).pow(4.0) + 1.0 },
-                { -5.0 },
-                { 5.0 },
+                1.0, // kV
+                1.0, // kA
+                0.0, // kS
+                { (it - 5.0).pow(4.0) + 1.0 + 5.0 }, // maxVoltage
                 0.01,
             ).baseProfile
         )
@@ -217,12 +222,13 @@ class ProfilesTest {
 
     @Test
     fun testIssue103CancelZero() {
-        val p = profile(
+        val p = createVoltageConstrainedProfile(
             10.0,
             3.0,
-            { (it - 5.0).pow(4.0) + 1.0 },
-            { -5.0 },
-            { 5.0 },
+            1.0, // kV
+            1.0, // kA
+            0.0, // kS
+            { (it - 5.0).pow(4.0) + 1.0 + 5.0 }, // maxVoltage
             0.01,
         )
         assertEquals(DisplacementProfile(listOf(0.0), listOf(3.0), emptyList()), p.cancel(0.0))

@@ -4,7 +4,7 @@ import com.acmerobotics.roadrunner.TEST_ACCEL_CONSTRAINT
 import com.acmerobotics.roadrunner.TEST_PROFILE_PARAMS
 import com.acmerobotics.roadrunner.TEST_TRAJECTORY_BUILDER_PARAMS
 import com.acmerobotics.roadrunner.TEST_VEL_CONSTRAINT
-import com.acmerobotics.roadrunner.profiles.forwardProfile
+import com.acmerobotics.roadrunner.profiles.generatePathBasedForwardProfile
 import com.acmerobotics.roadrunner.randomAngle
 import com.acmerobotics.roadrunner.randomPoint
 import com.acmerobotics.roadrunner.randomPose
@@ -33,11 +33,11 @@ class ComposeTest {
         }
 
         val composed = CompositePosePath(posePaths)
-        val profile = forwardProfile(TEST_PROFILE_PARAMS, composed, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
+        val profile = generatePathBasedForwardProfile(TEST_PROFILE_PARAMS, composed, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
         val composedTraj = DisplacementTrajectory(composed, profile)
 
         val trajs = posePaths.map {
-            val profile = forwardProfile(TEST_PROFILE_PARAMS, it, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
+            val profile = generatePathBasedForwardProfile(TEST_PROFILE_PARAMS, it, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
             DisplacementTrajectory(it, profile)
         }
 
@@ -46,7 +46,7 @@ class ComposeTest {
         assert(composedTraj.length() == composed.length())
 
         (0..100).map {
-            Random.Default.nextDouble(0.0, composedTraj.length())
+            Random.nextDouble(0.0, composedTraj.length())
         }.sorted().forEach {
             val composedPose = composedTraj[it].value()
             val compositePose = compositeTraj[it].value()
@@ -70,7 +70,7 @@ class ComposeTest {
             .splineTo(randomPoint(), randomAngle())
             .build()
 
-        val samples = (0..100).map { Random.Default.nextDouble(0.0, traj.length()) }.sorted()
+        val samples = (0..100).map { Random.nextDouble(0.0, traj.length()) }.sorted()
 
         samples.forEach {
             val pose = traj[it].value()
