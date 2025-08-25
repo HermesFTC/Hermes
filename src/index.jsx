@@ -13,14 +13,14 @@ import GraphPage from './pages/GraphPage';
 import GettingStarted from './pages/GettingStarted';
 
 import DefaultLayout from './pages/DefaultLayout';
-import ForwardPush from './pages/ForwardPush';
-import LateralPush from './pages/LateralPush';
-import AngularPush from './pages/AngularPush';
-import ForwardRampPage from './pages/ForwardRampPage';
-import ForwardStepPage from './pages/ForwardStepPage';
-import LateralRampPage from './pages/LateralRampPage';
-import AngularRampPage from './pages/AngularRampPage';
-import AngularStepPage from './pages/AngularStepPage';
+import ForwardPush from './pages/localizer/ForwardPush';
+import LateralPush from './pages/localizer/LateralPush';
+import AngularPush from './pages/localizer/AngularPush';
+import ForwardRampPage from './pages/sysid/ForwardRampPage';
+import ForwardStepPage from './pages/sysid/ForwardStepPage';
+import LateralRampPage from './pages/sysid/LateralRampPage';
+import AngularRampPage from './pages/sysid/AngularRampPage';
+import AngularStepPage from './pages/sysid/AngularStepPage';
 
 export default function App() {
 
