@@ -16,3 +16,11 @@ export type StartOpModeAction = {
 export type StopOpModeAction = {
   type: typeof STOP_OP_MODE;
 };
+
+export enum RunState {
+  IDLE,
+  INITIALIZED,
+  STARTED,
+  STOPPED,
+  ERROR
+}

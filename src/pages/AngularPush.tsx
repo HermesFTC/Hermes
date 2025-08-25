@@ -125,7 +125,7 @@ export default function AngularPush() {
 
     return (
         <div>
-        <h1 className="text-3xl">Lateral Push Tuner</h1>
+        <h1 className="text-3xl">Angular Push Tuner</h1>
 
         <div className="text-left">
             <span>
