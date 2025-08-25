@@ -14,7 +14,7 @@ import kotlin.reflect.KProperty
 
 object HermesConfig : PersistentConfig("HermesConfig", AppUtil.ROOT_FOLDER.resolve("hermes/config/config.json")) {
 
-    var config: RobotConfig by PersistentConfigDelegate("RobotConfig", RobotConfig(null, null, null), this)
+    var config: RobotConfig by PersistentConfigDelegate("RobotConfig", RobotConfig(), this)
 
     var tuningConfig: TuningConfig by PersistentConfigDelegate("TuningConfig", TuningConfig(), this)
 
