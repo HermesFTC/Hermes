@@ -142,6 +142,7 @@ object TuningFiles {
         FORWARD_STEP("forward-step"),
         LATERAL_RAMP("lateral-ramp"),
         ANGULAR_RAMP("angular-ramp"),
+        ANGULAR_STEP("angular-step"),
         ACCEL("accel");
     }
 }

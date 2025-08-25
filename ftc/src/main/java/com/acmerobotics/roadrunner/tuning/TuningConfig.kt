@@ -11,7 +11,9 @@ data class TuningConfig(
     val lateralPush: LateralPushConfig = LateralPushConfig(),
     val angularPush: AngularPushConfig = AngularPushConfig(),
     val forwardRamp: ForwardRampConfig = ForwardRampConfig(),
-    val forwardStep: ForwardStepConfig = ForwardStepConfig()
+    val forwardStep: ForwardStepConfig = ForwardStepConfig(),
+    val angularRamp: AngularRampConfig = AngularRampConfig(),
+    val angularStep: AngularStepConfig = AngularStepConfig(),
 )
 
 enum class OdometryPodType {
@@ -61,5 +63,16 @@ data class ForwardRampConfig(
 
 @Serializable
 data class ForwardStepConfig(
+    var voltageStep: Double = 10.0
+)
+
+@Serializable
+data class AngularRampConfig(
+    var thresholdRadiansPerSecond: Double = 0.1,
+    var voltagePerSecond: Double = 1.0
+)
+
+@Serializable
+data class AngularStepConfig(
     var voltageStep: Double = 10.0
 )

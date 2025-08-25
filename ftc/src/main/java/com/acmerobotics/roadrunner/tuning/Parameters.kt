@@ -55,6 +55,12 @@ data class TankParameters(
 )
 
 @Serializable
+data class DriveFeedforward(
+    var translational: FeedforwardParameters,
+    var rotational: FeedforwardParameters,
+)
+
+@Serializable
 data class FeedforwardParameters(
     var kStatic: Double = 0.0,
     var kV: Double = 0.0,
