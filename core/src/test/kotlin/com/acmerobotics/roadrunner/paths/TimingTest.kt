@@ -6,7 +6,7 @@ import com.acmerobotics.roadrunner.TEST_TRAJECTORY_BUILDER_PARAMS
 import com.acmerobotics.roadrunner.TEST_VEL_CONSTRAINT
 import com.acmerobotics.roadrunner.duration
 import com.acmerobotics.roadrunner.geometry.Vector2d
-import com.acmerobotics.roadrunner.profiles.profile
+import com.acmerobotics.roadrunner.profiles.CancelableProfile
 import com.acmerobotics.roadrunner.randomPoint
 import com.acmerobotics.roadrunner.trajectories.PositionPathSeqBuilder
 import kotlin.system.measureTimeMillis
@@ -32,7 +32,7 @@ class TimingTests {
         val times = posePaths.mapIndexed { i, it ->
             i to
             measureTimeMillis {
-                profile(TEST_PROFILE_PARAMS, it, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
+                CancelableProfile.generate(TEST_PROFILE_PARAMS, it, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
             }
         }
 
@@ -55,7 +55,7 @@ class TimingTests {
                 )
 
                 val path = TangentPath(bezier, 0.0)
-                val profile = profile(TEST_PROFILE_PARAMS, path, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
+                val profile = CancelableProfile.generate(TEST_PROFILE_PARAMS, path, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
 
                 path to profile
             }
@@ -90,7 +90,7 @@ class TimingTests {
                     0.0
                 )
 
-                val profile = profile(TEST_PROFILE_PARAMS, path, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
+                val profile = CancelableProfile.generate(TEST_PROFILE_PARAMS, path, 0.0, TEST_VEL_CONSTRAINT, TEST_ACCEL_CONSTRAINT)
 
                 path to profile
             }
