@@ -2,14 +2,22 @@ package com.acmerobotics.roadrunner.tuning
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.config.ValueProvider
+import com.acmerobotics.dashboard.config.reflection.ArrayProvider
+import com.acmerobotics.dashboard.config.reflection.FieldProvider
+import com.acmerobotics.dashboard.config.variable.BasicVariable
 import com.acmerobotics.dashboard.config.variable.ConfigVariable
 import com.acmerobotics.dashboard.config.variable.CustomVariable
+import com.acmerobotics.dashboard.config.variable.VariableType
 import com.acmerobotics.roadrunner.serialization.HermesJsonFormat
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.descriptors.PrimitiveKind.LONG
 import kotlinx.serialization.json.decodeFromStream
 import kotlinx.serialization.json.encodeToStream
 import org.firstinspires.ftc.robotcore.internal.system.AppUtil
 import java.io.File
+import java.lang.reflect.Array
+import java.lang.reflect.Field
+import java.lang.reflect.Modifier
 import kotlin.reflect.KProperty
 
 object HermesConfig : PersistentConfig("HermesConfig", AppUtil.ROOT_FOLDER.resolve("hermes/config/config.json")) {
@@ -30,13 +38,13 @@ open class PersistentConfig(val configName: String, configFile: File) {
     @Suppress("UNCHECKED_CAST")
     fun <T> addConfigVariable(name: String, value: T?) {
         val provider: ValueProvider<T?> = PersistentConfigValueProvider(value, this)
-
         // validate that the config variable doesn't exist
         if (configVariables.containsKey(name)) {
             // if it does, take out the old one and put in the new one
             configVariables[name] = provider as ValueProvider<Any?>
             FtcDashboard.getInstance().removeConfigVariable(configName, name)
             FtcDashboard.getInstance().addConfigVariable(configName, name, provider)
+
             return
         }
 
@@ -81,15 +89,14 @@ open class PersistentConfig(val configName: String, configFile: File) {
 
 }
 
-class PersistentConfigValueProvider<T: Any?>(initialValue: T, val config: PersistentConfig) : ValueProvider<T> {
-    private var value: T? = initialValue
+class PersistentConfigValueProvider<T: Any?>(val wrappedProvider: ValueProvider<T>, val config: PersistentConfig) : ValueProvider<T> {
 
     override fun get(): T? {
-        return value
+        return wrappedProvider.get()
     }
 
     override fun set(value: T?) {
-        this.value = value
+        this.wrappedProvider.set(value)
         config.updateConfig()
     }
 
@@ -126,6 +133,176 @@ class PersistentConfigDelegate<T : Any?>(val keyName: String, val defaultValue: 
 
     operator fun setValue(ref: Any?, property: KProperty<*>, value: T) {
         config[keyName] = value
+    }
+
+}
+
+object DashUtility {
+
+    fun <T : Any> addConfigVariable(name: String, value: T, config: PersistentConfig) {
+
+        FtcDashboard.getInstance().withConfigRoot { it.putVariable(name, createVariableFromInstance(value::class.java, value, config)) }
+
+    }
+
+    fun <T> createVariableFromInstance(configClass: Class<out T?>, obj: T?, config: PersistentConfig): CustomVariable {
+        val customVariable = CustomVariable()
+
+        for (field in configClass.fields) {
+            if (Modifier.isStatic(field.modifiers) || Modifier.isFinal(field.modifiers)) {
+                continue
+            }
+            field.isAccessible = true
+            customVariable.putVariable(field.name, createVariableFromField(field, obj, config))
+        }
+
+        return customVariable
+    }
+
+    fun createVariableFromField(field: Field, parent: Any?, config: PersistentConfig): ConfigVariable<*> {
+        val fieldClass = field.type
+        val type = VariableType.fromClass(fieldClass)
+        when (type) {
+            VariableType.BOOLEAN,
+            VariableType.INT,
+            VariableType.LONG,
+            VariableType.FLOAT,
+            VariableType.DOUBLE,
+            VariableType.STRING,
+            VariableType.ENUM -> return BasicVariable<Boolean?>(
+                type,
+                PersistentConfigValueProvider(
+                    FieldProvider<Boolean?>(field, parent),
+                    config
+                )
+            )
+
+            VariableType.CUSTOM -> {
+                try {
+                    val value = field.get(parent)
+                    if (value == null) {
+                        return CustomVariable(null)
+                    }
+                    val customVariable = CustomVariable()
+                    if (fieldClass.isArray) {
+                        var i = 0
+                        while (i < Array.getLength(value)) {
+                            customVariable.putVariable(
+                                i.toString(),
+                                createVariableFromArrayField(
+                                    field,
+                                    field.type.componentType!!, parent, intArrayOf(i), config
+                                )
+                            )
+                            i++
+                        }
+                    } else {
+                        for (nestedField in fieldClass.fields) {
+                            if (Modifier.isFinal(field.modifiers)) {
+                                continue
+                            }
+
+                            val name = nestedField.name
+                            customVariable.putVariable(
+                                name,
+                                createVariableFromField(nestedField, value, config)
+                            )
+                        }
+                    }
+                    return customVariable
+                } catch (e: IllegalAccessException) {
+                    throw RuntimeException(e)
+                }
+                throw RuntimeException(
+                    "Unsupported field type: " +
+                            fieldClass.name
+                )
+            }
+
+            else -> throw RuntimeException(
+                "Unsupported field type: " +
+                        fieldClass.name
+            )
+        }
+    }
+
+    fun createVariableFromArrayField(
+        field: Field, fieldClass: Class<*>,
+        parent: Any?, indices: IntArray, config: PersistentConfig
+    ): ConfigVariable<*> {
+        val type = VariableType.fromClass(fieldClass)
+        when (type) {
+            VariableType.BOOLEAN,
+            VariableType.INT,
+            VariableType.LONG,
+            VariableType.FLOAT,
+            VariableType.DOUBLE,
+            VariableType.STRING,
+            VariableType.ENUM -> return BasicVariable<Any?>(
+                type, PersistentConfigValueProvider(
+                    ArrayProvider(
+                        field, parent,
+                        *indices.copyOf(indices.size)
+                    ),
+                    config
+                )
+            )
+
+            VariableType.CUSTOM -> {
+                try {
+                    var value: Any? = null
+                    try {
+                        value = ArrayProvider.getArrayRecursive(field.get(parent), indices)
+                    } catch (ignored: ArrayIndexOutOfBoundsException) {
+                    }
+
+                    if (value == null) {
+                        return CustomVariable(null)
+                    }
+                    val customVariable = CustomVariable()
+                    if (fieldClass.isArray) {
+                        val newIndices = indices.copyOf(indices.size + 1)
+
+                        var i = 0
+                        while (i < Array.getLength(value)) {
+                            newIndices[newIndices.size - 1] = i
+                            customVariable.putVariable(
+                                i.toString(),
+                                createVariableFromArrayField(
+                                    field, fieldClass.componentType!!,
+                                    parent, newIndices, config
+                                )
+                            )
+                            i++
+                        }
+                    } else {
+                        for (nestedField in fieldClass.fields) {
+                            if (Modifier.isFinal(field.modifiers)) {
+                                continue
+                            }
+
+                            val name = nestedField.name
+                            customVariable.putVariable(
+                                name,
+                                createVariableFromField(nestedField, value, config)
+                            )
+                        }
+                    }
+                    return customVariable
+                } catch (e: IllegalAccessException) {
+                    throw RuntimeException(e)
+                }
+                throw RuntimeException(
+                    "Unsupported field type: " +
+                            fieldClass.name
+                )
+            }
+
+            else -> throw RuntimeException(
+                "Unsupported field type: " +
+                        fieldClass.name
+            )
+        }
     }
 
 }
