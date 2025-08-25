@@ -33,46 +33,22 @@ open class PersistentConfig(val configName: String, configFile: File) {
     private val configReader: PersistentConfigReader = PersistentConfigReader(configFile)
     private val configWriter: PersistentConfigWriter = PersistentConfigWriter(configFile)
 
-    private var configVariables: MutableMap<String, ValueProvider<Any?>> = mutableMapOf()
+    private var configVariables: MutableMap<String, Any?> = mutableMapOf()
 
-    @Suppress("UNCHECKED_CAST")
-    fun <T> addConfigVariable(name: String, value: T?) {
-        val provider: ValueProvider<T?> = PersistentConfigValueProvider(value, this)
-        // validate that the config variable doesn't exist
-        if (configVariables.containsKey(name)) {
-            // if it does, take out the old one and put in the new one
-            configVariables[name] = provider as ValueProvider<Any?>
-            FtcDashboard.getInstance().removeConfigVariable(configName, name)
-            FtcDashboard.getInstance().addConfigVariable(configName, name, provider)
+    init {
+        DashUtility.addConfigVariable(configName, this, this)
+    }
 
-            return
-        }
-
-        FtcDashboard.getInstance().addConfigVariable(configName, name, provider)
-        configVariables[name] = provider as ValueProvider<Any?>
-
+    fun <T : Any?> addConfigVariable(name: String, value: T?) {
+        configVariables[name] = value
     }
 
     operator fun get(key: String): Any? {
-        return configVariables[key]?.get()
-    }
-
-    fun getProvider(key: String): ValueProvider<Any?>? {
         return configVariables[key]
     }
 
     operator fun <T: Any?> set(key: String, value: T): T? {
-        val provider = getProvider(key)
-        if (provider == null) {
-            addConfigVariable(key, value)
-            return value
-        }
-
-        try {
-            provider.set(value)
-        } catch (e: ClassCastException) {
-            return null
-        }
+        addConfigVariable(key, value)
 
         return value
     }
