@@ -35,12 +35,17 @@ open class PersistentConfig(val configName: String, configFile: File) {
 
     private var configVariables: MutableMap<String, Any?> = mutableMapOf()
 
+    private val customDashVar = CustomVariable()
+
     init {
-        DashUtility.addConfigVariable(configName, this, this)
+        DashUtility.addConfigVariable(configName, customDashVar, this)
     }
 
     fun <T : Any?> addConfigVariable(name: String, value: T?) {
         configVariables[name] = value
+
+        customDashVar.putVariable(name, DashUtility.getConfigVariable(value as Any, this))
+        FtcDashboard.getInstance().updateConfig()
     }
 
     operator fun get(key: String): Any? {
@@ -114,6 +119,12 @@ class PersistentConfigDelegate<T : Any?>(val keyName: String, val defaultValue: 
 }
 
 object DashUtility {
+
+    fun <T : Any> getConfigVariable(value: T, config: PersistentConfig): CustomVariable {
+
+        return createVariableFromInstance(value::class.java, value, config)
+
+    }
 
     fun <T : Any> addConfigVariable(name: String, value: T, config: PersistentConfig) {
 
