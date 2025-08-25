@@ -5,15 +5,16 @@ import { GenericButton } from "./GenericButton";
 
 interface TuningOpModeButtonProps extends PropsWithChildren<any> {
     runState: RunState,
-    setRunState: (v: RunState) => void
+    setRunState: (v: RunState) => void,
+    opModeName: string
 }
 
-export default function TuningOpModeButton({runState, setRunState}: TuningOpModeButtonProps) {
+export default function TuningOpModeButton({runState, setRunState, opModeName}: TuningOpModeButtonProps) {
     const opMode = useOpMode();
 
-    const startForwardPush = () => {
+    const startOpMode = () => {
         if (opMode.canInitOpMode) {
-            opMode.initOpMode('TestSineWaveOpMode');
+            opMode.initOpMode(opModeName);
             opMode.startOpMode();
         }
         setRunState(RunState.STARTED);
@@ -59,7 +60,7 @@ export default function TuningOpModeButton({runState, setRunState}: TuningOpMode
         (
             <GenericButton
             className="mt-10 rounded-xl p-4"
-            onClick={startForwardPush}
+            onClick={startOpMode}
             >
             Not satisfied? Press this button to try again!
             </GenericButton>
@@ -68,7 +69,7 @@ export default function TuningOpModeButton({runState, setRunState}: TuningOpMode
         (
         <GenericButton
             className="mt-10 rounded-xl p-4"
-            onClick={startForwardPush}
+            onClick={startOpMode}
         >
             Click me when you're ready to start!
         </GenericButton>

@@ -1,3 +1,4 @@
+import { AdvancedUserConfirmationModal } from '@/components/AdvancedUserConfirmation';
 import { GenericButton } from '@/components/GenericButton';
 import { AdvancedInstruction, ImportantInstruction } from '@/components/TextModifications';
 import TuningOpModeButton from '@/components/TuningOpModeButton';
@@ -58,20 +59,14 @@ export default function ForwardPush() {
                     Advanced users only: you may modify the number of inches you are moving here. It will save automatically and instantly.
                     Do not modify if you do not know what this does. The default value is 24.
                 </AdvancedInstruction>
-                <div className="block">
-                    <ImportantInstruction>
-                        <label htmlFor="advancedUser">I am an advanced user that understands what this parameter does and would like to modify it </label>
-                    </ImportantInstruction>
-                    <input type="checkbox" id="advancedUser" checked={advancedUser} onChange={(e) => setAdvancedUser(e.target.checked)}></input>
-                </div>
+                <AdvancedUserConfirmationModal advancedUser={advancedUser} setAdvancedUser={setAdvancedUser}/>
                 <input type="number" id="inchesTraveled" disabled={!advancedUser} onChange={handleInchesTravelledUpdate} value={inchesTraveled} className={"mx-auto text-center mt-2 rounded-xl " + (advancedUser ? "" : "bg-gray-400/50 text-hermes-cyan-dark/50")}></input>
             </div>
         </div>
 
-        <TuningOpModeButton runState={runState} setRunState={setRunState}/>
+        <TuningOpModeButton runState={runState} setRunState={setRunState} opModeName="ForwardPushTest"/>
         
         <GenericButton href={localizer != "SPARKFUN_OTOS" ? "/hermes/lateral-push" : "/hermes/angular-push"} className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
-
             
         </div>
     );
