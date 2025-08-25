@@ -136,12 +136,9 @@ class ForwardStepTest(val driveView: DriveView, val localizer: Localizer, val di
             val voltage = voltage(t.seconds()) // for consistency, use the same voltage throughout the entire loop
 
             deltaVoltage.times.add(t.addSplit())
-            if (HermesConfig.config.feedforward == null) {
-                throw IllegalStateException("go do forward ramp u troll")
-            }
 
             // u - kV * v gives voltage difference between being stable at velocity and voltage we are actually providing
-            deltaVoltage.values.add((voltage - (HermesConfig.config.feedforward!!.kV * localizer.vel.linearVel.x)) * sign)
+            deltaVoltage.values.add((voltage - (HermesConfig.config.feedforward.translational.kV * localizer.vel.linearVel.x)) * sign)
 
             forwardAcceleration.times.add(t.addSplit())
             forwardAcceleration.values.add((localizer.vel.linearVel.x - lastVelX) * sign / (t.seconds() - lastSeconds))
@@ -238,12 +235,9 @@ class AngularStepTest(val driveView: DriveView, val localizer: Localizer, val di
             val voltage = voltage(t.seconds()) // for consistency, use the same voltage throughout the entire loop
 
             deltaVoltage.times.add(t.addSplit())
-            if (HermesConfig.config.feedforward == null) {
-                throw IllegalStateException("go do forward ramp u troll")
-            }
 
             // u - kV * v gives voltage difference between being stable at velocity and voltage we are actually providing
-            deltaVoltage.values.add((voltage - (HermesConfig.config.feedforward!!.kV * localizer.vel.angVel)) * sign)
+            deltaVoltage.values.add((voltage - (HermesConfig.config.feedforward.rotational.kV * localizer.vel.angVel)) * sign)
 
             angularAcceleration.times.add(t.addSplit())
             angularAcceleration.values.add((localizer.vel.angVel - lastVel) * sign / (t.seconds() - lastSeconds))
@@ -257,7 +251,7 @@ class AngularStepTest(val driveView: DriveView, val localizer: Localizer, val di
 
         driveView.voltageDrive(0.0, 0.0)
 
-        TuningFiles.save(TuningFiles.FileType.FORWARD_STEP,
+        TuningFiles.save(TuningFiles.FileType.ANGULAR_STEP,
             DynamicParameters(
                 angularAcceleration,
                 deltaVoltage
