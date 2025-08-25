@@ -1,15 +1,9 @@
 package com.acmerobotics.roadrunner.tuning
 
-import com.acmerobotics.dashboard.FtcDashboard
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.acmerobotics.roadrunner.ftc.Localizer
 import com.acmerobotics.roadrunner.logs.TuningFiles
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorEx
-import com.qualcomm.robotcore.hardware.HardwareMap
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
@@ -27,9 +21,7 @@ class ForwardPushTest(val localizerView: ForwardPushLocalizerView) : OpMode() {
     }
 
     override fun stop() {
-        val params = localizerView.getParameters(actualInches)
-        HermesConfig.addConfigVariable("ForwardPushResults", params)
-        HermesConfig.config.localizer = HermesConfig.config.localizer?.assembleIfAble()
+        localizerView.updateConfig(actualInches)
     }
 
 }
@@ -47,9 +39,7 @@ class LateralPushTest(val localizerView: LateralPushLocalizerView) : OpMode() {
     }
 
     override fun stop() {
-        val params = localizerView.getParameters(actualInches)
-        HermesConfig.addConfigVariable("LateralPushResults", params)
-        HermesConfig.config.localizer = HermesConfig.config.localizer?.assembleIfAble()
+        localizerView.updateConfig(actualInches)
     }
 
 }
@@ -67,9 +57,7 @@ class AngularPushTest(val localizerView: AngularPushLocalizerView) : OpMode() {
     }
 
     override fun stop() {
-        val params = localizerView.getParameters(actualRevolutions)
-        HermesConfig.addConfigVariable("AngularPushResults", params)
-        HermesConfig.config.localizer = HermesConfig.config.localizer?.assembleIfAble()
+        localizerView.updateConfig(actualRevolutions)
     }
 
 }

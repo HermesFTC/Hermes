@@ -78,7 +78,7 @@ object VoltageCache {
 
 interface ForwardPushLocalizerView {
 
-    fun getParameters(actualInchesTravelled: Double): ForwardPushLocalizerParameters
+    fun updateConfig(actualInchesTravelled: Double)
 
 }
 
@@ -89,6 +89,8 @@ open class PinpointView(hardwareMap: HardwareMap) {
 
     val pinpointParPod = TuningAxialSensor({ pinpoint.encoderX.toDouble() })
     val pinpointPerpPod = TuningAxialSensor({ pinpoint.encoderY.toDouble() })
+
+    val config: PinpointParameters get() = HermesConfig.config.localizer as PinpointParameters
 
     // safety checks
     init {
@@ -106,8 +108,7 @@ open class PinpointView(hardwareMap: HardwareMap) {
 
 class ForwardPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareMap), ForwardPushLocalizerView {
 
-    override fun getParameters(actualInchesTravelled: Double): ForwardPushPinpointParameters {
-
+    override fun updateConfig(actualInchesTravelled: Double) {
         if (!(pinpointPerpPod.moved xor pinpointParPod.moved)) {
             throw ConfigurationException("your pinpoint is plugged in wrong silly")
         }
@@ -119,37 +120,32 @@ class ForwardPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
 
         val podConfig = if (pinpointParPod.moved) PinpointEncoderType.PARALLEL else PinpointEncoderType.PERPENDICULAR
 
-        val podDirection = when (podConfig) {
+        config.name = pinpoint.deviceName
+
+        config.parDirection = when (podConfig) {
             PinpointEncoderType.PARALLEL -> pinpointParPod.direction
             PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.direction
         }
 
         // clean up this cursed config code later
-        val inPerTick =
+        config.inPerTick =
             HermesConfig.tuningConfig.odometryPodType.inPerTick ?: (actualInchesTravelled / when (podConfig) {
                 PinpointEncoderType.PARALLEL -> pinpointParPod.value
                 PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.value
             })
-
-        return ForwardPushPinpointParameters(
-            pinpoint.deviceName,
-            podConfig,
-            podDirection,
-            inPerTick,
-        )
     }
 
 }
 
 interface LateralPushLocalizerView {
 
-    fun getParameters(actualInchesTravelled: Double): LateralPushLocalizerParameters
+    fun updateConfig(actualInchesTravelled: Double)
 
 }
 
 class LateralPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareMap), LateralPushLocalizerView {
 
-    override fun getParameters(actualInchesTravelled: Double): LateralPushLocalizerParameters {
+    override fun updateConfig(actualInchesTravelled: Double) {
 
         if (!(pinpointPerpPod.moved xor pinpointParPod.moved)) {
             throw ConfigurationException("your pinpoint is plugged in wrong silly")
@@ -157,16 +153,10 @@ class LateralPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
 
         val podConfig = if (pinpointParPod.moved) PinpointEncoderType.PARALLEL else PinpointEncoderType.PERPENDICULAR
 
-        val podDirection = when (podConfig) {
+        config.perpDirection = when (podConfig) {
             PinpointEncoderType.PARALLEL -> pinpointParPod.direction
             PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.direction
         }
-
-        return LateralPushPinpointParameters(
-            podConfig,
-            podDirection,
-        )
-
     }
 
 }
@@ -186,35 +176,30 @@ class TuningMotorEncoder(motor: DcMotorEx) : TuningAxialSensor({ motor.currentPo
 
 interface AngularPushLocalizerView {
 
-    fun getParameters(actualRevolutions: Double): AngularPushLocalizerParameters
+    fun updateConfig(actualRevolutions: Double)
 
 }
 
 // TODO: add validation that the user is actually turning the robot ccw (and the pinpoint IMU is mounted correctly.)
 class AngularPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareMap), AngularPushLocalizerView {
 
-    override fun getParameters(actualRevolutions: Double): AngularPushLocalizerParameters {
+    override fun updateConfig(actualRevolutions: Double) {
 
-        val trueParPodType = (HermesConfig["ForwardPushResults"] as ForwardPushPinpointParameters).parEncoder
-        val truePerpPodType = (HermesConfig["LateralPushResults"] as LateralPushPinpointParameters).perpEncoder
+        // leaving this in here so that i can make swapped-pod tuning work later
+        val trueParPodType = PinpointEncoderType.PARALLEL
+        val truePerpPodType = PinpointEncoderType.PERPENDICULAR
 
         // we expect rotating ccw = +x, +y
         // therefore, since L = theta * r, r = L / theta
-        val parYTicks = when (trueParPodType) {
+        config.parYTicks = when (trueParPodType) {
             PinpointEncoderType.PARALLEL -> pinpointParPod.value
             PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.value
         } / (actualRevolutions * 2.0 * PI)
 
-        val perpXTicks = when (truePerpPodType) {
+        config.perpXTicks = when (truePerpPodType) {
             PinpointEncoderType.PARALLEL -> pinpointParPod.value
             PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.value
         } / (actualRevolutions * 2.0 * PI)
-
-        return AngularPushPinpointParameters(
-            parYTicks,
-            perpXTicks,
-        )
-
     }
 
 }

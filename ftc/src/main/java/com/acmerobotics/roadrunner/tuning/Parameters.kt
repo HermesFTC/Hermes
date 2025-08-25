@@ -11,17 +11,24 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RobotConfig(
-    var drive: DriveParameters?,
-    var feedforward: FeedforwardParameters?,
-    var localizer: LocalizerParameters?
+    var drive: DriveParameters = DummyParameters,
+    var feedforward: DriveFeedforwardParameters = DummyParameters,
+    var localizer: LocalizerParameters = DummyParameters
 )
+
+@Serializable
+@SerialName("DummyParameters")
+object DummyParameters : LocalizerParameters, DriveParameters, DriveFeedforwardParameters {
+    override var translational: FeedforwardParameters = error("no")
+    override var rotational: FeedforwardParameters = error("no")
+}
 
 sealed interface DriveParameters
 
 @Serializable
 data class MotorConfig(
-    @JvmField var name: String,
-    @JvmField var direction: DcMotorSimple.Direction
+    @JvmField var name: String = "",
+    @JvmField var direction: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
 ) {
     fun toDcMotor(hardwareMap: HardwareMap): DcMotor {
         val motor = hardwareMap.dcMotor.get(name)
@@ -39,10 +46,10 @@ data class MotorConfig(
 data class MecanumParameters(
     var trackWidth: Double = 0.0,
     var wheelBase: Double = 0.0,
-    var leftFront: MotorConfig,
-    var leftBack: MotorConfig,
-    var rightFront: MotorConfig,
-    var rightBack: MotorConfig
+    var leftFront: MotorConfig = MotorConfig(),
+    var leftBack: MotorConfig = MotorConfig(),
+    var rightFront: MotorConfig = MotorConfig(),
+    var rightBack: MotorConfig = MotorConfig()
 ) : DriveParameters
 
 @Serializable
@@ -50,15 +57,31 @@ data class MecanumParameters(
 data class TankParameters(
     var trackWidth: Double = 0.0,
     var wheelBase: Double = 0.0,
-    var leftMotors: MutableList<MotorConfig>,
-    var rightMotors: MutableList<MotorConfig>
+    var leftMotors: MutableList<MotorConfig> = arrayListOf(MotorConfig(), MotorConfig()),
+    var rightMotors: MutableList<MotorConfig> = arrayListOf(MotorConfig(), MotorConfig()),
 )
 
+sealed interface DriveFeedforwardParameters {
+    var translational: FeedforwardParameters
+    var rotational: FeedforwardParameters
+}
+
 @Serializable
+@SerialName("DriveFeedforward")
 data class DriveFeedforward(
-    var translational: FeedforwardParameters,
-    var rotational: FeedforwardParameters,
-)
+    override var translational: FeedforwardParameters = FeedforwardParameters(),
+    override var rotational: FeedforwardParameters = FeedforwardParameters(),
+) : DriveFeedforwardParameters
+
+@Serializable
+@SerialName("HolonomicDriveFeedforward")
+data class HolonomicDriveFeedforward(
+    var axial: FeedforwardParameters = FeedforwardParameters(),
+    var lateral: FeedforwardParameters = FeedforwardParameters(),
+    override var rotational: FeedforwardParameters = FeedforwardParameters(),
+) : DriveFeedforwardParameters {
+    override var translational by this::axial
+}
 
 @Serializable
 data class FeedforwardParameters(
@@ -69,82 +92,23 @@ data class FeedforwardParameters(
     operator fun invoke() = MotorFeedforward(kStatic, kV, kA)
 }
 
-sealed interface LocalizerParameters {
-
-    /**
-     * Assemble the localizer from known tuning constants.
-     */
-    fun assembleIfAble(): LocalizerParameters
-
-}
+sealed interface LocalizerParameters
 
 @Serializable
 @SerialName("PinpointParameters")
 data class PinpointParameters(
-    val inPerTick: Double,
-    val name: String = "pinpoint",
-    val parYTicks: Double = 0.0,
-    val perpXTicks: Double = 0.0,
-    val parDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
-    val perpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
-) : LocalizerParameters {
-
-    override fun assembleIfAble(): LocalizerParameters {
-        try {
-
-            val forwardPush = HermesConfig["ForwardPushResults"] as ForwardPushPinpointParameters
-            val lateralPush = HermesConfig["LateralPushResults"] as LateralPushPinpointParameters
-            val angularPush = HermesConfig["AngularPushResults"] as AngularPushPinpointParameters
-
-            return PinpointParameters(
-                forwardPush.inPerTick,
-                forwardPush.pinpointName,
-                angularPush.parYTicks,
-                angularPush.perpXTicks,
-                forwardPush.parEncoderDirection,
-                lateralPush.perpEncoderDirection
-            )
-
-        } catch (_: Exception) {
-            return this
-        }
-    }
-
-}
-
-sealed interface ForwardPushLocalizerParameters
-
-@Serializable
-@SerialName("ForwardPushPinpointParameters")
-data class ForwardPushPinpointParameters(
-    val pinpointName: String,
-    val parEncoder: PinpointEncoderType,
-    val parEncoderDirection: DcMotorSimple.Direction,
-    val inPerTick: Double,
-): ForwardPushLocalizerParameters
+    var inPerTick: Double = 1.0,
+    var name: String = "pinpoint",
+    var parYTicks: Double = 0.0,
+    var perpXTicks: Double = 0.0,
+    var parDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+    var perpDirection: DcMotorSimple.Direction = DcMotorSimple.Direction.FORWARD,
+) : LocalizerParameters
 
 enum class PinpointEncoderType {
     PARALLEL,
     PERPENDICULAR
 }
-
-sealed interface LateralPushLocalizerParameters
-
-@Serializable
-@SerialName("LateralPushPinpointParameters")
-data class LateralPushPinpointParameters(
-    val perpEncoder: PinpointEncoderType,
-    val perpEncoderDirection: DcMotorSimple.Direction,
-): LateralPushLocalizerParameters
-
-sealed interface AngularPushLocalizerParameters
-
-@Serializable
-@SerialName("AngularPushPinpointParameters")
-data class AngularPushPinpointParameters(
-    val parYTicks: Double,
-    val perpXTicks: Double
-): AngularPushLocalizerParameters
 
 @Serializable
 data class VoltageConfig(
