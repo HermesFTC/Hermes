@@ -7,31 +7,24 @@ export { default as RegressionDemo } from './RegressionDemo';
 
 // Specific regression analysis components
 export {
-  DeadWheelAngularRampRegression,
-  DriveEncoderAngularRampRegression,
   ForwardRampRegression,
-  LateralRampRegression
+  ForwardStepRegression,
+  LateralRampRegression,
+  AngularRampRegression,
+  AngularStepRegression
 } from './regressions';
 
 // Utility functions and types
 export {
   numDerivOnline,
   numDerivOffline,
-  inverseOverflow,
-  prepareAngularRampData,
-  prepareLateralRampData,
-  getPosZAngVelocity
+  inverseOverflow
 } from './utils';
 
 export type {
   Signal,
   QuasistaticParameters,
-  DriveType,
-  AngularRampData,
-  InputAngularRampData,
-  ForwardRampData,
-  LateralRampData,
-  InputLateralRampData
+  DynamicParameters
 } from './utils';
 
 // File loader component

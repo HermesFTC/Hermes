@@ -345,20 +345,16 @@ export default LinearRegressionChart;
 
 // Re-export regression components for convenience
 export {
-  DeadWheelAngularRampRegression,
-  DriveEncoderAngularRampRegression,
   ForwardRampRegression,
-  LateralRampRegression
+  ForwardStepRegression,
+  LateralRampRegression,
+  AngularRampRegression,
+  AngularStepRegression
 } from './regressions';
 
 // Re-export utility types
 export type {
   Signal,
   QuasistaticParameters,
-  DriveType,
-  AngularRampData,
-  InputAngularRampData,
-  ForwardRampData,
-  LateralRampData,
-  InputLateralRampData
+  DynamicParameters
 } from './utils';
