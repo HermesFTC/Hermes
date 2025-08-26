@@ -1,9 +1,9 @@
 import com.moowork.gradle.node.yarn.YarnTask
 import kotlin.collections.mapOf
 
-val nodeVersion: String = "18.12.1"
+val nodeVersion: String = "22.18.0"
 
-val webDir: File = file("${project.projectDir.parent}/web")
+val webDir: File = file("${project.projectDir.parent}/hermes-frontend")
 
 plugins {
     id("com.android.library")
