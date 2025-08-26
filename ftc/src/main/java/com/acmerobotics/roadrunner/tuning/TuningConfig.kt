@@ -2,6 +2,34 @@ package com.acmerobotics.roadrunner.tuning
 
 import kotlinx.serialization.Serializable
 
+object TuningConfigListener : PersistentConfig.Subscriber {
+
+    private var lastLocalizer = HermesConfig.tuningConfig.localizer
+
+    init {
+        HermesConfig.addSubscriber(this)
+    }
+
+    override fun onUpdate(configVariables: MutableMap<String, Any?>) {
+
+        // if the localizer is now different
+        if (HermesConfig.tuningConfig.localizer != lastLocalizer) {
+            when (HermesConfig.tuningConfig.localizer) {
+                LocalizerType.CUSTOM -> HermesConfig.config.localizer = DummyParameters
+                LocalizerType.TWO_WHEEL -> HermesConfig.config.localizer = DummyParameters
+                LocalizerType.THREE_WHEEL -> HermesConfig.config.localizer = DummyParameters
+                LocalizerType.GOBILDA_PINPOINT -> HermesConfig.config.localizer =
+                    PinpointParameters()
+
+                LocalizerType.SPARKFUN_OTOS -> HermesConfig.config.localizer = DummyParameters
+                LocalizerType.MOTOR_ENCODERS -> HermesConfig.config.localizer = DummyParameters
+            }
+            lastLocalizer = HermesConfig.tuningConfig.localizer
+        }
+    }
+
+}
+
 @Serializable
 data class TuningConfig(
     var odometryPodType: OdometryPodType = OdometryPodType.OTHER,
@@ -14,7 +42,13 @@ data class TuningConfig(
     val forwardStep: ForwardStepConfig = ForwardStepConfig(),
     val angularRamp: AngularRampConfig = AngularRampConfig(),
     val angularStep: AngularStepConfig = AngularStepConfig(),
-)
+) {
+
+    init {
+        TuningConfigListener // start tuning listener as soon as we instantiate a config
+    }
+
+}
 
 enum class OdometryPodType {
     GOBILDA_4_BAR,
