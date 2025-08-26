@@ -1,11 +1,7 @@
-import SingleConfig from "@/components/AssignableSingleConfig"
 import { GenericButton } from "@/components/GenericButton"
-import { AdvancedInstruction, FadeIn, ImportantInstruction } from "@/components/TextModifications"
-import BasicVariable from "@/components/views/ConfigView/BasicVariable"
-import CustomVariable from "@/components/views/ConfigView/CustomVariable"
-import EnumInput from "@/components/views/ConfigView/inputs/EnumInput"
+import { AdvancedInstruction, ImportantInstruction } from "@/components/TextModifications"
 import { useConfigVariable, useSetConfigVariable } from "@/hooks/useConfigVariables"
-import { PropsWithChildren, ReactNode, useState } from "react"
+import {  ReactNode } from "react"
 
 export default function GettingStarted() {
 
