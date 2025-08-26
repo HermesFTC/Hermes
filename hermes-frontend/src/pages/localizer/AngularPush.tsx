@@ -5,10 +5,12 @@ import TuningOpModeButton from '@/components/tuning/TuningOpModeButton';
 import { useConfigVariable, useSetConfigVariable } from '@/hooks/useConfigVariables';
 import { RunState } from '@/store/types/opmode';
 import { useState } from 'react';
+import { BASE_HERMES_URL, BASE_TUNING_CONFIG_PATH, TUNING_OPMODE_PATHS } from '@/constants';
 
 export default function AngularPush() {
     // config management
     const setConfig = useSetConfigVariable();
+    const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.FORWARD_PUSH;
 
     // track ui state
     const [runState, setRunState] = useState(RunState.IDLE)
@@ -21,16 +23,16 @@ export default function AngularPush() {
         const value = e.target.value as number | null;
         if (value != null) {
             setTotalRotations(value);
-            setConfig("HermesConfig/tuningConfig/angularPush/actualRevolutions", value)
+            setConfig(CONFIG_PREFIX + "actualRevolutions", value)
         }
     };
 
     // current localizer choice (should not update during opmode)
-    const localizer = useConfigVariable("HermesConfig/Localizer");
+    const localizer = useConfigVariable(BASE_TUNING_CONFIG_PATH + "localizer");
 
     if (localizer == "THREE_WHEEL" || localizer == "SPARKFUN_OTOS") {
         setTotalRotations(5.0);
-        setConfig("HermesConfig/tuningConfig/angularPush/actualRevolutions", 5.0)
+        setConfig(CONFIG_PREFIX + "actualRevolutions", 5.0)
     }
 
     return (
@@ -73,7 +75,7 @@ export default function AngularPush() {
         <TuningOpModeButton runState={runState} setRunState={setRunState} opModeName="AngularPushTest"/>
 
         
-        <GenericButton href="/hermes/forward-ramp" className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
+        <GenericButton href={BASE_HERMES_URL + "/forward-ramp"} className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
 
             
         </div>

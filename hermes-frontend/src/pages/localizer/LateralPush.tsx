@@ -5,10 +5,12 @@ import TuningOpModeButton from '@/components/tuning/TuningOpModeButton';
 import { useSetConfigVariable } from '@/hooks/useConfigVariables';
 import { RunState } from '@/store/types/opmode';
 import { useState } from 'react';
+import { BASE_HERMES_URL, BASE_TUNING_CONFIG_PATH, TUNING_OPMODE_PATHS } from '@/constants';
 
 export default function LateralPush() {
     // config and opmode management
     const setConfig = useSetConfigVariable();
+    const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.LATERAL_PUSH;
 
     const [runState, setRunState] = useState(RunState.IDLE);
 
@@ -20,7 +22,7 @@ export default function LateralPush() {
         const value = e.target.value as number | null;
         if (value != null) {
             setInchesTraveled(value);
-            setConfig("HermesConfig/tuningConfig/lateralPush/actualInchesTravelled", value)
+            setConfig(CONFIG_PREFIX + "actualInchesTravelled", value)
         }
     };
 
@@ -63,7 +65,7 @@ export default function LateralPush() {
         <TuningOpModeButton runState={runState} setRunState={setRunState} opModeName="LateralPushTest"/>
 
         
-        <GenericButton href="/hermes/angular-push" className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
+        <GenericButton href={BASE_HERMES_URL + "/angular-push"} className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
 
             
         </div>

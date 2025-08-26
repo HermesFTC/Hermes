@@ -5,10 +5,12 @@ import TuningOpModeButton from '@/components/tuning/TuningOpModeButton';
 import { useConfigVariable, useSetConfigVariable } from '@/hooks/useConfigVariables';
 import { RunState } from '@/store/types/opmode';
 import { useState } from 'react';
+import { BASE_HERMES_URL, BASE_TUNING_CONFIG_PATH, TUNING_OPMODE_PATHS } from '@/constants';
 
 export default function ForwardPush() {
     // config and opmode management
     const setConfig = useSetConfigVariable();
+    const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.FORWARD_PUSH;
 
     const [runState, setRunState] = useState(RunState.IDLE)
     
@@ -20,12 +22,12 @@ export default function ForwardPush() {
         const value = e.target.value as number | null;
         if (value != null) {
             setInchesTraveled(value);
-            setConfig("HermesConfig/tuningConfig/forwardPush/actualInchesTravelled", value)
+            setConfig(CONFIG_PREFIX + "actualInchesTravelled", value)
         }
     };
 
     // current localizer choice (should not update during opmode)
-    const localizer = useConfigVariable("HermesConfig/tuningConfig/localizer");
+    const localizer = useConfigVariable(BASE_TUNING_CONFIG_PATH + "localizer");
 
     return (
         <div>
@@ -65,7 +67,7 @@ export default function ForwardPush() {
 
         <TuningOpModeButton runState={runState} setRunState={setRunState} opModeName="ForwardPushTest"/>
         
-        <GenericButton href={localizer != "SPARKFUN_OTOS" ? "/hermes/lateral-push" : "/hermes/angular-push"} className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
+        <GenericButton href={localizer != "SPARKFUN_OTOS" ? BASE_HERMES_URL + "/lateral-push" : BASE_HERMES_URL + "/angular-push"} className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
             
         </div>
     );
