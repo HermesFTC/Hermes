@@ -22,15 +22,6 @@ const configureStore = () => {
     socketMiddleware,
   ];
 
-  if (import.meta.env.DEV) {
-    const logger = createLogger({
-      predicate: (getState, action) =>
-        HIDDEN_ACTIONS.indexOf(action.type) === -1,
-    });
-
-    middlewares.push(logger);
-  }
-
   return createStore(rootReducer, applyMiddleware(...middlewares));
 };
 
