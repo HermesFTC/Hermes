@@ -1,7 +1,8 @@
+import { GenericButton } from '@/components/GenericButton';
 import { ImportantInstruction } from '@/components/TextModifications';
 import { ForwardStepRegression } from '@/components/graph';
 import TuningOpModeButton from '@/components/tuning/TuningOpModeButton';
-import { BASE_TUNING_CONFIG_PATH, TUNING_OPMODE_PATHS } from '@/constants';
+import { BASE_HERMES_URL, BASE_TUNING_CONFIG_PATH, TUNING_OPMODE_PATHS } from '@/constants';
 import { useSetConfigVariable } from '@/hooks/useConfigVariables';
 import { RunState } from '@/store/types/opmode';
 import React, { useState } from 'react';
@@ -50,6 +51,8 @@ const ForwardStepPage: React.FC = () => {
       <div className="w-full mt-4">
         <ForwardStepRegression />
       </div>
+
+      <GenericButton href={BASE_HERMES_URL + "/angular-ramp"} className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
     </div>
   );
 };
