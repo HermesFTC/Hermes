@@ -4,8 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TuningConfig(
-    val odometryPodType: OdometryPodType = OdometryPodType.OTHER,
-    val localizer: LocalizerType = LocalizerType.CUSTOM,
+    var odometryPodType: OdometryPodType = OdometryPodType.OTHER,
+    var localizer: LocalizerType = LocalizerType.CUSTOM,
     var warnings: List<String> = arrayListOf(),
     val forwardPush: ForwardPushConfig = ForwardPushConfig(),
     val lateralPush: LateralPushConfig = LateralPushConfig(),

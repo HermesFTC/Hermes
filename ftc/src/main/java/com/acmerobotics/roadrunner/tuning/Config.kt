@@ -43,9 +43,9 @@ open class PersistentConfig(val configName: String, configFile: File) {
 
     fun <T : Any?> addConfigVariable(name: String, value: T?) {
         configVariables[name] = value
-
         customDashVar.putVariable(name, DashUtility.getConfigVariable(value as Any, this))
         FtcDashboard.getInstance().updateConfig()
+        updateConfig()
     }
 
     operator fun get(key: String): Any? {
@@ -59,6 +59,7 @@ open class PersistentConfig(val configName: String, configFile: File) {
     }
 
     fun updateConfig() {
+        subscribers.forEach { it.onUpdate(this.configVariables) }
         configWriter.writeConfig(this)
     }
 
@@ -66,6 +67,20 @@ open class PersistentConfig(val configName: String, configFile: File) {
         val other = configReader.readConfig() // necessary for the ide to not crash out
 
         this.configVariables = other.configVariables
+    }
+
+    private val subscribers: MutableList<Subscriber> = arrayListOf()
+
+    fun addSubscriber(s: Subscriber) {
+        subscribers.add(s)
+    }
+
+    fun removeSubscriber(s: Subscriber) {
+        subscribers.remove(s)
+    }
+
+    interface Subscriber {
+        fun onUpdate(configVariables: MutableMap<String, Any?>)
     }
 
 }
