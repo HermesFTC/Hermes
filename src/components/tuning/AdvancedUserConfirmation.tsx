@@ -1,5 +1,5 @@
 import { PropsWithChildren } from 'react';
-import { ImportantInstruction } from './TextModifications';
+import { ImportantInstruction } from '../TextModifications';
 
 interface AdvancedUserConfirmationModalProps extends PropsWithChildren<any> {
   advancedUser: boolean;

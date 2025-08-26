@@ -1,7 +1,7 @@
-import { AdvancedUserConfirmationModal } from '@/components/AdvancedUserConfirmation';
+import { AdvancedUserConfirmationModal } from '@/components/tuning/AdvancedUserConfirmation';
 import { GenericButton } from '@/components/GenericButton';
 import { AdvancedInstruction, ImportantInstruction } from '@/components/TextModifications';
-import TuningOpModeButton from '@/components/TuningOpModeButton';
+import TuningOpModeButton from '@/components/tuning/TuningOpModeButton';
 import { useConfigVariable, useSetConfigVariable } from '@/hooks/useConfigVariables';
 import { useOpMode } from '@/hooks/useOpMode';
 import { RunState } from '@/store/types/opmode';

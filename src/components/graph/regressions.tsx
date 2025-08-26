@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import LinearRegressionChart from './graph';
-import FileLoader from '../FileLoader';
+import FileLoader from './FileLoader';
 import {
   QuasistaticParameters,
   DynamicParameters

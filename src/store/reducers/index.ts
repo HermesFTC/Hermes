@@ -1,27 +1,15 @@
 import { ThunkAction, ThunkDispatch } from 'redux-thunk';
 import { Action, combineReducers } from 'redux';
 
-import replayReducer from './replay';
-import telemetryReducer from './telemetry';
 import socketReducer from './socket';
 import configReducer from './config';
 import statusReducer from './status';
-import cameraReducer from './camera';
-import settingsReducer from './settings';
-import gamepadReducer from './gamepad';
-import hardwareConfigReducer from './hardwareconfig';
 import { createDispatchHook } from 'react-redux';
 
 const rootReducer = combineReducers({
-  replay: replayReducer,
-  telemetry: telemetryReducer,
   socket: socketReducer,
   config: configReducer,
   status: statusReducer,
-  camera: cameraReducer,
-  settings: settingsReducer,
-  gamepad: gamepadReducer,
-  hardwareConfig: hardwareConfigReducer,
 });
 
 export type RootState = ReturnType<typeof rootReducer>;

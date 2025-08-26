@@ -28,5 +28,5 @@ export type {
 } from './utils';
 
 // File loader component
-export { default as FileLoader } from '../FileLoader';
-export type { FileLoaderProps } from '../FileLoader'; 
+export { default as FileLoader } from './FileLoader';
+export type { FileLoaderProps } from './FileLoader'; 

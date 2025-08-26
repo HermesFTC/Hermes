@@ -9,8 +9,6 @@ export default function DefaultLayout() {
     const dispatch = useDispatch();
 
     useEffect(() => {
-        dispatch(getLayoutPreset());
-
         startSocketWatcher(dispatch);
     }, [dispatch]);
 

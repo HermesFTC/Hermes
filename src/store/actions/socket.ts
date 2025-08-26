@@ -6,10 +6,8 @@ import {
   ReceivePingTimeAction,
   RECEIVE_CONNECTION_STATUS,
   RECEIVE_PING_TIME,
-  ReceiveHardwareConfigListAction,
 } from '@/store/types';
 import { receiveOpModeList } from './status';
-import { receiveHardwareConfigList } from './hardwareconfig';
 
 export const receivePingTime = (pingTime: number): ReceivePingTimeAction => ({
   type: RECEIVE_PING_TIME,
@@ -19,7 +17,7 @@ export const receivePingTime = (pingTime: number): ReceivePingTimeAction => ({
 export const receiveConnectionStatus =
   (isConnected: boolean) =>
   (
-    dispatch: Dispatch<ReceiveConnectionStatusAction | ReceiveOpModeListAction | ReceiveHardwareConfigListAction>,
+    dispatch: Dispatch<ReceiveConnectionStatusAction | ReceiveOpModeListAction>,
   ) => {
     dispatch({
       type: RECEIVE_CONNECTION_STATUS,
@@ -28,6 +26,5 @@ export const receiveConnectionStatus =
 
     if (!isConnected) {
       dispatch(receiveOpModeList([]));
-      dispatch(receiveHardwareConfigList([], ''));
     }
   };

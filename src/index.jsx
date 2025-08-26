@@ -38,7 +38,7 @@ export default function App() {
               <Route path="/angular-push" element={<AngularPush/>}/>
             </Route>
           </Route>
-                     <Route element={<GraphPage/>}>
+            <Route element={<GraphPage/>}>
               <Route path="/forward-ramp" element={<ForwardRampPage/>}/>
               <Route path="/forward-step" element={<ForwardStepPage/>}/>
               <Route path="/lateral-ramp" element={<LateralRampPage/>}/>

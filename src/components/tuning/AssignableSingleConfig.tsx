@@ -1,6 +1,6 @@
 import { useSelector } from 'react-redux';
 
-import BasicVariable from './views/ConfigView/BasicVariable';
+import BasicVariable from '@/components/views/ConfigView/BasicVariable';
 import { RootState, useAppDispatch } from '@/store/reducers';
 import {
   BasicVarState,

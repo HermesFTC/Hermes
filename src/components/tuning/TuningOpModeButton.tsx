@@ -1,7 +1,7 @@
 import { useOpMode } from "@/hooks/useOpMode";
 import { RunState } from "@/store/types/opmode";
 import { PropsWithChildren, useState } from "react";
-import { GenericButton } from "./GenericButton";
+import { GenericButton } from "../GenericButton";
 
 interface TuningOpModeButtonProps extends PropsWithChildren<any> {
     runState: RunState,
