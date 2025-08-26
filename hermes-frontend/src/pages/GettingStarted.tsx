@@ -3,12 +3,13 @@ import { AdvancedInstruction, ImportantInstruction } from "@/components/TextModi
 import { useConfigVariable, useSetConfigVariable } from "@/hooks/useConfigVariables"
 import {  ReactNode } from "react"
 
+const LOCALIZER_PATH = "HermesConfig/TuningConfig/localizer"
+
 export default function GettingStarted() {
 
     const setConfig = useSetConfigVariable();
-    const setLocalizer = (value: string) => setConfig("HermesConfig/Localizer", value)
 
-    const currentLocalizer = useConfigVariable("HermesConfig/Localizer")
+    const currentLocalizer = useConfigVariable(LOCALIZER_PATH)
 
     const localizers = [
         {
@@ -57,7 +58,7 @@ export default function GettingStarted() {
                 }
             </div>
 
-            <GenericButton href="/hermes/forward-push" className={"p-4 rounded-xl mt-10 duration-500 " + (currentLocalizer == "NONE" ? "none opacity-0" : "opacity-100")}>I'm ready to move on!</GenericButton>
+            <GenericButton href="/hermes/forward-push" className={"p-4 rounded-xl mt-10 duration-500 " + (currentLocalizer == "CUSTOM" ? "none opacity-0" : "opacity-100")}>I'm ready to move on!</GenericButton>
 
         </div>
 
@@ -89,4 +90,4 @@ function DashButton (props: DashButtonProps) {
     );
 }
 
-const LocalizerSelection = (props: PathedDashButtonProps) => DashButton({path: "HermesConfig/Localizer", ...props});
+const LocalizerSelection = (props: PathedDashButtonProps) => DashButton({path: LOCALIZER_PATH, ...props});
