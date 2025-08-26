@@ -2,6 +2,7 @@ package com.acmerobotics.roadrunner.tuning
 
 import com.acmerobotics.roadrunner.hardware.Encoder
 import com.acmerobotics.roadrunner.hardware.EncoderGroup
+import kotlinx.serialization.Serializable
 
 class MidpointTimer {
     private val beginTs = System.nanoTime()
@@ -19,6 +20,7 @@ class MidpointTimer {
     }
 }
 
+@Serializable
 class MutableSignal(
     val times: MutableList<Double> = mutableListOf(),
     val values: MutableList<Double> = mutableListOf()

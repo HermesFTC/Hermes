@@ -69,6 +69,8 @@ class AngularPushTest(val localizerView: AngularPushLocalizerView) : OpMode() {
  */
 class ForwardRampTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
 
+    val regressionParams: QuasistaticParameters by HermesConfig.tuningConfig.forwardRamp::regressionParams
+
     val direction: Double by HermesConfig.tuningConfig.forwardRamp::direction
 
     val sign = sign(direction)
@@ -81,8 +83,8 @@ class ForwardRampTest(val driveView: DriveView, val localizer: Localizer) : Line
 
     override fun runOpMode() {
 
-        val forwardVoltage = MutableSignal()
-        val forwardVelocity = MutableSignal()
+        val forwardVoltage by regressionParams::voltages
+        val forwardVelocity by regressionParams::velocities
 
         waitForStart()
 
@@ -104,10 +106,7 @@ class ForwardRampTest(val driveView: DriveView, val localizer: Localizer) : Line
 
         TuningFiles.save(TuningFiles.FileType.FORWARD_RAMP,
             DataFilter.filterQuasistaticByVelocity(HermesConfig.tuningConfig.forwardRamp.thresholdInchesPerSecond,
-                QuasistaticParameters(
-                    forwardVoltage,
-                    forwardVelocity
-                )
+                regressionParams
             )
         )
     }
@@ -120,6 +119,8 @@ class ForwardRampTest(val driveView: DriveView, val localizer: Localizer) : Line
  */
 class ForwardStepTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
 
+    val regressionParams: DynamicParameters by HermesConfig.tuningConfig.forwardStep::regressionParams
+
     val direction: Double by HermesConfig.tuningConfig.forwardStep::direction
 
     val sign = sign(direction)
@@ -128,8 +129,8 @@ class ForwardStepTest(val driveView: DriveView, val localizer: Localizer) : Line
 
     override fun runOpMode() {
 
-        val deltaVoltage = MutableSignal()
-        val forwardAcceleration = MutableSignal()
+        val deltaVoltage by regressionParams::voltages
+        val forwardAcceleration by regressionParams::accelerations
 
         waitForStart()
 
@@ -157,10 +158,7 @@ class ForwardStepTest(val driveView: DriveView, val localizer: Localizer) : Line
         driveView.voltageDrive(0.0, 0.0)
 
         TuningFiles.save(TuningFiles.FileType.FORWARD_STEP,
-            DynamicParameters(
-                forwardAcceleration,
-                deltaVoltage
-            )
+            regressionParams
         )
     }
 }
@@ -171,6 +169,8 @@ class ForwardStepTest(val driveView: DriveView, val localizer: Localizer) : Line
  * direction: +direction = counter-clockwise.
  */
 class AngularRampTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
+
+    val regressionParams: QuasistaticParameters by HermesConfig.tuningConfig.angularRamp::regressionParams
 
     val direction: Double by HermesConfig.tuningConfig.angularRamp::direction
 
@@ -184,8 +184,8 @@ class AngularRampTest(val driveView: DriveView, val localizer: Localizer) : Line
 
     override fun runOpMode() {
 
-        val angularVoltage = MutableSignal()
-        val angularVelocity = MutableSignal()
+        val angularVoltage by regressionParams::voltages
+        val angularVelocity by regressionParams::velocities
 
         waitForStart()
 
@@ -207,10 +207,7 @@ class AngularRampTest(val driveView: DriveView, val localizer: Localizer) : Line
 
         TuningFiles.save(TuningFiles.FileType.ANGULAR_RAMP,
             DataFilter.filterQuasistaticByVelocity(HermesConfig.tuningConfig.angularRamp.thresholdRadiansPerSecond,
-                QuasistaticParameters(
-                    angularVoltage,
-                    angularVelocity
-                )
+                regressionParams
             )
         )
     }
@@ -225,14 +222,16 @@ class AngularStepTest(val driveView: DriveView, val localizer: Localizer) : Line
 
     val direction: Double by HermesConfig.tuningConfig.angularStep::direction
 
+    val regressionParams: DynamicParameters by HermesConfig.tuningConfig.angularStep::regressionParams
+
     val sign = sign(direction)
 
     fun voltage(seconds: Double) = if (seconds > 0.5) HermesConfig.tuningConfig.angularStep.voltageStep * sign else 0.0
 
     override fun runOpMode() {
 
-        val deltaVoltage = MutableSignal()
-        val angularAcceleration = MutableSignal()
+        val deltaVoltage by regressionParams::voltages
+        val angularAcceleration by regressionParams::accelerations
 
         waitForStart()
 
@@ -259,11 +258,6 @@ class AngularStepTest(val driveView: DriveView, val localizer: Localizer) : Line
 
         driveView.voltageDrive(0.0, 0.0)
 
-        TuningFiles.save(TuningFiles.FileType.ANGULAR_STEP,
-            DynamicParameters(
-                angularAcceleration,
-                deltaVoltage
-            )
-        )
+        TuningFiles.save(TuningFiles.FileType.ANGULAR_STEP, regressionParams)
     }
 }

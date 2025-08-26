@@ -123,24 +123,28 @@ data class AngularPushConfig(
 data class ForwardRampConfig(
     var thresholdInchesPerSecond: Double = 0.1,
     var voltagePerSecond: Double = 1.0,
-    var direction: Double = 1.0
+    var direction: Double = 1.0,
+    var regressionParams: QuasistaticParameters = QuasistaticParameters()
 )
 
 @Serializable
 data class ForwardStepConfig(
     var voltageStep: Double = 10.0,
-    var direction: Double = 1.0
+    var direction: Double = 1.0,
+    var regressionParams: DynamicParameters = DynamicParameters()
 )
 
 @Serializable
 data class AngularRampConfig(
     var thresholdRadiansPerSecond: Double = 0.1,
     var voltagePerSecond: Double = 1.0,
-    var direction: Double = 1.0
+    var direction: Double = 1.0,
+    var regressionParams: QuasistaticParameters = QuasistaticParameters()
 )
 
 @Serializable
 data class AngularStepConfig(
     var voltageStep: Double = 10.0,
-    var direction: Double = 1.0
+    var direction: Double = 1.0,
+    var regressionParams: DynamicParameters = DynamicParameters()
 )

@@ -1,6 +1,7 @@
 package com.acmerobotics.roadrunner.tuning
 
 import com.acmerobotics.roadrunner.geometry.lerp
+import kotlinx.serialization.Serializable
 import java.util.LinkedList
 import java.util.Queue
 import kotlin.math.abs
@@ -83,11 +84,13 @@ object DataFilter {
 
 }
 
+@Serializable
 data class QuasistaticParameters(
     val voltages: MutableSignal = MutableSignal(),
     val velocities: MutableSignal = MutableSignal()
 )
 
+@Serializable
 data class DynamicParameters(
     val voltages: MutableSignal = MutableSignal(),
     val accelerations: MutableSignal = MutableSignal()
