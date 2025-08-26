@@ -3,7 +3,6 @@ import { GenericButton } from '@/components/GenericButton';
 import { AdvancedInstruction, ImportantInstruction } from '@/components/TextModifications';
 import TuningOpModeButton from '@/components/tuning/TuningOpModeButton';
 import { useConfigVariable, useSetConfigVariable } from '@/hooks/useConfigVariables';
-import { useOpMode } from '@/hooks/useOpMode';
 import { RunState } from '@/store/types/opmode';
 import { useState } from 'react';
 

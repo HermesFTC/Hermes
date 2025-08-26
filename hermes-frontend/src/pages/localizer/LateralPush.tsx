@@ -2,11 +2,9 @@ import { AdvancedUserConfirmationModal } from '@/components/tuning/AdvancedUserC
 import { GenericButton } from '@/components/GenericButton';
 import { AdvancedInstruction, ImportantInstruction } from '@/components/TextModifications';
 import TuningOpModeButton from '@/components/tuning/TuningOpModeButton';
-import { useConfigVariable, useSetConfigVariable } from '@/hooks/useConfigVariables';
-import { useOpMode } from '@/hooks/useOpMode';
-import { initOpMode, startOpMode } from '@/store/actions/opmode';
+import { useSetConfigVariable } from '@/hooks/useConfigVariables';
 import { RunState } from '@/store/types/opmode';
-import { ChangeEvent, ChangeEventHandler, useState } from 'react';
+import { useState } from 'react';
 
 export default function LateralPush() {
     // config and opmode management
