@@ -63,10 +63,16 @@ node {
 
 val yarnInstall = tasks.named("yarn_install")
 
+yarnInstall.configure {
+    outputs.dir("${project.projectDir.parent}/hermes-frontend/")
+}
+
 tasks.named<YarnTask>("yarn_build") {
     setEnvironment(
         mapOf("VITE_APP_VERSION" to (project.property("version") as String))
     )
+    inputs.dir("${project.projectDir.parent}/hermes-frontend/")
+    outputs.dir("${project.projectDir.parent}/hermes-frontend/dist")
 
     dependsOn(yarnInstall)
 }
