@@ -1,4 +1,3 @@
-import { getLayoutPreset } from "@/store/actions/settings";
 import { startSocketWatcher } from "@/store/middleware/socketMiddleware";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux/es/hooks/useDispatch";
