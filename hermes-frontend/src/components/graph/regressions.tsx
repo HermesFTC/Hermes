@@ -5,6 +5,8 @@ import {
   QuasistaticParameters,
   DynamicParameters
 } from './utils';
+import { useSetConfigVariable } from '@/hooks/useConfigVariables';
+import { BASE_ROBOT_CONFIG_PATH } from '@/constants';
 
 interface ForwardRampRegressionProps {
   className?: string;
@@ -14,6 +16,14 @@ export const ForwardRampRegression: React.FC<ForwardRampRegressionProps> = ({
   className = ''
 }) => {
   const [data, setData] = useState<QuasistaticParameters | null>(null);
+
+  const setConfig = useSetConfigVariable()
+  const CONFIG_PREFIX = BASE_ROBOT_CONFIG_PATH + "feedforward/translational/";
+
+  const setKV = (kV: number) => setConfig(CONFIG_PREFIX + "kV", kV);
+  const setKS = (kS: number) => setConfig(CONFIG_PREFIX + "kStatic", kS);
+
+  const chartCallback = (slope: number, intercept: number) => { setKV(slope); setKS(intercept); }
 
   const handleDataLoaded = async (inputData: QuasistaticParameters): Promise<string[]> => {
     setData(inputData);
@@ -41,6 +51,7 @@ export const ForwardRampRegression: React.FC<ForwardRampRegressionProps> = ({
             xLabel: 'forward velocity [inches/s]',
             yLabel: 'applied voltage [V]'
           }}
+          onChange={chartCallback}
         />
       )}
     </div>
@@ -55,6 +66,13 @@ export const ForwardStepRegression: React.FC<ForwardStepRegressionProps> = ({
   className = ''
 }) => {
   const [data, setData] = useState<DynamicParameters | null>(null);
+
+  const setConfig = useSetConfigVariable()
+  const CONFIG_PREFIX = BASE_ROBOT_CONFIG_PATH + "feedforward/translational/";
+
+  const setKA = (kA: number) => setConfig(CONFIG_PREFIX + "kA", kA);
+
+  const chartCallback = (slope: number, intercept: number) => { setKA(slope); }
 
   const handleDataLoaded = async (inputData: DynamicParameters): Promise<string[]> => {
     setData(inputData);
@@ -81,6 +99,7 @@ export const ForwardStepRegression: React.FC<ForwardStepRegressionProps> = ({
             xLabel: 'forward acceleration [inches/s²]',
             yLabel: 'delta voltage [V]'
           }}
+          onChange={chartCallback}
         />
       )}
     </div>
@@ -95,6 +114,14 @@ export const LateralRampRegression: React.FC<LateralRampRegressionProps> = ({
   className = ''
 }) => {
   const [data, setData] = useState<QuasistaticParameters | null>(null);
+
+  const setConfig = useSetConfigVariable()
+  const CONFIG_PREFIX = BASE_ROBOT_CONFIG_PATH + "feedforward/lateral/";
+
+  const setKV = (kV: number) => setConfig(CONFIG_PREFIX + "kV", kV);
+  const setKS = (kS: number) => setConfig(CONFIG_PREFIX + "kStatic", kS);
+
+  const chartCallback = (slope: number, intercept: number) => { setKV(slope); setKS(intercept); }
 
   const handleDataLoaded = async (inputData: QuasistaticParameters): Promise<string[]> => {
     setData(inputData);
@@ -122,6 +149,7 @@ export const LateralRampRegression: React.FC<LateralRampRegressionProps> = ({
             xLabel: 'lateral velocity [inches/s]',
             yLabel: 'applied voltage [V]'
           }}
+          onChange={chartCallback}
         />
       )}
     </div>
@@ -136,6 +164,14 @@ export const AngularRampRegression: React.FC<AngularRampRegressionProps> = ({
   className = ''
 }) => {
   const [data, setData] = useState<QuasistaticParameters | null>(null);
+
+  const setConfig = useSetConfigVariable()
+  const CONFIG_PREFIX = BASE_ROBOT_CONFIG_PATH + "feedforward/rotational/";
+
+  const setKV = (kV: number) => setConfig(CONFIG_PREFIX + "kV", kV);
+  const setKS = (kS: number) => setConfig(CONFIG_PREFIX + "kStatic", kS);
+
+  const chartCallback = (slope: number, intercept: number) => { setKV(slope); setKS(intercept); }
 
   const handleDataLoaded = async (inputData: QuasistaticParameters): Promise<string[]> => {
     setData(inputData);
@@ -163,6 +199,7 @@ export const AngularRampRegression: React.FC<AngularRampRegressionProps> = ({
             xLabel: 'angular velocity [rad/s]',
             yLabel: 'applied voltage [V]'
           }}
+          onChange={chartCallback}
         />
       )}
     </div>
@@ -177,6 +214,13 @@ export const AngularStepRegression: React.FC<AngularStepRegressionProps> = ({
   className = ''
 }) => {
   const [data, setData] = useState<DynamicParameters | null>(null);
+
+  const setConfig = useSetConfigVariable()
+  const CONFIG_PREFIX = BASE_ROBOT_CONFIG_PATH + "feedforward/rotational/";
+
+  const setKA = (kA: number) => setConfig(CONFIG_PREFIX + "kA", kA);
+
+  const chartCallback = (slope: number, intercept: number) => { setKA(slope); }
 
   const handleDataLoaded = async (inputData: DynamicParameters): Promise<string[]> => {
     setData(inputData);
@@ -203,6 +247,7 @@ export const AngularStepRegression: React.FC<AngularStepRegressionProps> = ({
             xLabel: 'angular acceleration [rad/s²]',
             yLabel: 'delta voltage [V]'
           }}
+          onChange={chartCallback}
         />
       )}
     </div>

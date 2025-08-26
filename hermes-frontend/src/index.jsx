@@ -20,7 +20,7 @@ import ForwardStepPage from './pages/sysid/ForwardStepPage';
 import LateralRampPage from './pages/sysid/LateralRampPage';
 import AngularRampPage from './pages/sysid/AngularRampPage';
 import AngularStepPage from './pages/sysid/AngularStepPage';
-import Home from '@/pages/home';
+import Home from '@/pages/Home';
 
 export default function App() {
 
