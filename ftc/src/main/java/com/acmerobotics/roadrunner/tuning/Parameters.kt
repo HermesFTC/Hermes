@@ -106,7 +106,10 @@ data class PinpointParameters(
 ) : LocalizerParameters
 
 enum class PinpointEncoderType {
+    @SerialName("Parallel")
     PARALLEL,
+
+    @SerialName("Perpendicular")
     PERPENDICULAR
 }
 

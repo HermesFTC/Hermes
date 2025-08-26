@@ -1,5 +1,6 @@
 package com.acmerobotics.roadrunner.tuning
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 object TuningConfigListener : PersistentConfig.Subscriber {
@@ -51,17 +52,33 @@ data class TuningConfig(
 }
 
 enum class OdometryPodType {
+    @SerialName("goBILDA 4 Bar")
     GOBILDA_4_BAR,
+
+    @SerialName("goBILDA Swingarm")
     GOBILDA_SWINGARM,
+
+    @SerialName("Other")
     OTHER
 }
 
 enum class LocalizerType {
+    @SerialName("Custom")
     CUSTOM,
+
+    @SerialName("Two Wheel")
     TWO_WHEEL,
+
+    @SerialName("Three Wheel")
     THREE_WHEEL,
+
+    @SerialName("goBILDA Pinpoint")
     GOBILDA_PINPOINT,
+
+    @SerialName("SparkFUN OTOS")
     SPARKFUN_OTOS,
+
+    @SerialName("Motor Encoders")
     MOTOR_ENCODERS
 }
 
