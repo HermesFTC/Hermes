@@ -4,7 +4,7 @@ import com.acmerobotics.roadrunner.serialization.HermesJsonFormat
 import com.acmerobotics.roadrunner.tuning.MecanumParameters
 import com.acmerobotics.roadrunner.tuning.MotorConfig
 import com.acmerobotics.roadrunner.tuning.MutableSignal
-import com.acmerobotics.roadrunner.tuning.RegressionParameters
+import com.acmerobotics.roadrunner.tuning.QuasistaticParameters
 import com.acmerobotics.roadrunner.tuning.RobotConfig
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -39,7 +39,7 @@ class TuningTest {
             time += DELTA_TIME
         }
 
-        val params = RegressionParameters(
+        val params = QuasistaticParameters(
             xs,
             ys
         )
