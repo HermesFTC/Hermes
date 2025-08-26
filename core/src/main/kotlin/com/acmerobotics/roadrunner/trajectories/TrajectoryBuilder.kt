@@ -8,12 +8,11 @@ import com.acmerobotics.roadrunner.paths.IdentityPoseMap
 import com.acmerobotics.roadrunner.paths.MappedPosePath
 import com.acmerobotics.roadrunner.paths.PoseMap
 import com.acmerobotics.roadrunner.profiles.AccelConstraint
+import com.acmerobotics.roadrunner.profiles.CancelableProfile
 import com.acmerobotics.roadrunner.profiles.CompositeAccelConstraint
 import com.acmerobotics.roadrunner.profiles.CompositeVelConstraint
 import com.acmerobotics.roadrunner.profiles.ProfileParams
 import com.acmerobotics.roadrunner.profiles.VelConstraint
-import com.acmerobotics.roadrunner.profiles.profile
-
 
 
 data class TrajectoryBuilderParams(
@@ -758,7 +757,7 @@ class TrajectoryBuilder private constructor(
 
             CancelableTrajectory(
                 path,
-                profile(
+                CancelableProfile.generate(
                     profileParams,
                     path, beginEndVel,
                     CompositeVelConstraint(
