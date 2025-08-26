@@ -65,9 +65,11 @@ class AngularPushTest(val localizerView: AngularPushLocalizerView) : OpMode() {
 /**
  * Quasistatic SysID routine for the drivetrain.
  * Determines: kV, kS
- * @param direction +direction = forward
+ * direction: +direction = forward
  */
-class ForwardRampTest(val driveView: DriveView, val localizer: Localizer, val direction: Double) : LinearOpMode() {
+class ForwardRampTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
+
+    val direction: Double by HermesConfig.tuningConfig.forwardRamp::direction
 
     val sign = sign(direction)
 
@@ -114,9 +116,11 @@ class ForwardRampTest(val driveView: DriveView, val localizer: Localizer, val di
 /**
  * Dynamic SysID routine for the drivetrain.
  * Determines: kA
- * @param direction +direction = forward
+ * direction: +direction = forward
  */
-class ForwardStepTest(val driveView: DriveView, val localizer: Localizer, val direction: Double) : LinearOpMode() {
+class ForwardStepTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
+
+    val direction: Double by HermesConfig.tuningConfig.forwardStep::direction
 
     val sign = sign(direction)
 
@@ -164,9 +168,11 @@ class ForwardStepTest(val driveView: DriveView, val localizer: Localizer, val di
 /**
  * Quasistatic SysID routine for the drivetrain.
  * Determines: kV, kS
- * @param direction +direction = counter-clockwise.
+ * direction: +direction = counter-clockwise.
  */
-class AngularRampTest(val driveView: DriveView, val localizer: Localizer, val direction: Double) : LinearOpMode() {
+class AngularRampTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
+
+    val direction: Double by HermesConfig.tuningConfig.angularRamp::direction
 
     val sign = sign(direction)
 
@@ -213,9 +219,11 @@ class AngularRampTest(val driveView: DriveView, val localizer: Localizer, val di
 /**
  * Dynamic SysID routine for the drivetrain.
  * Determines: kA
- * @param direction +direction = counter-clockwise
+ * direction: +direction = counter-clockwise
  */
-class AngularStepTest(val driveView: DriveView, val localizer: Localizer, val direction: Double) : LinearOpMode() {
+class AngularStepTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
+
+    val direction: Double by HermesConfig.tuningConfig.angularStep::direction
 
     val sign = sign(direction)
 

@@ -35,6 +35,7 @@ object TuningConfigListener : PersistentConfig.Subscriber {
 data class TuningConfig(
     var odometryPodType: OdometryPodType = OdometryPodType.OTHER,
     var localizer: LocalizerType = LocalizerType.CUSTOM,
+    var drive: DriveType = DriveType.CUSTOM,
     var warnings: List<String> = arrayListOf(),
     val forwardPush: ForwardPushConfig = ForwardPushConfig(),
     val lateralPush: LateralPushConfig = LateralPushConfig(),
@@ -50,6 +51,18 @@ data class TuningConfig(
     }
 
 }
+
+enum class DriveType {
+    @SerialName("Mecanum")
+    MECANUM,
+
+    @SerialName("Tank")
+    TANK,
+
+    @SerialName("Custom")
+    CUSTOM
+}
+
 
 enum class OdometryPodType {
     @SerialName("goBILDA 4 Bar")
@@ -109,21 +122,25 @@ data class AngularPushConfig(
 @Serializable
 data class ForwardRampConfig(
     var thresholdInchesPerSecond: Double = 0.1,
-    var voltagePerSecond: Double = 1.0
+    var voltagePerSecond: Double = 1.0,
+    var direction: Double = 1.0
 )
 
 @Serializable
 data class ForwardStepConfig(
-    var voltageStep: Double = 10.0
+    var voltageStep: Double = 10.0,
+    var direction: Double = 1.0
 )
 
 @Serializable
 data class AngularRampConfig(
     var thresholdRadiansPerSecond: Double = 0.1,
-    var voltagePerSecond: Double = 1.0
+    var voltagePerSecond: Double = 1.0,
+    var direction: Double = 1.0
 )
 
 @Serializable
 data class AngularStepConfig(
-    var voltageStep: Double = 10.0
+    var voltageStep: Double = 10.0,
+    var direction: Double = 1.0
 )

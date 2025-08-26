@@ -19,15 +19,6 @@ import kotlinx.serialization.SerialName
 import kotlin.math.PI
 import kotlin.math.abs
 
-
-enum class DriveType {
-    @SerialName("mecanum")
-    MECANUM,
-
-    @SerialName("tank")
-    TANK
-}
-
 fun interface FeedforwardFactory {
     fun make(): MotorFeedforward
 }

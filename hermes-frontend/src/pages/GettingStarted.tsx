@@ -65,18 +65,18 @@ export default function GettingStarted() {
     )
 }
 
-interface DashButtonProps {
+export interface DashButtonProps {
     path: string,
     value: string | boolean | number | null,
     children: ReactNode
 }
 
-interface PathedDashButtonProps {
+export interface PathedDashButtonProps {
     value: string | boolean | number | null,
     children: ReactNode
 }
 
-function DashButton (props: DashButtonProps) {
+export function DashButton (props: DashButtonProps) {
     const setConfig = useSetConfigVariable();
     const currentValue = useConfigVariable(props.path);
 

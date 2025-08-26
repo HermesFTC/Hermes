@@ -75,7 +75,7 @@ export default function AngularPush() {
         <TuningOpModeButton runState={runState} setRunState={setRunState} opModeName="AngularPushTest"/>
 
         
-        <GenericButton href={BASE_HERMES_URL + "/forward-ramp"} className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
+        <GenericButton href={BASE_HERMES_URL + "/drive-selection"} className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
 
             
         </div>
