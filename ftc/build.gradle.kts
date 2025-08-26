@@ -83,7 +83,7 @@ tasks.named("clean").configure {
 }
 
 val copyWebAssets by tasks.registering(Copy::class) {
-    from(file("${project.projectDir.parent}/web/dist"))
+    from(file("${project.projectDir.parent}/hermes-frontend/dist"))
     into(android.sourceSets["main"]?.assets?.srcDirs?.firstOrNull()?.let { file("$it/web") } ?: project.buildDir.resolve("web_assets_copy_fallback"))
     // Added a fallback in case assets sourceDirs is null or empty
     dependsOn(cleanWebAssets, yarnBuild)
