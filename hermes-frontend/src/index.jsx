@@ -7,7 +7,6 @@ import configureStore from './store/configureStore';
 
 import './index.css';
 import { BASE_HERMES_URL } from './constants';
-import Home from './pages/Home';
 import TuningPage from './pages/TuningPage';
 import GraphPage from './pages/GraphPage';
 import GettingStarted from './pages/GettingStarted';
