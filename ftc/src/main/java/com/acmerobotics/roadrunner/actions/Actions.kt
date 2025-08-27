@@ -80,10 +80,7 @@ object ActionRunner : OpModeManagerNotifier.Notifications {
         eventLoop.opModeManager.registerListener(this)
     }
 
-    override fun onOpModePreInit(p0: OpMode?) {
-        require(dash.isInitialized())
-        require(_actions.isEmpty())
-    }
+    override fun onOpModePreInit(p0: OpMode?) {}
 
     override fun onOpModePreStart(p0: OpMode?) {}
 
