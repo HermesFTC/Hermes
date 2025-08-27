@@ -2,6 +2,7 @@ package com.acmerobotics.roadrunner.tuning
 
 import com.acmerobotics.roadrunner.control.MecanumKinematics
 import com.acmerobotics.roadrunner.control.MotorFeedforward
+import com.acmerobotics.roadrunner.ftc.Localizer
 import com.acmerobotics.roadrunner.geometry.DualNum
 import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
 import com.acmerobotics.roadrunner.geometry.Time
@@ -75,6 +76,12 @@ interface ForwardPushLocalizerView {
 
 }
 
+interface ForwardPushLocalizerViewFactory {
+
+    fun make(hardwareMap: HardwareMap): ForwardPushLocalizerView
+
+}
+
 open class PinpointView(hardwareMap: HardwareMap) {
     val pinpoint: GoBildaPinpointDriver =
         hardwareMap.getAll(GoBildaPinpointDriver::class.java).iterator().next()
@@ -136,6 +143,12 @@ interface LateralPushLocalizerView {
 
 }
 
+interface LateralPushLocalizerViewFactory {
+
+    fun make(hardwareMap: HardwareMap): LateralPushLocalizerView
+
+}
+
 class LateralPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareMap), LateralPushLocalizerView {
 
     override fun updateConfig(actualInchesTravelled: Double) {
@@ -173,6 +186,12 @@ interface AngularPushLocalizerView {
 
 }
 
+interface AngularPushLocalizerViewFactory {
+
+    fun make(hardwareMap: HardwareMap): AngularPushLocalizerView
+
+}
+
 // TODO: add validation that the user is actually turning the robot ccw (and the pinpoint IMU is mounted correctly.)
 class AngularPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareMap), AngularPushLocalizerView {
 
@@ -194,6 +213,12 @@ class AngularPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
             PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.value
         } / (actualRevolutions * 2.0 * PI)
     }
+}
+
+interface LocalizerFactory {
+
+    fun make(hardwareMap: HardwareMap): Localizer
+
 }
 
 interface DrivetrainConfigDriveView {
@@ -224,6 +249,12 @@ interface DrivetrainConfigDriveView {
             motor.power = 0.0
         }
     }
+}
+
+interface DrivetrainConfigViewFactory {
+
+    fun make(hardwareMap: HardwareMap): DrivetrainConfigDriveView
+
 }
 
 class MecanumConfigDriveView(hardwareMap: HardwareMap) : DrivetrainConfigDriveView {
@@ -259,6 +290,12 @@ interface DriveView {
      * @param rotationVoltage Counter-clockwise (standard).
      */
     fun voltageDrive(forwardVoltage: Double, rotationVoltage: Double)
+
+}
+
+interface DriveViewFactory {
+
+    fun make(hardwareMap: HardwareMap): DriveView
 
 }
 

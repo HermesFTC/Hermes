@@ -4,18 +4,23 @@ import com.acmerobotics.roadrunner.ftc.Localizer
 import com.acmerobotics.roadrunner.logs.TuningFiles
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManager
+import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar
+import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 
 // ===== Localizer Tuning =====
 
-class ForwardPushTest(val localizerView: ForwardPushLocalizerView) : OpMode() {
+class ForwardPushTest(val lvf: ForwardPushLocalizerViewFactory) : OpMode() {
 
     val actualInches: Double get() = HermesConfig.tuningConfig.forwardPush.actualInchesTravelled
 
-    override fun init() {
+    val localizerView by lazy { lvf.make(hardwareMap) }
 
+    override fun init() {
+        localizerView
     }
 
     override fun loop() {
@@ -28,12 +33,14 @@ class ForwardPushTest(val localizerView: ForwardPushLocalizerView) : OpMode() {
 
 }
 
-class LateralPushTest(val localizerView: LateralPushLocalizerView) : OpMode() {
+class LateralPushTest(val lvf: LateralPushLocalizerViewFactory) : OpMode() {
 
     val actualInches: Double get() = HermesConfig.tuningConfig.lateralPush.actualInchesTravelled
 
-    override fun init() {
+    val localizerView by lazy { lvf.make(hardwareMap) }
 
+    override fun init() {
+        localizerView
     }
 
     override fun loop() {
@@ -46,12 +53,14 @@ class LateralPushTest(val localizerView: LateralPushLocalizerView) : OpMode() {
 
 }
 
-class AngularPushTest(val localizerView: AngularPushLocalizerView) : OpMode() {
+class AngularPushTest(val lvf: AngularPushLocalizerViewFactory) : OpMode() {
 
     val actualRevolutions: Double get() = HermesConfig.tuningConfig.angularPush.actualRevolutions
 
-    override fun init() {
+    val localizerView by lazy { lvf.make(hardwareMap) }
 
+    override fun init() {
+        localizerView
     }
 
     override fun loop() {
@@ -70,9 +79,12 @@ class AngularPushTest(val localizerView: AngularPushLocalizerView) : OpMode() {
  * Automatically configures the motors for a drivetrain.
  */
 // TODO: replace constructor arguments with factories
-class DrivetrainConfigTest(val driveView: DrivetrainConfigDriveView, val localizer: Localizer) : LinearOpMode() {
+class DrivetrainConfigTest(val dvf: DrivetrainConfigViewFactory, val lf: LocalizerFactory) : LinearOpMode() {
 
     override fun runOpMode() {
+
+        val driveView = dvf.make(hardwareMap)
+        val localizer = lf.make(hardwareMap)
 
         waitForStart()
 
@@ -102,7 +114,7 @@ class DrivetrainConfigTest(val driveView: DrivetrainConfigDriveView, val localiz
  * Determines: kV, kS
  * direction: +direction = forward
  */
-class ForwardRampTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
+class ForwardRampTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : LinearOpMode() {
 
     val regressionParams: QuasistaticParameters by HermesConfig.tuningConfig.forwardRamp::regressionParams
 
@@ -117,6 +129,9 @@ class ForwardRampTest(val driveView: DriveView, val localizer: Localizer) : Line
             max(HermesConfig.tuningConfig.forwardRamp.voltagePerSecond * seconds * sign, VoltageCache.currentVoltage * sign)
 
     override fun runOpMode() {
+
+        val driveView = dvf.make(hardwareMap)
+        val localizer = lf.make(hardwareMap)
 
         val forwardVoltage by regressionParams::voltages
         val forwardVelocity by regressionParams::velocities
@@ -152,7 +167,7 @@ class ForwardRampTest(val driveView: DriveView, val localizer: Localizer) : Line
  * Determines: kA
  * direction: +direction = forward
  */
-class ForwardStepTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
+class ForwardStepTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : LinearOpMode() {
 
     val regressionParams: DynamicParameters by HermesConfig.tuningConfig.forwardStep::regressionParams
 
@@ -163,6 +178,9 @@ class ForwardStepTest(val driveView: DriveView, val localizer: Localizer) : Line
     fun voltage(seconds: Double) = if (seconds > 0.5) HermesConfig.tuningConfig.forwardStep.voltageStep * sign else 0.0
 
     override fun runOpMode() {
+
+        val driveView = dvf.make(hardwareMap)
+        val localizer = lf.make(hardwareMap)
 
         val deltaVoltage by regressionParams::voltages
         val forwardAcceleration by regressionParams::accelerations
@@ -203,7 +221,7 @@ class ForwardStepTest(val driveView: DriveView, val localizer: Localizer) : Line
  * Determines: kV, kS
  * direction: +direction = counter-clockwise.
  */
-class AngularRampTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
+class AngularRampTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : LinearOpMode() {
 
     val regressionParams: QuasistaticParameters by HermesConfig.tuningConfig.angularRamp::regressionParams
 
@@ -218,6 +236,9 @@ class AngularRampTest(val driveView: DriveView, val localizer: Localizer) : Line
         max(HermesConfig.tuningConfig.angularRamp.voltagePerSecond * seconds * sign, VoltageCache.currentVoltage * sign)
 
     override fun runOpMode() {
+
+        val driveView = dvf.make(hardwareMap)
+        val localizer = lf.make(hardwareMap)
 
         val angularVoltage by regressionParams::voltages
         val angularVelocity by regressionParams::velocities
@@ -253,7 +274,7 @@ class AngularRampTest(val driveView: DriveView, val localizer: Localizer) : Line
  * Determines: kA
  * direction: +direction = counter-clockwise
  */
-class AngularStepTest(val driveView: DriveView, val localizer: Localizer) : LinearOpMode() {
+class AngularStepTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : LinearOpMode() {
 
     val direction: Double by HermesConfig.tuningConfig.angularStep::direction
 
@@ -264,6 +285,9 @@ class AngularStepTest(val driveView: DriveView, val localizer: Localizer) : Line
     fun voltage(seconds: Double) = if (seconds > 0.5) HermesConfig.tuningConfig.angularStep.voltageStep * sign else 0.0
 
     override fun runOpMode() {
+
+        val driveView = dvf.make(hardwareMap)
+        val localizer = lf.make(hardwareMap)
 
         val deltaVoltage by regressionParams::voltages
         val angularAcceleration by regressionParams::accelerations
@@ -295,4 +319,16 @@ class AngularStepTest(val driveView: DriveView, val localizer: Localizer) : Line
 
         TuningFiles.save(TuningFiles.FileType.ANGULAR_STEP, regressionParams)
     }
+}
+
+
+
+object TuningOpModes {
+
+    @JvmStatic
+    @OpModeRegistrar
+    fun register(manager: OpModeManager) {
+
+    }
+
 }
