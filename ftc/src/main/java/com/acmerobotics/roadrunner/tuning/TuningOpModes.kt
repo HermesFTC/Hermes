@@ -8,6 +8,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 
+// ===== Localizer Tuning =====
+
 class ForwardPushTest(val localizerView: ForwardPushLocalizerView) : OpMode() {
 
     val actualInches: Double get() = HermesConfig.tuningConfig.forwardPush.actualInchesTravelled
@@ -61,6 +63,39 @@ class AngularPushTest(val localizerView: AngularPushLocalizerView) : OpMode() {
     }
 
 }
+
+// ===== Drive Tuning =====
+
+/**
+ * Automatically configures the motors for a drivetrain.
+ */
+// TODO: replace constructor arguments with factories
+class DrivetrainConfigTest(val driveView: DrivetrainConfigDriveView, val localizer: Localizer) : LinearOpMode() {
+
+    override fun runOpMode() {
+
+        waitForStart()
+
+        for (actuator in driveView.actuators) {
+            val initialPose = localizer.pose
+
+            actuator.moveActuator(0.5)
+
+            localizer.update()
+
+            val endPose = localizer.pose
+
+            driveView.updateActuator(actuator, endPose.minus(initialPose))
+        }
+
+        while (opModeIsActive()) {} // make the sdk not freak out
+
+    }
+
+}
+
+
+// ===== Feedforward Tuning =====
 
 /**
  * Quasistatic SysID routine for the drivetrain.

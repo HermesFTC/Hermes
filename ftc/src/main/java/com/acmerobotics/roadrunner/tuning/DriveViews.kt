@@ -5,9 +5,11 @@ import com.acmerobotics.roadrunner.control.MotorFeedforward
 import com.acmerobotics.roadrunner.geometry.DualNum
 import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
 import com.acmerobotics.roadrunner.geometry.Time
+import com.acmerobotics.roadrunner.geometry.Twist2d
 import com.acmerobotics.roadrunner.geometry.Vector2d
 import com.acmerobotics.roadrunner.geometry.Vector2dDual
 import com.acmerobotics.roadrunner.logs.FlightRecorder
+import com.acmerobotics.roadrunner.tuning.DrivetrainConfigDriveView.DrivetrainActuator
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
@@ -191,6 +193,61 @@ class AngularPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
             PinpointEncoderType.PARALLEL -> pinpointParPod.value
             PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.value
         } / (actualRevolutions * 2.0 * PI)
+    }
+}
+
+interface DrivetrainConfigDriveView {
+    val actuators: List<DrivetrainActuator>
+
+    fun updateActuator(actuator: DrivetrainActuator, deltaPose: Twist2d)
+
+    interface DrivetrainActuator {
+
+        /**
+         * Move the actuator as desired.
+         * This method should be blocking!!
+         */
+        fun moveActuator(input: Double)
+
+    }
+
+    class MotorActuator(val motor: DcMotorEx) : DrivetrainActuator {
+        constructor(config: MotorConfig, hardwareMap: HardwareMap) : this(config.toDcMotorEx(hardwareMap))
+
+        override fun moveActuator(input: Double) {
+            motor.power = input
+            try {
+                Thread.sleep(250)
+            } catch (e: InterruptedException) {
+                throw e
+            }
+            motor.power = 0.0
+        }
+    }
+}
+
+class MecanumConfigDriveView(hardwareMap: HardwareMap) : DrivetrainConfigDriveView {
+
+    val config get() = HermesConfig.config.drive as MecanumParameters
+
+    override val actuators = listOf(
+        DrivetrainConfigDriveView.MotorActuator(config.leftFront, hardwareMap),
+        DrivetrainConfigDriveView.MotorActuator(config.leftBack, hardwareMap),
+        DrivetrainConfigDriveView.MotorActuator(config.rightBack, hardwareMap),
+        DrivetrainConfigDriveView.MotorActuator(config.rightFront, hardwareMap),
+    )
+
+    override fun updateActuator(actuator: DrivetrainActuator, deltaPose: Twist2d) {
+        val idx = actuators.indexOf(actuator)
+        val direction = if (deltaPose.line.x > 0) DcMotorSimple.Direction.FORWARD else DcMotorSimple.Direction.REVERSE
+
+        when (idx) {
+            0 -> config.leftFront
+            1 -> config.leftBack
+            2 -> config.rightBack
+            3 -> config.rightFront
+            else -> error("Too many mecanum wheels. Wait, what?")
+        }.direction = direction
     }
 
 }
