@@ -136,6 +136,8 @@ class ForwardRampTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : Lin
         val forwardVoltage by regressionParams::voltages
         val forwardVelocity by regressionParams::velocities
 
+        VoltageCache.init(hardwareMap)
+
         waitForStart()
 
         val t = MidpointTimer()
@@ -184,6 +186,8 @@ class ForwardStepTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : Lin
 
         val deltaVoltage by regressionParams::voltages
         val forwardAcceleration by regressionParams::accelerations
+
+        VoltageCache.init(hardwareMap)
 
         waitForStart()
 
@@ -243,6 +247,8 @@ class AngularRampTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : Lin
         val angularVoltage by regressionParams::voltages
         val angularVelocity by regressionParams::velocities
 
+        VoltageCache.init(hardwareMap)
+
         waitForStart()
 
         val t = MidpointTimer()
@@ -291,6 +297,8 @@ class AngularStepTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : Lin
 
         val deltaVoltage by regressionParams::voltages
         val angularAcceleration by regressionParams::accelerations
+
+        VoltageCache.init(hardwareMap)
 
         waitForStart()
 
