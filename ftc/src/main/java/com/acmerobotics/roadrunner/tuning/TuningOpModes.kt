@@ -13,7 +13,7 @@ import kotlin.math.sign
 
 // ===== Localizer Tuning =====
 
-class ForwardPushTest(val lvf: ForwardPushLocalizerViewFactory) : OpMode() {
+class ForwardPushTest(val lvf: LocalizerViewFactory) : OpMode() {
 
     val actualInches: Double get() = HermesConfig.tuningConfig.forwardPush.actualInchesTravelled
 
@@ -28,12 +28,12 @@ class ForwardPushTest(val lvf: ForwardPushLocalizerViewFactory) : OpMode() {
     }
 
     override fun stop() {
-        localizerView.updateConfig(actualInches)
+        localizerView.forwardPushUpdate(actualInches)
     }
 
 }
 
-class LateralPushTest(val lvf: LateralPushLocalizerViewFactory) : OpMode() {
+class LateralPushTest(val lvf: LocalizerViewFactory) : OpMode() {
 
     val actualInches: Double get() = HermesConfig.tuningConfig.lateralPush.actualInchesTravelled
 
@@ -48,12 +48,12 @@ class LateralPushTest(val lvf: LateralPushLocalizerViewFactory) : OpMode() {
     }
 
     override fun stop() {
-        localizerView.updateConfig(actualInches)
+        localizerView.lateralPushUpdate(actualInches)
     }
 
 }
 
-class AngularPushTest(val lvf: AngularPushLocalizerViewFactory) : OpMode() {
+class AngularPushTest(val lvf: LocalizerViewFactory) : OpMode() {
 
     val actualRevolutions: Double get() = HermesConfig.tuningConfig.angularPush.actualRevolutions
 
@@ -68,7 +68,7 @@ class AngularPushTest(val lvf: AngularPushLocalizerViewFactory) : OpMode() {
     }
 
     override fun stop() {
-        localizerView.updateConfig(actualRevolutions)
+        localizerView.angularPushUpdate(actualRevolutions)
     }
 
 }

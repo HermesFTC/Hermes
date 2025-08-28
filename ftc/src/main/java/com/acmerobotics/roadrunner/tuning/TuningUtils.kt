@@ -30,19 +30,5 @@ class MutableSignal(
     }
 }
 
-
-// designed for manual bulk caching
-internal fun recordUnwrappedEncoderData(gs: List<EncoderGroup>, ts: List<Double>, er: EncoderRef, ps: MutableSignal, vs: MutableSignal) {
-    val t = ts[er.groupIndex]
-    val e = gs[er.groupIndex].unwrappedEncoders[er.index]
-    val pv = e.getPositionAndVelocity()
-
-    ps.times.add(t)
-    ps.values.add(pv.position.toDouble())
-
-    vs.times.add(t)
-    vs.values.add(pv.velocity.toDouble())
-}
-
 internal fun avgPos(es: List<Encoder>) = es.sumOf { it.getPositionAndVelocity().position.toDouble() } / es.size
 

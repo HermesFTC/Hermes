@@ -21,16 +21,6 @@ import com.qualcomm.robotcore.util.ElapsedTime
 import kotlinx.serialization.SerialName
 import kotlin.math.PI
 import kotlin.math.abs
-
-fun interface FeedforwardFactory {
-    fun make(): MotorFeedforward
-}
-
-data class EncoderRef(
-    val groupIndex: Int,
-    val index: Int,
-)
-
 /**
  * Global object for synchronized and IO-efficient voltage reads.
  */
@@ -67,22 +57,45 @@ object VoltageCache {
         timeElapsed.reset()
     }
 
+}
+
+// ===== Localizer Tuning =====
+
+/**
+ * Relative axial sensor class that measures movement throughout the OpMode.
+ * Examples: motor encoder, odometry pod.
+ */
+open class TuningAxialSensor(val sensorOutput: () -> Double, val movementThreshold: Double = 10000.0) {
+    val moved get() = abs(sensorOutput()) > movementThreshold
+    val direction get() = if (sensorOutput() > 0) DcMotorSimple.Direction.FORWARD else DcMotorSimple.Direction.REVERSE
+    val value get() = sensorOutput()
+}
+
+class TuningMotorEncoder(motor: DcMotorEx) : TuningAxialSensor({ motor.currentPosition.toDouble() }, 30.0)
+
+interface LocalizerFactory {
+
+    fun make(hardwareMap: HardwareMap): Localizer
 
 }
 
-interface ForwardPushLocalizerView {
+interface LocalizerView {
 
-    fun updateConfig(actualInchesTravelled: Double)
+    fun forwardPushUpdate(actualInchesTravelled: Double) {}
 
-}
+    fun lateralPushUpdate(actualInchesTravelled: Double) {}
 
-interface ForwardPushLocalizerViewFactory {
-
-    fun make(hardwareMap: HardwareMap): ForwardPushLocalizerView
+    fun angularPushUpdate(actualRevolutions: Double) {}
 
 }
 
-open class PinpointView(hardwareMap: HardwareMap) {
+interface LocalizerViewFactory {
+
+    fun make(hardwareMap: HardwareMap): LocalizerView
+
+}
+
+class PinpointView(hardwareMap: HardwareMap) : LocalizerView {
     val pinpoint: GoBildaPinpointDriver =
         hardwareMap.getAll(GoBildaPinpointDriver::class.java).iterator().next()
             ?: throw ConfigurationException("No pinpoints detected in configuration.")
@@ -104,11 +117,8 @@ open class PinpointView(hardwareMap: HardwareMap) {
             throw ConfigurationException("No pinpoints detected in configuration.")
         }
     }
-}
 
-class ForwardPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareMap), ForwardPushLocalizerView {
-
-    override fun updateConfig(actualInchesTravelled: Double) {
+    override fun forwardPushUpdate(actualInchesTravelled: Double) {
         if (!(pinpointPerpPod.moved xor pinpointParPod.moved)) {
             throw ConfigurationException("your pinpoint is plugged in wrong silly")
         }
@@ -135,23 +145,7 @@ class ForwardPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
             })
     }
 
-}
-
-interface LateralPushLocalizerView {
-
-    fun updateConfig(actualInchesTravelled: Double)
-
-}
-
-interface LateralPushLocalizerViewFactory {
-
-    fun make(hardwareMap: HardwareMap): LateralPushLocalizerView
-
-}
-
-class LateralPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareMap), LateralPushLocalizerView {
-
-    override fun updateConfig(actualInchesTravelled: Double) {
+    override fun lateralPushUpdate(actualInchesTravelled: Double) {
 
         if (!(pinpointPerpPod.moved xor pinpointParPod.moved)) {
             throw ConfigurationException("your pinpoint is plugged in wrong silly")
@@ -165,37 +159,8 @@ class LateralPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
         }
     }
 
-}
-
-/**
- * Relative axial sensor class that measures movement throughout the OpMode.
- * Examples: motor encoder, odometry pod.
- */
-open class TuningAxialSensor(val sensorOutput: () -> Double, val movementThreshold: Double = 10000.0) {
-    val moved get() = abs(sensorOutput()) > movementThreshold
-    val direction get() = if (sensorOutput() > 0) DcMotorSimple.Direction.FORWARD else DcMotorSimple.Direction.REVERSE
-    val value get() = sensorOutput()
-}
-
-class TuningMotorEncoder(motor: DcMotorEx) : TuningAxialSensor({ motor.currentPosition.toDouble() }, 30.0)
-
-
-interface AngularPushLocalizerView {
-
-    fun updateConfig(actualRevolutions: Double)
-
-}
-
-interface AngularPushLocalizerViewFactory {
-
-    fun make(hardwareMap: HardwareMap): AngularPushLocalizerView
-
-}
-
-// TODO: add validation that the user is actually turning the robot ccw (and the pinpoint IMU is mounted correctly.)
-class AngularPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareMap), AngularPushLocalizerView {
-
-    override fun updateConfig(actualRevolutions: Double) {
+    // TODO: add validation that the user is actually turning the robot ccw (and the pinpoint IMU is mounted correctly.)
+    override fun angularPushUpdate(actualRevolutions: Double) {
 
         // leaving this in here so that i can make swapped-pod tuning work later
         val trueParPodType = PinpointEncoderType.PARALLEL
@@ -213,12 +178,6 @@ class AngularPushPinpointView(hardwareMap: HardwareMap) : PinpointView(hardwareM
             PinpointEncoderType.PERPENDICULAR -> pinpointPerpPod.value
         } / (actualRevolutions * 2.0 * PI)
     }
-}
-
-interface LocalizerFactory {
-
-    fun make(hardwareMap: HardwareMap): Localizer
-
 }
 
 interface DrivetrainConfigDriveView {
