@@ -1,12 +1,10 @@
 package com.acmerobotics.roadrunner.tuning
 
-import com.acmerobotics.roadrunner.ftc.Localizer
 import com.acmerobotics.roadrunner.logs.TuningFiles
+import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import com.qualcomm.robotcore.eventloop.opmode.OpModeManager
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar
-import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
@@ -335,7 +333,7 @@ object TuningOpModes {
 
     @JvmStatic
     @OpModeRegistrar
-    fun register(manager: OpModeManager) {
+    fun register(manager: AnnotatedOpModeManager) {
 
     }
 

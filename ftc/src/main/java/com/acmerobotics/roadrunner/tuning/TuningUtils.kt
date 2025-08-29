@@ -1,8 +1,15 @@
 package com.acmerobotics.roadrunner.tuning
 
-import com.acmerobotics.roadrunner.hardware.Encoder
-import com.acmerobotics.roadrunner.hardware.EncoderGroup
+import com.acmerobotics.roadrunner.ftc.Encoder
 import kotlinx.serialization.Serializable
+
+
+/**
+ * you fucked up your config and now i am mad at you
+ */
+class ConfigurationException(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {
+    constructor(cause: Throwable) : this(null, cause)
+}
 
 class MidpointTimer {
     private val beginTs = System.nanoTime()
