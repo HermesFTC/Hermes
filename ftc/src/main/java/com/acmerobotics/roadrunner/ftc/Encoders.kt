@@ -16,6 +16,8 @@ class PositionVelocityPair(
  ) {
     constructor(position: Number, velocity: Number, rawPosition: Number, rawVelocity: Number) :
             this(position.toDouble(), velocity.toDouble(), rawPosition.toDouble(), rawVelocity.toDouble())
+
+    constructor(position: Number, velocity: Number) : this(position, velocity, position, velocity)
 }
 
 sealed interface Encoder {
