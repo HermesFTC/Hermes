@@ -27,12 +27,6 @@ fun interface Action {
     fun preview(fieldOverlay: Canvas) {}
 
     /**
-     * The action's requirements (optional).
-     * It is up to the action queue to resolve requirements.
-     */
-    val requirements: Set<Any> get() = emptySet()
-
-    /**
      * Returns a new action that executes this action followed by [a].
      */
     fun then(a: Action) = SequentialAction(this, a)
@@ -117,27 +111,12 @@ fun interface Action {
     fun withPreview(preview: (Canvas) -> Unit) = object : Action {
         override fun run(p: TelemetryPacket) = this@Action.run(p)
         override fun preview(fieldOverlay: Canvas) = preview(fieldOverlay)
-        override val requirements = this@Action.requirements
     }
 
     /**
      * Returns a copy of this with dashboard preview [preview].
      */
     fun withPreview(preview: Consumer<Canvas>) = withPreview(preview::accept)
-
-    /**
-     * Returns a copy of this with requirements [reqs].
-     */
-    fun withRequirements(reqs: Set<Any>) = object : Action {
-        override fun run(p: TelemetryPacket) = this@Action.run(p)
-        override fun preview(fieldOverlay: Canvas) = this@Action.preview(fieldOverlay)
-        override val requirements = reqs
-    }
-
-    /**
-     * Returns a copy of this with requirements [reqs].
-     */
-    fun withRequirements(vararg reqs: Any) = withRequirements(reqs.toSet())
 }
 
 open class ActionEx @JvmOverloads constructor(

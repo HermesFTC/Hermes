@@ -35,12 +35,10 @@ object ActionRunner : OpModeManagerNotifier.Notifications {
      */
     @JvmStatic
     fun run(action: Action) {
-        val used = _actions.filter { it.requirements.any { req -> req in action.requirements} }
-        val triggerred = used.mapNotNull { when (it) {
+        val triggerred = actions.mapNotNull { when (it) {
             is Interruptible -> it.onInterrupt()
             else -> null
         } }
-        _actions.removeAll(used)
         _actions.addAll(triggerred)
         _actions.addLast(action)
     }
