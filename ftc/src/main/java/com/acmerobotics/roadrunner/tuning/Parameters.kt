@@ -42,6 +42,10 @@ data class MotorConfig(
 }
 
 @Serializable
+@SerialName("CustomDrive")
+object CustomDrive : DriveParameters
+
+@Serializable
 @SerialName("MecanumParameters")
 data class MecanumParameters(
     var trackWidth: Double = 0.0,
@@ -64,6 +68,13 @@ data class TankParameters(
 sealed interface DriveFeedforwardParameters {
     var translational: FeedforwardParameters
     var rotational: FeedforwardParameters
+}
+
+@Serializable
+@SerialName("CustomDriveFeedforward")
+object CustomDriveFeedforward : DriveFeedforwardParameters {
+    override var translational: FeedforwardParameters = error("tuning opmodes do not support custom feedforward")
+    override var rotational: FeedforwardParameters = error("tuning opmodes do not support custom feedforward")
 }
 
 @Serializable
@@ -93,6 +104,10 @@ data class FeedforwardParameters(
 }
 
 sealed interface LocalizerParameters
+
+@Serializable
+@SerialName("CustomLocalizer")
+object CustomLocalizer : LocalizerParameters
 
 @Serializable
 @SerialName("PinpointParameters")
