@@ -1,6 +1,6 @@
-package com.acmerobotics.roadrunner.tuning
+package gay.zharel.hermes.tuning
 
-import com.acmerobotics.roadrunner.ftc.Encoder
+import gay.zharel.hermes.ftc.Encoder
 import kotlinx.serialization.Serializable
 
 

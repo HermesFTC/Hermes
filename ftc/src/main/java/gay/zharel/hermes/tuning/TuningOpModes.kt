@@ -1,6 +1,6 @@
-package com.acmerobotics.roadrunner.tuning
+package gay.zharel.hermes.tuning
 
-import com.acmerobotics.roadrunner.logs.TuningFiles
+import gay.zharel.hermes.logs.TuningFiles
 import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode

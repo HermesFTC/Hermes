@@ -1,7 +1,7 @@
-package com.acmerobotics.roadrunner.tuning
+package gay.zharel.hermes.tuning
 
-import com.acmerobotics.roadrunner.ftc.PositionVelocityPair
-import com.acmerobotics.roadrunner.logs.FlightRecorder
+import gay.zharel.hermes.ftc.PositionVelocityPair
+import gay.zharel.hermes.logs.FlightRecorder
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit

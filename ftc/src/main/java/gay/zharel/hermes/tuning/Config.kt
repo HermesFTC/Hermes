@@ -1,4 +1,4 @@
-package com.acmerobotics.roadrunner.tuning
+package gay.zharel.hermes.tuning
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.config.ValueProvider
@@ -8,7 +8,7 @@ import com.acmerobotics.dashboard.config.variable.BasicVariable
 import com.acmerobotics.dashboard.config.variable.ConfigVariable
 import com.acmerobotics.dashboard.config.variable.CustomVariable
 import com.acmerobotics.dashboard.config.variable.VariableType
-import com.acmerobotics.roadrunner.serialization.HermesJsonFormat
+import gay.zharel.hermes.serialization.HermesJsonFormat
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.descriptors.PrimitiveKind.LONG
 import kotlinx.serialization.json.decodeFromStream

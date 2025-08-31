@@ -1,9 +1,9 @@
-package com.acmerobotics.roadrunner.logs
+package gay.zharel.hermes.logs
 
-import com.acmerobotics.roadrunner.geometry.Pose2d
-import com.acmerobotics.roadrunner.geometry.PoseVelocity2dDual
-import com.acmerobotics.roadrunner.geometry.Time
-import com.acmerobotics.roadrunner.ftc.PositionVelocityPair
+import gay.zharel.hermes.geometry.Pose2d
+import gay.zharel.hermes.geometry.PoseVelocity2dDual
+import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.ftc.PositionVelocityPair
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles

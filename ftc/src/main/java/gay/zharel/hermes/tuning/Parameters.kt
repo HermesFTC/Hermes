@@ -1,7 +1,7 @@
-package com.acmerobotics.roadrunner.tuning
+package gay.zharel.hermes.tuning
 
-import com.acmerobotics.roadrunner.control.MotorFeedforward
-import com.acmerobotics.roadrunner.geometry.Pose2d
+import gay.zharel.hermes.control.MotorFeedforward
+import gay.zharel.hermes.geometry.Pose2d
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple

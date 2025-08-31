@@ -1,11 +1,11 @@
-package com.acmerobotics.roadrunner.ftc
+package gay.zharel.hermes.ftc
 
-import com.acmerobotics.roadrunner.serialization.HermesJsonFormat
-import com.acmerobotics.roadrunner.tuning.MecanumParameters
-import com.acmerobotics.roadrunner.tuning.MotorConfig
-import com.acmerobotics.roadrunner.tuning.MutableSignal
-import com.acmerobotics.roadrunner.tuning.QuasistaticParameters
-import com.acmerobotics.roadrunner.tuning.RobotConfig
+import gay.zharel.hermes.serialization.HermesJsonFormat
+import gay.zharel.hermes.tuning.MecanumParameters
+import gay.zharel.hermes.tuning.MotorConfig
+import gay.zharel.hermes.tuning.MutableSignal
+import gay.zharel.hermes.tuning.QuasistaticParameters
+import gay.zharel.hermes.tuning.RobotConfig
 import com.fasterxml.jackson.core.JsonFactory
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.qualcomm.robotcore.hardware.DcMotorSimple

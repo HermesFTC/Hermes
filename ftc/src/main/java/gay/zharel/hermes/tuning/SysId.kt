@@ -1,6 +1,6 @@
-package com.acmerobotics.roadrunner.tuning
+package gay.zharel.hermes.tuning
 
-import com.acmerobotics.roadrunner.geometry.lerp
+import gay.zharel.hermes.geometry.lerp
 import kotlinx.serialization.Serializable
 import java.util.LinkedList
 import java.util.Queue

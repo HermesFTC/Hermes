@@ -1,16 +1,16 @@
 @file:Suppress("unused")
-package com.acmerobotics.roadrunner.ftc
+package gay.zharel.hermes.ftc
 
 import com.acmerobotics.dashboard.config.Config
-import com.acmerobotics.roadrunner.control.MecanumKinematics
-import com.acmerobotics.roadrunner.control.MecanumKinematics.MecanumWheelIncrements
-import com.acmerobotics.roadrunner.control.SwerveKinematics
-import com.acmerobotics.roadrunner.control.SwerveModuleIncrements
-import com.acmerobotics.roadrunner.control.TankKinematics
-import com.acmerobotics.roadrunner.control.TankKinematics.TankWheelIncrements
-import com.acmerobotics.roadrunner.geometry.*
-import com.acmerobotics.roadrunner.logs.*
-import com.acmerobotics.roadrunner.tuning.PinpointParameters
+import gay.zharel.hermes.control.MecanumKinematics
+import gay.zharel.hermes.control.MecanumKinematics.MecanumWheelIncrements
+import gay.zharel.hermes.control.SwerveKinematics
+import gay.zharel.hermes.control.SwerveModuleIncrements
+import gay.zharel.hermes.control.TankKinematics
+import gay.zharel.hermes.control.TankKinematics.TankWheelIncrements
+import gay.zharel.hermes.geometry.*
+import gay.zharel.hermes.logs.*
+import gay.zharel.hermes.tuning.PinpointParameters
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.hardware.sparkfun.SparkFunOTOS
 import com.qualcomm.robotcore.hardware.DcMotorEx
@@ -821,7 +821,7 @@ class MecanumDriveLocalizer @JvmOverloads constructor(
             lastLeftBackPos = leftBackPosVel.position
             lastRightBackPos = rightBackPosVel.position
             lastRightFrontPos = rightFrontPosVel.position
-                .0
+
             lastHeading = heading
 
             return PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)

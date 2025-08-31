@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:ftc/src/main/java/gay/zharel/hermes/ftc/Encoders.kt
-package com.acmerobotics.roadrunner.ftc
-========
-package gay.zharel.hermes.hardware
->>>>>>>> develop:ftc/src/main/java/gay/zharel/hermes/hardware/Encoders.kt
+package gay.zharel.hermes.ftc
 
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.hardware.DcMotorEx
