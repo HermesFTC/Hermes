@@ -1,10 +1,3 @@
-import com.moowork.gradle.node.yarn.YarnTask
-import kotlin.collections.mapOf
-
-val nodeVersion: String = "22.18.0"
-
-val webDir: File = file("${project.projectDir.parent}/hermes-frontend")
-
 plugins {
     alias(libs.plugins.android.library)
 
@@ -15,8 +8,6 @@ plugins {
 
     `maven-publish`
     alias(libs.plugins.deployer)
-
-    id("com.github.node-gradle.node") version "2.2.4"
 }
 
 android {
@@ -52,52 +43,6 @@ android {
         unitTests {
             isReturnDefaultValues = true
         }
-    }
-}
-
-node {
-    version = nodeVersion
-    download = true
-    nodeModulesDir = webDir
-}
-
-val yarnInstall = tasks.named("yarn_install")
-
-yarnInstall.configure {
-    outputs.dir("${project.projectDir.parent}/hermes-frontend/")
-}
-
-tasks.named<YarnTask>("yarn_build") {
-    setEnvironment(
-        mapOf("VITE_APP_VERSION" to (project.property("version") as String))
-    )
-    inputs.dir("${project.projectDir.parent}/hermes-frontend/")
-    outputs.dir("${project.projectDir.parent}/hermes-frontend/dist")
-
-    dependsOn(yarnInstall)
-}
-
-val yarnBuild = tasks.named("yarn_build")
-
-val cleanWebAssets by tasks.registering(Delete::class) {
-    delete(android.sourceSets["main"]?.assets?.srcDirs?.firstOrNull()?.let { file("$it/web") } ?: project.buildDir.resolve("web_assets_deletion_fallback"))
-    // Added a fallback in case assets sourceDirs is null or empty
-}
-
-tasks.named("clean").configure {
-    dependsOn(cleanWebAssets)
-}
-
-val copyWebAssets by tasks.registering(Copy::class) {
-    from(file("${project.projectDir.parent}/hermes-frontend/dist"))
-    into(android.sourceSets["main"]?.assets?.srcDirs?.firstOrNull()?.let { file("$it/web") } ?: project.buildDir.resolve("web_assets_copy_fallback"))
-    // Added a fallback in case assets sourceDirs is null or empty
-    dependsOn(cleanWebAssets, yarnBuild)
-}
-
-android {
-    libraryVariants.all {
-        preBuildProvider.get().dependsOn(copyWebAssets)
     }
 
     publishing {
