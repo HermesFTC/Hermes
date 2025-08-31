@@ -1,0 +1,69 @@
+#!/bin/zsh
+
+# This script moves all files from a specified source package to a destination package
+# within each module's source and test directories.
+#
+# USAGE: Run this script from the root directory of your project.
+#
+#   ./change-directory <source_package> <destination_package>
+#
+# Example:
+#   ./change-directory com/example/something org/example/otherthing
+#
+# Assumptions:
+# - Your modules are top-level directories.
+# - The source sets follow the pattern '<module>/src/*/*/' (e.g., src/main/java, src/test/kotlin).
+
+# --- Script Logic ---
+
+# Check if the correct number of arguments were provided.
+if [[ $# -ne 2 ]]; then
+  echo "Error: Incorrect number of arguments."
+  echo "Usage: $0 <source_package> <destination_package>"
+  exit 1
+fi
+
+# Assign the command-line arguments to variables.
+source_package_path="$1"
+destination_package_path="$2"
+
+echo "Starting file relocation script..."
+echo "Source path: ${source_package_path}"
+echo "Destination path: ${destination_package_path}"
+echo "--------------------------------------"
+
+# Loop through each top-level directory, assuming they are modules.
+for module_dir in */; do
+  # Check if the directory is a module by looking for a 'src' folder.
+  if [[ -d "${module_dir}src" ]]; then
+    echo "\nProcessing module: ${module_dir}"
+
+    # Use a glob to find all source set directories (e.g., main/java, test/kotlin).
+    for src_set in "${module_dir}src"/*/*/; do
+      # Construct the full source and destination directory paths.
+      full_source_dir="${src_set}${source_package_path}"
+      full_destination_dir="${src_set}${destination_package_path}"
+
+      # Check if the source directory exists and contains files or subdirectories.
+      if [[ -d "${full_source_dir}" ]] && [[ -n "$(ls -A "${full_source_dir}")" ]]; then
+        echo "  Found files in source directory: ${full_source_dir}"
+
+        # Create the destination directory and its parent directories if they don't exist.
+        mkdir -p "${full_destination_dir}"
+        echo "  Destination directory created: ${full_destination_dir}"
+
+        # Move all files and subdirectories from the source to the destination.
+        mv "${full_source_dir}"/* "${full_destination_dir}/"
+
+        # After moving the files, remove the now empty source directory.
+        rmdir "${full_source_dir}"
+        echo "  Removed empty source directory: ${full_source_dir}"
+      else
+        echo "  Source directory not found or is empty: ${full_source_dir}"
+      fi
+    done
+  fi
+done
+
+echo "\n--------------------------------------"
+echo "Script finished successfully!"
