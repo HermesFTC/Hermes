@@ -101,7 +101,7 @@ interface DrivetrainConfigDriveView {
 
     }
 
-    class MotorActuator(val motor: DcMotorEx) : DrivetrainActuator {
+    class MotorActuator(val motor: DcMotor) : DrivetrainActuator {
         constructor(config: MotorConfig, hardwareMap: HardwareMap) : this(config.toDcMotorEx(hardwareMap))
 
         override fun moveActuator(input: Double) {
@@ -124,25 +124,37 @@ interface DrivetrainConfigViewFactory {
 
 class MecanumConfigDriveView(hardwareMap: HardwareMap) : DrivetrainConfigDriveView {
 
-    val config get() = HermesConfig.config.drive as MecanumParameters
+    val config get() = HermesConfig.tuningConfig.drivetrainConfig.chosenMotors
+    val mecConfig get() = HermesConfig.config.drive as MecanumParameters
 
     override val actuators = listOf(
-        DrivetrainConfigDriveView.MotorActuator(config.leftFront, hardwareMap),
-        DrivetrainConfigDriveView.MotorActuator(config.leftBack, hardwareMap),
-        DrivetrainConfigDriveView.MotorActuator(config.rightBack, hardwareMap),
-        DrivetrainConfigDriveView.MotorActuator(config.rightFront, hardwareMap),
+        DrivetrainConfigDriveView.MotorActuator(hardwareMap.dcMotor.get(config[0])),
+        DrivetrainConfigDriveView.MotorActuator(hardwareMap.dcMotor.get(config[1])),
+        DrivetrainConfigDriveView.MotorActuator(hardwareMap.dcMotor.get(config[2])),
+        DrivetrainConfigDriveView.MotorActuator(hardwareMap.dcMotor.get(config[3])),
     )
 
     override fun updateActuator(actuator: DrivetrainConfigDriveView.DrivetrainActuator, deltaPose: Twist2d) {
         val idx = actuators.indexOf(actuator)
         val direction = if (deltaPose.line.x > 0) DcMotorSimple.Direction.FORWARD else DcMotorSimple.Direction.REVERSE
 
-        when (idx) {
-            0 -> config.leftFront
-            1 -> config.leftBack
-            2 -> config.rightBack
-            3 -> config.rightFront
-            else -> error("Too many mecanum wheels. Wait, what?")
-        }.direction = direction
+
+        val yDir = (deltaPose.line.y * if (direction == DcMotorSimple.Direction.FORWARD) 1.0 else -1.0) > 0
+        val rDir = (deltaPose.angle * if (direction == DcMotorSimple.Direction.FORWARD) 1.0 else -1.0) > 0
+
+        // figure out what wheel it was based on strafe and rot
+        if (yDir && rDir) {
+            // left + ccw -> fr
+            mecConfig.rightFront = MotorConfig(config[idx], direction)
+        } else if (yDir) {
+            // left + cw -> bl
+            mecConfig.leftBack = MotorConfig(config[idx], direction)
+        } else if (rDir) {
+            // right + ccw -> br
+            mecConfig.rightBack = MotorConfig(config[idx], direction)
+        } else {
+            // right + cw -> fl
+            mecConfig.leftFront = MotorConfig(config[idx], direction)
+        }
     }
 }

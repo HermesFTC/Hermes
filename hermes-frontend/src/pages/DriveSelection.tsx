@@ -4,12 +4,14 @@ import { BASE_HERMES_URL, BASE_TUNING_CONFIG_PATH } from "@/constants"
 import { useConfigVariable, useSetConfigVariable } from "@/hooks/useConfigVariables"
 import {  ReactNode } from "react"
 import { DashButton, PathedDashButtonProps } from "./GettingStarted"
+import { useOpMode } from "@/hooks/useOpMode"
 
 const DRIVE_PATH = BASE_TUNING_CONFIG_PATH + "drive"
 
 export default function DriveSelection() {
 
     const setConfig = useSetConfigVariable();
+    const opMode = useOpMode();
 
     const currentDrive = useConfigVariable(DRIVE_PATH)
 
@@ -24,7 +26,15 @@ export default function DriveSelection() {
         },
     ]
 
+    const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
+    // run the motor name opmode on drive selection
+    const getMotorNames = () => {
+        opMode.initOpMode("MotorFetchOpMode")
+        opMode.startOpMode()
+        sleep(100)
+        opMode.stopOpMode()
+    }
 
     return (
 
@@ -38,7 +48,8 @@ export default function DriveSelection() {
 
             <div className="mt-4 flex justify-center items-center text-center flex flex-col">
                 {drives.map((drive) =>
-                    <DriveSelectionButton value={drive.name}>{drive.label}</DriveSelectionButton>
+
+                    <DriveSelectionButton onClick={getMotorNames} value={drive.name}>{drive.label}</DriveSelectionButton>
                 )
                 }
             </div>

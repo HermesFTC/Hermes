@@ -109,3 +109,5 @@ object ActionRunner : OpModeManagerNotifier.Notifications {
         }
     }
 }
+
+class OpModeAction

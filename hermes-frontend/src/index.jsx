@@ -22,6 +22,7 @@ import AngularRampPage from './pages/sysid/AngularRampPage';
 import AngularStepPage from './pages/sysid/AngularStepPage';
 import Home from './pages/home';
 import DriveSelection from './pages/DriveSelection';
+import DriveTuner from './pages/DriveTuner';
 
 export default function App() {
 
@@ -38,6 +39,7 @@ export default function App() {
               <Route path="/lateral-push" element={<LateralPush/>}/>
               <Route path="/angular-push" element={<AngularPush/>}/>
               <Route path="/drive-selection" element={<DriveSelection/>}/>
+              <Route path="/drive-config" element={<DriveTuner/>}/>
             </Route>
           </Route>
             <Route element={<GraphPage/>}>

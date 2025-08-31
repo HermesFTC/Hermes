@@ -8,6 +8,7 @@ export const TUNING_OPMODE_PATHS = {
     FORWARD_PUSH: 'forwardPush/',
     LATERAL_PUSH: 'lateralPush/',
     ANGULAR_PUSH: 'angularPush/',
+    DRIVETRAIN_CONFIG: 'drivetrainConfig/',
     FORWARD_RAMP: 'forwardRamp/',
     FORWARD_STEP: 'forwardStep/',
     ANGULAR_RAMP: 'angularRamp/',

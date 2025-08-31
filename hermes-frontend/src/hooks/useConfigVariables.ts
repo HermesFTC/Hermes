@@ -110,3 +110,83 @@ export function useSetConfigVariable() {
 
     return setVariable;
 }
+
+export function useAppendConfigArray() {
+    const dispatch = useAppDispatch();
+    const configRoot = useSelector((state: RootState) => state.config.configRoot) as CustomVarState;
+
+    const setVariable = (path: string, value: boolean | number | string | null) => {
+
+        const stateValue = getVariableValueRecursively(path, configRoot);
+
+        // check for null
+        if (stateValue == null) {
+            console.warn("Path " + path + " is null.");
+            return;
+        }
+
+        // verify that stateValue is custom
+        if (stateValue.__type !== 'custom') {
+            console.warn("Path " + path + " is not an array, it is a singular value.");
+            return;
+        }
+
+        // build new state
+        let typeName: 'boolean' | 'int' | 'long' | 'float' | 'double' | 'string';
+        switch (typeof value) {
+            case "string":
+                typeName = "string";
+                break;
+            case "number":
+                typeName = "double";
+                break;
+            case "bigint":
+                typeName = "int";
+                break;
+            case "boolean":
+                typeName = "boolean";
+                break;
+            case "symbol":
+            case "undefined":
+            case "object":
+            case "function":
+                console.warn("Type " + typeof value + " is not a dash-compatible type.");
+                return;
+        }
+
+        const newStateValue: BasicVarState = {
+            __type: typeName,
+            __value: value,
+            __newValue: value,
+            __valid: true
+        }
+
+        console.log(newStateValue)
+
+        // check number of indices
+        const record = (stateValue as CustomVarState).__value as Record<string, ConfigVarState>
+        let indices = Object.keys(record).length;
+
+        // empty case (no type safety needed)
+        if (indices == 0) {
+            dispatch({
+                type: 'SAVE_CONFIG',
+                configDiff: constructConfigDiffRecursively(path + "/0", newStateValue)
+            });
+            return;
+        }
+
+        if (record["0"].__type === 'custom') {
+            console.warn("Path " + path + " is not an array, it is a larger group!");
+            return;
+        }
+
+        // dispatch update with diff
+        dispatch({
+            type: 'SAVE_CONFIG',
+            configDiff: constructConfigDiffRecursively(path + "/" + (indices + 1).toString(), newStateValue)
+        });
+    };
+
+    return setVariable;
+}

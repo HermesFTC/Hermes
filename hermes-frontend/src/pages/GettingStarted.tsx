@@ -32,6 +32,7 @@ export default function GettingStarted() {
             name: "SPARKFUN_OTOS",
             label: "SparkFun OTOS"
         },
+
     ]
 
 
@@ -68,12 +69,14 @@ export default function GettingStarted() {
 export interface DashButtonProps {
     path: string,
     value: string | boolean | number | null,
-    children: ReactNode
+    children: ReactNode,
+    onClick?: () => void
 }
 
 export interface PathedDashButtonProps {
     value: string | boolean | number | null,
-    children: ReactNode
+    children: ReactNode,
+    onClick?: () => void
 }
 
 export function DashButton (props: DashButtonProps) {
@@ -85,7 +88,7 @@ export function DashButton (props: DashButtonProps) {
         className={"border-solid border-4 my-2 rounded-xl py-4"
         + " w-1/2 lg:w-full transition duration-500 border-hermes-cyan-dark "
          + (currentValue == props.value ? " bg-hermes-cyan-dark text-white": "")}
-        onClick={() => {setConfig(props.path, props.value)}}>{props.children}
+        onClick={() => {setConfig(props.path, props.value); if (props.onClick != undefined) { props.onClick(); }}}>{props.children}
     </button>
     );
 }

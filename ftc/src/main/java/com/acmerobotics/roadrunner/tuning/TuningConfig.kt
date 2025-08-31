@@ -1,7 +1,14 @@
 package com.acmerobotics.roadrunner.tuning
 
+import android.content.Context
+import com.qualcomm.ftccommon.FtcEventLoop
+import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerImpl
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import org.firstinspires.ftc.ftccommon.external.OnCreateEventLoop
+import org.firstinspires.ftc.robotcore.internal.opmode.RegisteredOpModes
 
 object TuningConfigListener : PersistentConfig.Subscriber {
 
@@ -31,6 +38,19 @@ object TuningConfigListener : PersistentConfig.Subscriber {
 
 }
 
+object HardwareMapCache {
+    private lateinit var opModeManager: OpModeManagerImpl
+
+    val hardwareMap: HardwareMap get() = opModeManager.hardwareMap ?: HardwareMap(null, null) // pls don't try to use hwmap b4 it works
+
+    @OnCreateEventLoop
+    @JvmStatic
+    fun register(context: Context, eventLoop: FtcEventLoop) {
+        opModeManager = eventLoop.opModeManager
+    }
+
+}
+
 @Serializable
 data class TuningConfig(
     var odometryPodType: OdometryPodType = OdometryPodType.OTHER,
@@ -40,6 +60,7 @@ data class TuningConfig(
     val forwardPush: ForwardPushConfig = ForwardPushConfig(),
     val lateralPush: LateralPushConfig = LateralPushConfig(),
     val angularPush: AngularPushConfig = AngularPushConfig(),
+    val drivetrainConfig: DrivetrainConfigurationConfig = DrivetrainConfigurationConfig(),
     val forwardRamp: ForwardRampConfig = ForwardRampConfig(),
     val forwardStep: ForwardStepConfig = ForwardStepConfig(),
     val angularRamp: AngularRampConfig = AngularRampConfig(),
@@ -117,6 +138,12 @@ data class LateralPushConfig(
 @Serializable
 data class AngularPushConfig(
     var actualRevolutions: Double = 1.0,
+)
+
+@Serializable
+data class DrivetrainConfigurationConfig(
+    var motorNames: MutableList<String> = arrayListOf(),
+    var chosenMotors: MutableList<String> = arrayListOf("", "", "", "", "", "", "", "",)
 )
 
 @Serializable

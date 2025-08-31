@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar
+import com.qualcomm.robotcore.hardware.DcMotor
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
@@ -72,6 +73,18 @@ class AngularPushTest(val lvf: LocalizerViewFactory) : OpMode() {
 }
 
 // ===== Drive Tuning =====
+
+class MotorFetchOpMode() : LinearOpMode() {
+    override fun runOpMode() {
+        HermesConfig.tuningConfig.drivetrainConfig.motorNames.addAll(
+            hardwareMap.getAllNames(DcMotor::class.java)
+        )
+
+        waitForStart()
+
+        while (opModeIsActive()) {}
+    }
+}
 
 /**
  * Automatically configures the motors for a drivetrain.
