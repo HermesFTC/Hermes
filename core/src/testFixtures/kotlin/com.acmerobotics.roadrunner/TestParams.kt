@@ -1,19 +1,19 @@
-package com.acmerobotics.roadrunner
+package gay.zharel.hermes
 
-import com.acmerobotics.roadrunner.geometry.Pose2d
-import com.acmerobotics.roadrunner.geometry.Rotation2d
-import com.acmerobotics.roadrunner.geometry.Vector2d
-import com.acmerobotics.roadrunner.profiles.AccelConstraint
-import com.acmerobotics.roadrunner.profiles.AngularVelConstraint
-import com.acmerobotics.roadrunner.profiles.CancelableProfile
-import com.acmerobotics.roadrunner.profiles.MinVelConstraint
-import com.acmerobotics.roadrunner.profiles.ProfileAccelConstraint
-import com.acmerobotics.roadrunner.profiles.ProfileParams
-import com.acmerobotics.roadrunner.profiles.TimeProfile
-import com.acmerobotics.roadrunner.profiles.TranslationalVelConstraint
-import com.acmerobotics.roadrunner.profiles.VelConstraint
-import com.acmerobotics.roadrunner.trajectories.PositionPathSeqBuilder
-import com.acmerobotics.roadrunner.trajectories.TrajectoryBuilderParams
+import gay.zharel.hermes.geometry.Pose2d
+import gay.zharel.hermes.geometry.Rotation2d
+import gay.zharel.hermes.geometry.Vector2d
+import gay.zharel.hermes.profiles.AccelConstraint
+import gay.zharel.hermes.profiles.AngularVelConstraint
+import gay.zharel.hermes.profiles.CancelableProfile
+import gay.zharel.hermes.profiles.MinVelConstraint
+import gay.zharel.hermes.profiles.ProfileAccelConstraint
+import gay.zharel.hermes.profiles.ProfileParams
+import gay.zharel.hermes.profiles.TimeProfile
+import gay.zharel.hermes.profiles.TranslationalVelConstraint
+import gay.zharel.hermes.profiles.VelConstraint
+import gay.zharel.hermes.trajectories.PositionPathSeqBuilder
+import gay.zharel.hermes.trajectories.TrajectoryBuilderParams
 
 val TEST_PROFILE_PARAMS = ProfileParams(
     0.25,

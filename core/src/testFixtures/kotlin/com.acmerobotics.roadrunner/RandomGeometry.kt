@@ -1,10 +1,10 @@
-package com.acmerobotics.roadrunner
+package gay.zharel.hermes
 
-import com.acmerobotics.roadrunner.geometry.DualNum
-import com.acmerobotics.roadrunner.geometry.DualParameter
-import com.acmerobotics.roadrunner.geometry.Pose2d
-import com.acmerobotics.roadrunner.geometry.Rotation2d
-import com.acmerobotics.roadrunner.geometry.Vector2d
+import gay.zharel.hermes.geometry.DualNum
+import gay.zharel.hermes.geometry.DualParameter
+import gay.zharel.hermes.geometry.Pose2d
+import gay.zharel.hermes.geometry.Rotation2d
+import gay.zharel.hermes.geometry.Vector2d
 import io.kotest.property.Arb
 import kotlin.random.Random
 import io.kotest.property.arbitrary.arbitrary

@@ -20,7 +20,7 @@ plugins {
 }
 
 android {
-    namespace = "com.acmerobotics.roadrunner.ftc"
+    namespace = "gay.zharel.hermes.ftc"
     //noinspection GradleDependency
     compileSdk = 33
 
