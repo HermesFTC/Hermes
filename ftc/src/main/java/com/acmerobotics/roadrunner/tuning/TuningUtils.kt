@@ -1,8 +1,15 @@
 package com.acmerobotics.roadrunner.tuning
 
-import com.acmerobotics.roadrunner.hardware.Encoder
-import com.acmerobotics.roadrunner.hardware.EncoderGroup
+import com.acmerobotics.roadrunner.ftc.Encoder
 import kotlinx.serialization.Serializable
+
+
+/**
+ * you fucked up your config and now i am mad at you
+ */
+class ConfigurationException(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {
+    constructor(cause: Throwable) : this(null, cause)
+}
 
 class MidpointTimer {
     private val beginTs = System.nanoTime()
@@ -28,20 +35,6 @@ class MutableSignal(
     fun asPair(): MutableList<Pair<Double, Double>> {
         return this.times.zip(this.values) as MutableList<Pair<Double, Double>>
     }
-}
-
-
-// designed for manual bulk caching
-internal fun recordUnwrappedEncoderData(gs: List<EncoderGroup>, ts: List<Double>, er: EncoderRef, ps: MutableSignal, vs: MutableSignal) {
-    val t = ts[er.groupIndex]
-    val e = gs[er.groupIndex].unwrappedEncoders[er.index]
-    val pv = e.getPositionAndVelocity()
-
-    ps.times.add(t)
-    ps.values.add(pv.position.toDouble())
-
-    vs.times.add(t)
-    vs.values.add(pv.velocity.toDouble())
 }
 
 internal fun avgPos(es: List<Encoder>) = es.sumOf { it.getPositionAndVelocity().position.toDouble() } / es.size

@@ -1,19 +1,17 @@
 package com.acmerobotics.roadrunner.tuning
 
-import com.acmerobotics.roadrunner.ftc.Localizer
 import com.acmerobotics.roadrunner.logs.TuningFiles
+import com.qualcomm.robotcore.eventloop.opmode.AnnotatedOpModeManager
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import com.qualcomm.robotcore.eventloop.opmode.OpModeManager
 import com.qualcomm.robotcore.eventloop.opmode.OpModeRegistrar
-import com.qualcomm.robotcore.hardware.HardwareMap
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sign
 
 // ===== Localizer Tuning =====
 
-class ForwardPushTest(val lvf: ForwardPushLocalizerViewFactory) : OpMode() {
+class ForwardPushTest(val lvf: LocalizerViewFactory) : OpMode() {
 
     val actualInches: Double get() = HermesConfig.tuningConfig.forwardPush.actualInchesTravelled
 
@@ -28,12 +26,12 @@ class ForwardPushTest(val lvf: ForwardPushLocalizerViewFactory) : OpMode() {
     }
 
     override fun stop() {
-        localizerView.updateConfig(actualInches)
+        localizerView.forwardPushUpdate(actualInches)
     }
 
 }
 
-class LateralPushTest(val lvf: LateralPushLocalizerViewFactory) : OpMode() {
+class LateralPushTest(val lvf: LocalizerViewFactory) : OpMode() {
 
     val actualInches: Double get() = HermesConfig.tuningConfig.lateralPush.actualInchesTravelled
 
@@ -48,12 +46,12 @@ class LateralPushTest(val lvf: LateralPushLocalizerViewFactory) : OpMode() {
     }
 
     override fun stop() {
-        localizerView.updateConfig(actualInches)
+        localizerView.lateralPushUpdate(actualInches)
     }
 
 }
 
-class AngularPushTest(val lvf: AngularPushLocalizerViewFactory) : OpMode() {
+class AngularPushTest(val lvf: LocalizerViewFactory) : OpMode() {
 
     val actualRevolutions: Double get() = HermesConfig.tuningConfig.angularPush.actualRevolutions
 
@@ -68,7 +66,7 @@ class AngularPushTest(val lvf: AngularPushLocalizerViewFactory) : OpMode() {
     }
 
     override fun stop() {
-        localizerView.updateConfig(actualRevolutions)
+        localizerView.angularPushUpdate(actualRevolutions)
     }
 
 }
@@ -136,6 +134,8 @@ class ForwardRampTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : Lin
         val forwardVoltage by regressionParams::voltages
         val forwardVelocity by regressionParams::velocities
 
+        VoltageCache.init(hardwareMap)
+
         waitForStart()
 
         val t = MidpointTimer()
@@ -184,6 +184,8 @@ class ForwardStepTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : Lin
 
         val deltaVoltage by regressionParams::voltages
         val forwardAcceleration by regressionParams::accelerations
+
+        VoltageCache.init(hardwareMap)
 
         waitForStart()
 
@@ -243,6 +245,8 @@ class AngularRampTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : Lin
         val angularVoltage by regressionParams::voltages
         val angularVelocity by regressionParams::velocities
 
+        VoltageCache.init(hardwareMap)
+
         waitForStart()
 
         val t = MidpointTimer()
@@ -292,6 +296,8 @@ class AngularStepTest(val dvf: DriveViewFactory, val lf: LocalizerFactory) : Lin
         val deltaVoltage by regressionParams::voltages
         val angularAcceleration by regressionParams::accelerations
 
+        VoltageCache.init(hardwareMap)
+
         waitForStart()
 
         val t = MidpointTimer()
@@ -327,7 +333,7 @@ object TuningOpModes {
 
     @JvmStatic
     @OpModeRegistrar
-    fun register(manager: OpModeManager) {
+    fun register(manager: AnnotatedOpModeManager) {
 
     }
 

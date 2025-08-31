@@ -1,4 +1,4 @@
-package com.acmerobotics.roadrunner.hardware
+package com.acmerobotics.roadrunner.ftc
 
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.hardware.DcMotorEx
@@ -8,12 +8,16 @@ import kotlin.math.absoluteValue
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.round
+import kotlin.math.roundToInt
 
 class PositionVelocityPair(
-        @JvmField val position: Int, @JvmField val velocity: Int,
-        @JvmField val rawPosition: Int, @JvmField val rawVelocity: Int
+        @JvmField val position: Double, @JvmField val velocity: Double,
+        @JvmField val rawPosition: Double, @JvmField val rawVelocity: Double
  ) {
-    constructor(position: Int, velocity: Int) : this(position, velocity, position, velocity)
+    constructor(position: Number, velocity: Number, rawPosition: Number, rawVelocity: Number) :
+            this(position.toDouble(), velocity.toDouble(), rawPosition.toDouble(), rawVelocity.toDouble())
+
+    constructor(position: Number, velocity: Number) : this(position, velocity, position, velocity)
 }
 
 sealed interface Encoder {
@@ -88,7 +92,7 @@ private fun inverseOverflow(input: Int, estimate: Double): Int {
 }
 
 class OverflowEncoder(@JvmField val encoder: RawEncoder) : Encoder {
-    private var lastPosition: Int = encoder.getPositionAndVelocity().position
+    private var lastPosition = encoder.getPositionAndVelocity().position
     private val lastUpdate = ElapsedTime()
 
     private val velEstimate = RollingThreeMedian()
@@ -103,7 +107,7 @@ class OverflowEncoder(@JvmField val encoder: RawEncoder) : Encoder {
 
         return PositionVelocityPair(
                 p.position,
-                inverseOverflow(p.velocity, v),
+                inverseOverflow(p.velocity.roundToInt(), v),
                 p.rawPosition,
                 p.rawVelocity,
         )

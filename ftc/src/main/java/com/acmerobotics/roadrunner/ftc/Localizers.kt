@@ -1,3 +1,4 @@
+@file:Suppress("unused")
 package com.acmerobotics.roadrunner.ftc
 
 import com.acmerobotics.dashboard.config.Config
@@ -8,7 +9,6 @@ import com.acmerobotics.roadrunner.control.SwerveModuleIncrements
 import com.acmerobotics.roadrunner.control.TankKinematics
 import com.acmerobotics.roadrunner.control.TankKinematics.TankWheelIncrements
 import com.acmerobotics.roadrunner.geometry.*
-import com.acmerobotics.roadrunner.hardware.*
 import com.acmerobotics.roadrunner.logs.*
 import com.acmerobotics.roadrunner.tuning.PinpointParameters
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
@@ -83,8 +83,8 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
     val par: Encoder = hardwareMap.overflowEncoder(parName)
     val perp: Encoder = hardwareMap.overflowEncoder(perpName)
 
-    private var lastParPos = 0
-    private var lastPerpPos = 0
+    private var lastParPos = 0.0
+    private var lastPerpPos = 0.0
     private var lastHeading: Rotation2d? = null
 
     private var lastRawHeadingVel = 0.0
@@ -137,8 +137,8 @@ class TwoDeadWheelLocalizer @JvmOverloads constructor(
             return PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
         }
 
-        val parPosDelta: Int = parPosVel.position - lastParPos
-        val perpPosDelta: Int = perpPosVel.position - lastPerpPos
+        val parPosDelta = parPosVel.position - lastParPos
+        val perpPosDelta = perpPosVel.position - lastPerpPos
         val headingDelta = heading.minus(lastHeading!!)
 
         val twist = Twist2dDual(
@@ -280,9 +280,9 @@ class ThreeDeadWheelLocalizer @JvmOverloads constructor(
     val par1: Encoder = hardwareMap.overflowEncoder(par1Name)
     val perp: Encoder = hardwareMap.overflowEncoder(perpName)
 
-    private var lastPar0Pos = 0
-    private var lastPar1Pos = 0
-    private var lastPerpPos = 0
+    private var lastPar0Pos = 0.0
+    private var lastPar1Pos = 0.0
+    private var lastPerpPos = 0.0
     private var initialized = false
     override var pose: Pose2d
     override var vel: PoseVelocity2d = PoseVelocity2d.zero
@@ -583,6 +583,13 @@ class PinpointLocalizer @JvmOverloads constructor(
         perpDirection,
         initialPose,
     )
+
+    companion object {
+        val DcMotorSimple.Direction.pinpointDirection get() = when(this) {
+            DcMotorSimple.Direction.FORWARD -> GoBildaPinpointDriver.EncoderDirection.FORWARD
+            DcMotorSimple.Direction.REVERSE -> GoBildaPinpointDriver.EncoderDirection.REVERSED
+        }
+    }
 }
 
 /**
@@ -698,6 +705,14 @@ class OTOSLocalizer @JvmOverloads constructor(
         offset,
         initialPose,
     )
+
+    companion object {
+        @JvmStatic
+        fun SparkFunOTOS.Pose2D.toRRPose() = Pose2d(x, y, h)
+
+        @JvmStatic
+        fun Pose2d.toOTOSPose() = SparkFunOTOS.Pose2D(position.x, position.y, heading.toDouble())
+    }
 }
 
 /**
@@ -768,10 +783,10 @@ class MecanumDriveLocalizer @JvmOverloads constructor(
         initialPose,
     )
 
-    private var lastLeftFrontPos = 0
-    private var lastLeftBackPos: Int = 0
-    private var lastRightBackPos: Int = 0
-    private var lastRightFrontPos: Int = 0
+    private var lastLeftFrontPos = 0.0
+    private var lastLeftBackPos = 0.0
+    private var lastRightBackPos = 0.0
+    private var lastRightFrontPos = 0.0
     private var lastHeading = Rotation2d.zero
 
     override var pose: Pose2d = initialPose
@@ -806,7 +821,7 @@ class MecanumDriveLocalizer @JvmOverloads constructor(
             lastLeftBackPos = leftBackPosVel.position
             lastRightBackPos = rightBackPosVel.position
             lastRightFrontPos = rightFrontPosVel.position
-
+                .0
             lastHeading = heading
 
             return PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
@@ -854,7 +869,7 @@ class MecanumDriveLocalizer @JvmOverloads constructor(
         poseHistory.add(0, pose)
 
         if (poseHistory.size > 100) {
-            poseHistory.removeLast()
+            poseHistory.removeAt(poseHistory.lastIndex)
         }
 
         vel = twist.velocity().value()
@@ -1177,8 +1192,8 @@ class SwerveLocalizer @JvmOverloads constructor(
     }
 
 
-    private var lastDrivePositions = driveEncoders.map { 0 }
-    private var lastSteeringPositions = steeringEncoders.map { 0 }
+    private var lastDrivePositions = driveEncoders.map { 0.0 }
+    private var lastSteeringPositions = steeringEncoders.map { 0.0 }
 
     private var lastHeading = Rotation2d.zero
 
@@ -1227,7 +1242,7 @@ class SwerveLocalizer @JvmOverloads constructor(
 
         val twist = kinematics.forward<Time>(SwerveKinematics.SwerveWheelIncrements(
             List(wheelDeltas.size) {
-                SwerveModuleIncrements<Time>(wheelDeltas[it], steeringAngles[it].value())
+                SwerveModuleIncrements(wheelDeltas[it], steeringAngles[it].value())
             }))
 
         lastHeading = heading
