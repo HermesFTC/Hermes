@@ -1,15 +1,15 @@
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
 
     `java-library`
     `java-test-fixtures`
 
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.dokka)
 
     `maven-publish`
     signing
-    id("io.deepmedia.tools.deployer")
+    alias(libs.plugins.deployer)
 }
 
 repositories {

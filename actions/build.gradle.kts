@@ -1,15 +1,15 @@
 import java.net.URI
 
 plugins {
-    kotlin("jvm")
+    alias(libs.plugins.kotlin.jvm)
 
     `java-library`
     `java-test-fixtures`
 
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.dokka)
 
     `maven-publish`
-    id("io.deepmedia.tools.deployer")
+    alias(libs.plugins.deployer)
 }
 
 repositories {

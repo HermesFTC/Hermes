@@ -6,21 +6,21 @@ val nodeVersion: String = "22.18.0"
 val webDir: File = file("${project.projectDir.parent}/hermes-frontend")
 
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
 
-    kotlin("android")
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
 
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.dokka)
 
     `maven-publish`
-    id("io.deepmedia.tools.deployer")
+    alias(libs.plugins.deployer)
 
     id("com.github.node-gradle.node") version "2.2.4"
 }
 
 android {
-    namespace = "com.acmerobotics.roadrunner.ftc"
+    namespace = "gay.zharel.hermes.ftc"
     //noinspection GradleDependency
     compileSdk = 33
 
@@ -184,4 +184,3 @@ deployer {
         allowMavenCentralSync.set((property("automaticMavenCentralSync") as String).toBoolean())
     }
 }
-
