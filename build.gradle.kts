@@ -1,15 +1,15 @@
 plugins {
-    kotlin("jvm") version libs.versions.kotlin apply false
-    kotlin("android") version libs.versions.kotlin apply false
-    libs.plugins.kotlin.kapt
-    kotlin("plugin.serialization") version libs.versions.kotlin apply false
+    alias(libs.plugins.kotlin.jvm) apply false
+    alias(libs.plugins.kotlin.android) apply false
+    alias(libs.plugins.kotlin.kapt)
+    alias(libs.plugins.kotlin.serialization) apply false
 
-    id("org.jetbrains.dokka") version libs.versions.kotlin
+    alias(libs.plugins.dokka)
 
-    id("com.android.application") version libs.versions.android apply false
-    id("com.android.library") version libs.versions.android apply false
+    alias(libs.plugins.android.application) apply false
+    alias(libs.plugins.android.library) apply false
 
-    id("io.deepmedia.tools.deployer") version libs.versions.deployer
+    alias(libs.plugins.deployer)
 }
 
 allprojects {

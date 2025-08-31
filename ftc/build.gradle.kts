@@ -6,15 +6,15 @@ val nodeVersion: String = "18.12.1"
 val webDir: File = file("${project.projectDir.parent}/web")
 
 plugins {
-    id("com.android.library")
+    alias(libs.plugins.android.library)
 
-    kotlin("android")
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.kotlin.serialization)
 
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.dokka)
 
     `maven-publish`
-    id("io.deepmedia.tools.deployer")
+    alias(libs.plugins.deployer)
 
     id("com.github.node-gradle.node") version "2.2.4"
 }
@@ -178,4 +178,3 @@ deployer {
         allowMavenCentralSync.set((property("automaticMavenCentralSync") as String).toBoolean())
     }
 }
-
