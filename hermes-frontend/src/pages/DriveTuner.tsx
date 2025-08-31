@@ -17,13 +17,13 @@ export default function DriveTuner() {
     const [runState, setRunState] = useState(RunState.IDLE);
 
     // extract all motor names from array
-    const motors = ["motor1","motor2","motor3","motor4","motor5","motor6","motor7","motor8",];
+    const motors = [];
 
-    /*const motorNames = Object.values((useConfigVariableState(CONFIG_PREFIX + "motorNames") as CustomVarState).__value as Record<string, ConfigVarState>)
+    const motorNames = Object.values((useConfigVariableState(CONFIG_PREFIX + "motorNames") as CustomVarState).__value as Record<string, ConfigVarState>)
 
     for (let i = 0; i < motorNames.length; i++) {
         motors.push(motorNames[i].__value as string);
-    }*/
+    }
 
     let idx = 0;
 
@@ -78,7 +78,7 @@ export default function DriveTuner() {
 
         <TuningOpModeButton runState={runState} setRunState={setRunState} opModeName="DrivetrainConfigTest"/>
         
-        <GenericButton href={BASE_HERMES_URL + "forward-ramp"} className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
+        <GenericButton href={BASE_HERMES_URL + "/forward-ramp"} className={"p-4 rounded-xl mt-10 transition duration-500 " + (runState === RunState.STOPPED ? "opacity-100" : "none opacity-0") }>I'm ready to move on!</GenericButton>
             
         </div>
     );
