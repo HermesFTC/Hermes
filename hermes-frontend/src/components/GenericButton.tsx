@@ -1,6 +1,6 @@
 import { MouseEventHandler, PropsWithChildren, ReactNode } from "react";
 
-interface GenericButtonProps extends PropsWithChildren<any>{
+export interface GenericButtonProps extends PropsWithChildren<any>{
     
 }
 
