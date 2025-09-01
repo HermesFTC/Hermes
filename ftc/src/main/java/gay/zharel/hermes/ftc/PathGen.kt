@@ -1,7 +1,7 @@
 @file:JvmName("PathGen")
 package gay.zharel.hermes.ftc
 
-import gay.zharel.hermes.geometry.Arclength
+import gay.zharel.hermes.math.Arclength
 import gay.zharel.hermes.geometry.Rotation2d
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.paths.CompositePosePath

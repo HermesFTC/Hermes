@@ -3,6 +3,13 @@
 package gay.zharel.hermes.paths
 
 import gay.zharel.hermes.geometry.*
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.DualParameter
+import gay.zharel.hermes.math.IntegralScanResult
+import gay.zharel.hermes.math.clamp
+import gay.zharel.hermes.math.integralScan
+import gay.zharel.hermes.math.lerpLookup
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

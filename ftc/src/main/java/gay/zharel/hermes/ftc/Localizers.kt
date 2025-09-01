@@ -16,6 +16,8 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.Time
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.UnnormalizedAngleUnit
@@ -1183,16 +1185,20 @@ class SwerveLocalizer @JvmOverloads constructor(
         val headingDelta = heading.minus(lastHeading)
 
         val wheelDeltas = drivePositionsAndVelocities.indices.map {
-            DualNum<Time>(doubleArrayOf(
-                (drivePositionsAndVelocities[it].position - lastDrivePositions[it]).toDouble(),
-                (drivePositionsAndVelocities[it].velocity - lastDrivePositions[it]).toDouble()
-            )) * inPerTick
+            DualNum<Time>(
+                doubleArrayOf(
+                    (drivePositionsAndVelocities[it].position - lastDrivePositions[it]).toDouble(),
+                    (drivePositionsAndVelocities[it].velocity - lastDrivePositions[it]).toDouble()
+                )
+            ) * inPerTick
         }
         val steeringAngles = steeringPositionsAndVelocities.indices.map {
-            DualNum<Time>(doubleArrayOf(
-                (steeringPositionsAndVelocities[it].position - lastDrivePositions[it]).toDouble(),
-                (steeringPositionsAndVelocities[it].velocity - lastDrivePositions[it]).toDouble()
-            )) * (cpr / 2 * PI)
+            DualNum<Time>(
+                doubleArrayOf(
+                    (steeringPositionsAndVelocities[it].position - lastDrivePositions[it]).toDouble(),
+                    (steeringPositionsAndVelocities[it].velocity - lastDrivePositions[it]).toDouble()
+                )
+            ) * (cpr / 2 * PI)
         }
 
         lastDrivePositions = drivePositionsAndVelocities.map { it.position }

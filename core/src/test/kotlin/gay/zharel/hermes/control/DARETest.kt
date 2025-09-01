@@ -2,7 +2,6 @@
 package gay.zharel.hermes.control
 
 import gay.zharel.hermes.beSymmetric
-import gay.zharel.hermes.geometry.times
 import gay.zharel.hermes.hasInfinite
 import gay.zharel.hermes.hasNaN
 import io.kotest.assertions.throwables.shouldThrow

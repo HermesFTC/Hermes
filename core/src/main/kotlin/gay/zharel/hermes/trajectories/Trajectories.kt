@@ -1,10 +1,10 @@
 @file:JvmName("Trajectories")
 package gay.zharel.hermes.trajectories
 
-import gay.zharel.hermes.geometry.Arclength
-import gay.zharel.hermes.geometry.DualParameter
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.DualParameter
 import gay.zharel.hermes.geometry.Pose2dDual
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.paths.CompositePosePath
 import gay.zharel.hermes.paths.MappedPosePath

@@ -1,7 +1,7 @@
 package gay.zharel.hermes.actions
 
-import gay.zharel.hermes.geometry.Arclength
-import gay.zharel.hermes.geometry.DualNum
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.DualNum
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Pose2dDual
 import gay.zharel.hermes.geometry.Rotation2d

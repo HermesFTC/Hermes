@@ -1,6 +1,9 @@
 package gay.zharel.hermes.trajectories
 
 import gay.zharel.hermes.geometry.*
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.DualParameter
 import gay.zharel.hermes.paths.*
 import kotlin.math.PI
 import kotlin.math.abs
@@ -8,7 +11,7 @@ import kotlin.math.abs
 /**
  * @usesMathJax
  *
- * Builds a sequence of \(C^2\) [CompositePositionPath]s with [Arclength] parameters.
+ * Builds a sequence of \(C^2\) [CompositePositionPath]s with [gay.zharel.hermes.math.Arclength] parameters.
  *
  * A new path is started whenever extending the current path would violate the continuity requirement. To manually
  * insert further path breaks, invoke this builder multiple times.

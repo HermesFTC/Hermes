@@ -5,7 +5,7 @@ import gay.zharel.hermes.control.MotorFeedforward
 import gay.zharel.hermes.control.TankKinematics
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.hardware.Encoder
 import gay.zharel.hermes.hardware.EncoderGroup
 import gay.zharel.hermes.hardware.LazyImu

@@ -12,6 +12,9 @@ import gay.zharel.hermes.trajectories.TimeTrajectory
 import gay.zharel.hermes.trajectories.Trajectory
 import gay.zharel.hermes.trajectories.TrajectoryWithMarkers
 import com.qualcomm.robotcore.util.ElapsedTime
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.Time
+import gay.zharel.hermes.math.range
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.time.Duration
@@ -135,10 +138,10 @@ class DisplacementFollower @JvmOverloads constructor(
     private var ds = 0.0
 
     override val points: List<Vector2d> = range(
-                0.0,
-                trajectory.length(),
-                max(2, ceil(trajectory.length() / 2).toInt()),
-            ).map {
+        0.0,
+        trajectory.length(),
+        max(2, ceil(trajectory.length() / 2).toInt()),
+    ).map {
                trajectory[it].value().position
             }
 

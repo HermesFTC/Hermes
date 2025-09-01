@@ -1,17 +1,18 @@
 package gay.zharel.hermes.control
 
 import gay.zharel.hermes.geometry.Acceleration2d
-import gay.zharel.hermes.geometry.Matrix
+import gay.zharel.hermes.math.Matrix
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Pose2dDual
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2d
-import gay.zharel.hermes.geometry.lerpMatrixLookup
-import gay.zharel.hermes.geometry.makeBrysonMatrix
-import gay.zharel.hermes.geometry.rangeCentered
-import gay.zharel.hermes.geometry.times
+import gay.zharel.hermes.math.InterpolatingMap
+import gay.zharel.hermes.math.lerpMatrix
+import gay.zharel.hermes.math.makeBrysonMatrix
+import gay.zharel.hermes.math.rangeCentered
+import gay.zharel.hermes.math.times
 import org.ejml.simple.SimpleMatrix
 import kotlin.math.absoluteValue
 import kotlin.time.TimeSource
@@ -34,6 +35,8 @@ class LTVUController : RobotPosVelController {
     private var lastTimeStamp = timeSource.markNow()
     private val times = ArrayDeque<Double>()
     private val matrices = ArrayDeque<SimpleMatrix>()
+
+    private val interpolator = InterpolatingMap<SimpleMatrix>(::lerpMatrix)
 
     /**
      * Constructs an LTV Unicycle controller for a differential/tank drive robot.
@@ -95,7 +98,7 @@ class LTVUController : RobotPosVelController {
         val posError = targetPose.value() - actualPose
         val velError = (targetPose.velocity().value() - actualVelActual)
 
-        val K = lerpMatrixLookup(times, matrices, targetVel.linearVel.x)
+        val K = interpolator[targetVel.linearVel.x]
 
         val error = Matrix.column(
             posError.line.x, posError.line.y, posError.angle,

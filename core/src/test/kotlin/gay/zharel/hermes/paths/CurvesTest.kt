@@ -1,15 +1,15 @@
 package gay.zharel.hermes.paths
 
 import gay.zharel.hermes.builders.chartSpline
-import gay.zharel.hermes.geometry.Arclength
-import gay.zharel.hermes.geometry.DualNum
-import gay.zharel.hermes.geometry.Internal
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.Internal
 import gay.zharel.hermes.geometry.Rotation2dDual
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.geometry.Vector2dDual
-import gay.zharel.hermes.geometry.lerp
-import gay.zharel.hermes.geometry.range
-import gay.zharel.hermes.geometry.fact
+import gay.zharel.hermes.math.lerp
+import gay.zharel.hermes.math.range
+import gay.zharel.hermes.math.fact
 import gay.zharel.hermes.saveChart
 import org.junit.jupiter.api.Test
 import org.knowm.xchart.QuickChart

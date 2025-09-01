@@ -5,8 +5,8 @@ import gay.zharel.hermes.control.MecanumKinematics
 import gay.zharel.hermes.control.WheelVelConstraint
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Vector2d
-import gay.zharel.hermes.geometry.clamp
-import gay.zharel.hermes.geometry.range
+import gay.zharel.hermes.math.clamp
+import gay.zharel.hermes.math.range
 import gay.zharel.hermes.profiles.AngularVelConstraint
 import gay.zharel.hermes.profiles.DisplacementProfile
 import gay.zharel.hermes.profiles.MinVelConstraint

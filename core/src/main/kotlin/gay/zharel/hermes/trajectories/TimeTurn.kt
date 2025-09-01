@@ -3,7 +3,7 @@ package gay.zharel.hermes.trajectories
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Pose2dDual
 import gay.zharel.hermes.geometry.Rotation2dDual
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2dDual
 import gay.zharel.hermes.profiles.TimeProfile
 import gay.zharel.hermes.profiles.constantProfile

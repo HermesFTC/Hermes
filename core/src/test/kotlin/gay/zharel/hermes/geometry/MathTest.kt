@@ -1,5 +1,8 @@
 package gay.zharel.hermes.geometry
 
+import gay.zharel.hermes.math.integralScan
+import gay.zharel.hermes.math.lerpLookup
+import gay.zharel.hermes.math.lerpLookupMap
 import org.junit.jupiter.api.Test
 import kotlin.math.sqrt
 import kotlin.test.assertEquals

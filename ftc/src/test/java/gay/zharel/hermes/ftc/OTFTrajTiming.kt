@@ -4,7 +4,6 @@ import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.randomAngle
 import gay.zharel.hermes.randomPoint
 import gay.zharel.hermes.randomPose
-import gay.zharel.hermes.repr
 import io.mockk.every
 import kotlin.system.measureTimeMillis
 import kotlin.test.Test

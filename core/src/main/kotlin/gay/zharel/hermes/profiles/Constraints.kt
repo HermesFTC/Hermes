@@ -1,11 +1,9 @@
 package gay.zharel.hermes.profiles
 
-import gay.zharel.hermes.geometry.MinMax
+import gay.zharel.hermes.math.MinMax
 import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.paths.PosePath
 import kotlin.math.abs
-import kotlin.math.absoluteValue
-import kotlin.math.pow
 
 fun interface VelConstraint {
     fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double

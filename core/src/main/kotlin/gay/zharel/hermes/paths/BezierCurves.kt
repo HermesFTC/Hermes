@@ -2,6 +2,9 @@
 package gay.zharel.hermes.paths
 
 import gay.zharel.hermes.geometry.*
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.Internal
+import gay.zharel.hermes.math.fact
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlin.math.pow
@@ -29,9 +32,11 @@ data class BezierCurve1d(
     }
 
     operator fun get(t: Double, n: Int): DualNum<Internal> {
-        return DualNum<Internal>(DoubleArray(n) {
-            nthDerivative(it)[t]
-        })
+        return DualNum<Internal>(
+            DoubleArray(n) {
+                nthDerivative(it)[t]
+            }
+        )
     }
 
     fun derivative(): BezierCurve1d {

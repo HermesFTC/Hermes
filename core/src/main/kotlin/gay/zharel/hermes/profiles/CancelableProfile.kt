@@ -1,8 +1,8 @@
 package gay.zharel.hermes.profiles
 
 import gay.zharel.hermes.geometry.RobotState
-import gay.zharel.hermes.geometry.range
-import gay.zharel.hermes.geometry.rangeCentered
+import gay.zharel.hermes.math.range
+import gay.zharel.hermes.math.rangeCentered
 import gay.zharel.hermes.paths.PosePath
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

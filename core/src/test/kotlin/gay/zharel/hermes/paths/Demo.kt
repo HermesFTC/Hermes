@@ -1,11 +1,11 @@
 package gay.zharel.hermes.paths
 
-import gay.zharel.hermes.geometry.DualNum
+import gay.zharel.hermes.math.DualNum
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Pose2dDual
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.Rotation2dDual
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Twist2d
 import gay.zharel.hermes.geometry.Vector2dDual
 import gay.zharel.hermes.profiles.DisplacementProfile

@@ -1,5 +1,6 @@
 @file:JvmName("Matrices")
-package gay.zharel.hermes.geometry
+
+package gay.zharel.hermes.math
 
 import org.ejml.dense.row.decomposition.lu.LUDecompositionAlt_DDRM
 import org.ejml.simple.SimpleMatrix
@@ -237,21 +238,3 @@ fun lerpMatrix(start: Matrix, end: Matrix, t: Double): Matrix {
 
 internal fun lerpMatrix(start: SimpleMatrix, end: SimpleMatrix, t: Double): SimpleMatrix =
     lerpMatrix(Matrix(start), Matrix(end), t).simple
-
-fun lerpMatrixLookup(times: List<Double>, matrices: List<Matrix>, query: Double): Matrix {
-    val index = times.binarySearch(query)
-
-    if (index >= 0) return matrices[index]
-
-    val nextIdx = -(index + 1)
-    val prevIdx = -index
-
-    return lerpMatrix(
-        matrices[prevIdx],
-        matrices[nextIdx],
-        lerp(query, times[prevIdx], times[nextIdx], 0.0, 1.0)
-    )
-}
-
-internal fun lerpMatrixLookup(times: List<Double>, matrices: List<SimpleMatrix>, query: Double): SimpleMatrix =
-    lerpMatrixLookup(times, matrices.map { Matrix(it) }, query).simple
