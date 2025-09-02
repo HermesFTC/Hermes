@@ -17,6 +17,8 @@ import java.text.SimpleDateFormat
 // there may be legacy logs here, but we should be robust to that
 val LOG_ROOT = File(AppUtil.ROOT_FOLDER, "RoadRunner/logs");
 
+val CONFIG_ROOT = File(AppUtil.ROOT_FOLDER, "Hermes/config");
+
 @SuppressLint("SimpleDateFormat")
 private val DATE_FORMAT = SimpleDateFormat("yyyy_MM_dd__HH_mm_ss_SSS");
 
