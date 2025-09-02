@@ -347,7 +347,17 @@ object TuningOpModes {
     @JvmStatic
     @OpModeRegistrar
     fun register(manager: AnnotatedOpModeManager) {
+        manager.register("ForwardPushTest", ForwardPushTest(TuningLocalizerViewFactory))
+        manager.register("LateralPushTest", LateralPushTest(TuningLocalizerViewFactory))
+        manager.register("AngularPushTest", AngularPushTest(TuningLocalizerViewFactory))
 
+        manager.register("MotorFetchOpMode", MotorFetchOpMode())
+        manager.register("DrivetrainConfigTest", DrivetrainConfigTest(TuningDrivetrainConfigViewFactory, TuningLocalizerFactory))
+
+        manager.register("ForwardRampTest", ForwardRampTest(TuningDriveViewFactory, TuningLocalizerFactory))
+        manager.register("ForwardStepTest", ForwardStepTest(TuningDriveViewFactory, TuningLocalizerFactory))
+        manager.register("AngularRampTest", AngularRampTest(TuningDriveViewFactory, TuningLocalizerFactory))
+        manager.register("AngularStepTest", AngularStepTest(TuningDriveViewFactory, TuningLocalizerFactory))
     }
 
 }

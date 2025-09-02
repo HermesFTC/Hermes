@@ -29,6 +29,16 @@ interface DriveViewFactory {
 
 }
 
+object TuningDriveViewFactory : DriveViewFactory {
+    override fun make(hardwareMap: HardwareMap): DriveView {
+        return when (HermesConfig.config.drive) {
+            is MecanumParameters -> MecanumDriveView(HermesConfig.config.drive as MecanumParameters, hardwareMap)
+            CustomDrive -> error("Custom drive views may not be used with the default tuning factory. Consider implementing your own.")
+            DummyParameters -> error("Please select a drive type before running this opmode!")
+        }
+    }
+}
+
 interface HolonomicDriveView : DriveView {
 
     /**
@@ -120,6 +130,16 @@ interface DrivetrainConfigViewFactory {
 
     fun make(hardwareMap: HardwareMap): DrivetrainConfigDriveView
 
+}
+
+object TuningDrivetrainConfigViewFactory : DrivetrainConfigViewFactory {
+    override fun make(hardwareMap: HardwareMap): DrivetrainConfigDriveView {
+        return when (HermesConfig.config.drive) {
+            is MecanumParameters -> MecanumConfigDriveView(hardwareMap)
+            CustomDrive -> error("Custom drive views may not be used with the default tuning factory. Consider implementing your own.")
+            DummyParameters -> error("Please select a drive type before running this opmode!")
+        }
+    }
 }
 
 class MecanumConfigDriveView(hardwareMap: HardwareMap) : DrivetrainConfigDriveView {

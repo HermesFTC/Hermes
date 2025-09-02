@@ -7,6 +7,7 @@ import gay.zharel.hermes.ftc.RawEncoder
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
+import gay.zharel.hermes.ftc.PinpointLocalizer
 import kotlin.math.abs
 
 // ===== Localizer Tuning =====
@@ -38,6 +39,19 @@ interface LocalizerFactory {
 
 }
 
+object TuningLocalizerFactory : LocalizerFactory {
+    override fun make(hardwareMap: HardwareMap): Localizer {
+        return when (HermesConfig.config.localizer) {
+            CustomLocalizer -> error("Custom localizers may not be used with the default tuning factory. Consider implementing your own.")
+            DummyParameters -> error("Please select a localizer type before running this opmode!")
+            is PinpointParameters -> PinpointLocalizer(
+                hardwareMap,
+                HermesConfig.config.localizer as PinpointParameters
+            )
+        }
+    }
+}
+
 interface LocalizerTuner {
 
     fun forwardPushUpdate(actualInchesTravelled: Double) {}
@@ -54,6 +68,15 @@ interface LocalizerViewFactory {
 
 }
 
+object TuningLocalizerViewFactory : LocalizerViewFactory {
+    override fun make(hardwareMap: HardwareMap): LocalizerTuner {
+        return when (HermesConfig.config.localizer) {
+            CustomLocalizer -> error("Custom localizer views may not be used with the default tuning factory. Consider implementing your own.")
+            DummyParameters -> error("Please select a localizer type before running this opmode!")
+            is PinpointParameters -> PinpointTuner(hardwareMap)
+        }
+    }
+}
 
 
 
