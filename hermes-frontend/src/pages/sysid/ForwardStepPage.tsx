@@ -10,6 +10,10 @@ import React, { useState } from 'react';
 const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.FORWARD_STEP;
 
 const ForwardStepPage: React.FC = () => {
+  localStorage.setItem("TuningStage", "SysId");
+  localStorage.setItem("TuningPage", "forward-step");
+  localStorage.setItem("TuningProgress", "1");
+
   const setConfig = useSetConfigVariable();
 
   const [runState, setRunState] = useState(RunState.IDLE);

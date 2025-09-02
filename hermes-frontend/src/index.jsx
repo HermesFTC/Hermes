@@ -39,9 +39,8 @@ export default function App() {
               <Route path="/lateral-push" element={<LateralPush/>}/>
               <Route path="/angular-push" element={<AngularPush/>}/>
               <Route path="/drive-selection" element={<DriveSelection/>}/>
-              <Route path="/drive-config" element={<DriveTuner/>}/>
+              <Route path="/drive-selection" element={<DriveTuner/>}/>
             </Route>
-          </Route>
             <Route element={<GraphPage/>}>
               <Route path="/forward-ramp" element={<ForwardRampPage/>}/>
               <Route path="/forward-step" element={<ForwardStepPage/>}/>
@@ -49,6 +48,7 @@ export default function App() {
               <Route path="/angular-ramp" element={<AngularRampPage/>}/>
               <Route path="/angular-step" element={<AngularStepPage/>}/>
             </Route>
+          </Route>
         </Routes>
       </BrowserRouter>
     </Provider>

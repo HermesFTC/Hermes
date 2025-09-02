@@ -10,6 +10,9 @@ import React, { useEffect, useState } from 'react';
 const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.FORWARD_RAMP;
 
 const ForwardRampPage: React.FC = () => {
+  localStorage.setItem("TuningStage", "SysId");
+  localStorage.setItem("TuningPage", "forward-ramp");
+  localStorage.setItem("TuningProgress", "0");
 
   const setConfig = useSetConfigVariable();
 

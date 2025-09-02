@@ -8,9 +8,13 @@ import { useState } from 'react';
 import { BASE_HERMES_URL, BASE_TUNING_CONFIG_PATH, TUNING_OPMODE_PATHS } from '@/constants';
 
 export default function AngularPush() {
+    localStorage.setItem("TuningStage", "Localizer");
+    localStorage.setItem("TuningPage", "angular-push");
+    localStorage.setItem("TuningProgress", "3");
+
     // config management
     const setConfig = useSetConfigVariable();
-    const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.FORWARD_PUSH;
+    const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.ANGULAR_PUSH;
 
     // track ui state
     const [runState, setRunState] = useState(RunState.IDLE)

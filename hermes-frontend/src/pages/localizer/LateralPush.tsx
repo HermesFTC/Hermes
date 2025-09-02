@@ -8,6 +8,10 @@ import { useState } from 'react';
 import { BASE_HERMES_URL, BASE_TUNING_CONFIG_PATH, TUNING_OPMODE_PATHS } from '@/constants';
 
 export default function LateralPush() {
+    localStorage.setItem("TuningStage", "Localizer");
+    localStorage.setItem("TuningPage", "lateral-push");
+    localStorage.setItem("TuningProgress", "2");
+
     // config and opmode management
     const setConfig = useSetConfigVariable();
     const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.LATERAL_PUSH;

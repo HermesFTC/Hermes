@@ -10,6 +10,10 @@ import { ConfigVarState, CustomVarState } from '@/store/types/config';
 import { map } from 'lodash';
 
 export default function DriveTuner() {
+    localStorage.setItem("TuningStage", "Drive");
+    localStorage.setItem("TuningPage", "drive-config");
+    localStorage.setItem("TuningProgress", "1");
+
     // config and opmode management
     const setConfig = useSetConfigVariable();
     const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.DRIVETRAIN_CONFIG;

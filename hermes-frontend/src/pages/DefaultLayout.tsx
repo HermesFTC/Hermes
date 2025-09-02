@@ -1,3 +1,4 @@
+import ProgressBar from "@/components/ProgressBar";
 import { startSocketWatcher } from "@/store/middleware/socketMiddleware";
 import { useEffect } from "react";
 import { useDispatch } from "react-redux/es/hooks/useDispatch";
@@ -12,6 +13,9 @@ export default function DefaultLayout() {
     }, [dispatch]);
 
     return (
-        <Outlet/>
+        <>
+            <Outlet />
+            <ProgressBar />
+        </>
     )
 }

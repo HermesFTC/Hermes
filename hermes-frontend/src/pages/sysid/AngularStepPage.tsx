@@ -10,6 +10,10 @@ import React, { useState } from 'react';
 const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.ANGULAR_STEP;
 
 const AngularStepPage: React.FC = () => {
+  localStorage.setItem("TuningStage", "SysId");
+  localStorage.setItem("TuningPage", "angular-step");
+  localStorage.setItem("TuningProgress", "3");
+
   const setConfig = useSetConfigVariable();
 
   const [runState, setRunState] = useState(RunState.IDLE);

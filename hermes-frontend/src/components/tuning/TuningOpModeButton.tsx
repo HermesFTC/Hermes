@@ -75,11 +75,11 @@ export default function TuningOpModeButton({runState, setRunState, opModeName}: 
         </GenericButton>
         )}
 
-        <p>
+        <>
         {
             getOpModeStatus()
         }
-        </p>
+        </>
 
         <GenericButton
         className="mt-10 rounded-xl bg-red-600 p-4 text-white"

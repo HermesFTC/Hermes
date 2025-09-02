@@ -6,6 +6,9 @@ import {  ReactNode } from "react"
 const LOCALIZER_PATH = "HermesConfig/TuningConfig/localizer"
 
 export default function GettingStarted() {
+    localStorage.setItem("TuningStage", "Localizer");
+    localStorage.setItem("TuningPage", "getting-started");
+    localStorage.setItem("TuningProgress", "0");
 
     const setConfig = useSetConfigVariable();
 
@@ -35,8 +38,6 @@ export default function GettingStarted() {
 
     ]
 
-
-
     return (
 
         <div>
@@ -54,7 +55,7 @@ export default function GettingStarted() {
 
             <div className="mt-4 flex justify-center items-center text-center flex flex-col">
                 {localizers.map((localizer) =>
-                    <LocalizerSelection value={localizer.name}>{localizer.label}</LocalizerSelection>
+                    <LocalizerSelection value={localizer.name} key={localizer.name}>{localizer.label}</LocalizerSelection>
                 )
                 }
             </div>

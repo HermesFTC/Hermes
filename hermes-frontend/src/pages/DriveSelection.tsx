@@ -9,6 +9,9 @@ import { useOpMode } from "@/hooks/useOpMode"
 const DRIVE_PATH = BASE_TUNING_CONFIG_PATH + "drive"
 
 export default function DriveSelection() {
+    localStorage.setItem("TuningStage", "Drive");
+    localStorage.setItem("TuningPage", "drive-selection");
+    localStorage.setItem("TuningProgress", "0");
 
     const setConfig = useSetConfigVariable();
     const opMode = useOpMode();

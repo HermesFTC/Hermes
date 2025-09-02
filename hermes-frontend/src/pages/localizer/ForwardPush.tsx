@@ -8,6 +8,10 @@ import { useState } from 'react';
 import { BASE_HERMES_URL, BASE_TUNING_CONFIG_PATH, TUNING_OPMODE_PATHS } from '@/constants';
 
 export default function ForwardPush() {
+    localStorage.setItem("TuningStage", "Localizer");
+    localStorage.setItem("TuningPage", "forward-push");
+    localStorage.setItem("TuningProgress", "1");
+
     // config and opmode management
     const setConfig = useSetConfigVariable();
     const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.FORWARD_PUSH;

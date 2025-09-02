@@ -10,6 +10,10 @@ import React, { useState } from 'react';
 const CONFIG_PREFIX = BASE_TUNING_CONFIG_PATH + TUNING_OPMODE_PATHS.ANGULAR_RAMP;
 
 const AngularRampPage: React.FC = () => {
+  localStorage.setItem("TuningStage", "SysId");
+  localStorage.setItem("TuningPage", "angular-ramp");
+  localStorage.setItem("TuningProgress", "2");
+
   const setConfig = useSetConfigVariable();
 
   const [runState, setRunState] = useState(RunState.IDLE);
