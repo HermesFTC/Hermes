@@ -32,7 +32,7 @@ data class MotorConfig(
 ) {
     fun toDcMotor(hardwareMap: HardwareMap): DcMotor {
         val motor = hardwareMap.dcMotor.get(name)
-        motor.direction = DcMotorSimple.Direction.REVERSE
+        motor.direction = direction
         return motor
     }
 
