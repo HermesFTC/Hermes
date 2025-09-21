@@ -98,8 +98,6 @@ export function useSetConfigVariable() {
             __newValue: value,
         };
 
-        console.log(modifiedStateValue)
-
 
         // dispatch update with diff
         dispatch({
@@ -160,8 +158,6 @@ export function useAppendConfigArray() {
             __newValue: value,
             __valid: true
         }
-
-        console.log(newStateValue)
 
         // check number of indices
         const record = (stateValue as CustomVarState).__value as Record<string, ConfigVarState>

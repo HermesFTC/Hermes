@@ -57,7 +57,7 @@ export default function DriveSelection() {
                 }
             </div>
 
-            <GenericButton href={BASE_HERMES_URL + "/forward-ramp"} className={"p-4 rounded-xl mt-10 duration-500 " + (currentDrive == "CUSTOM" ? "none opacity-0" : "opacity-100")}>I'm ready to move on!</GenericButton>
+            <GenericButton href={BASE_HERMES_URL + "/drive-config"} className={"p-4 rounded-xl mt-10 duration-500 " + (currentDrive == "CUSTOM" ? "none opacity-0" : "opacity-100")}>I'm ready to move on!</GenericButton>
 
         </div>
 

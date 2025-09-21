@@ -14,8 +14,6 @@ export default function SlidingButton({className = "", children, href = undefine
     to: { x: 0, opacity: 1 },
   })
 
-  console.log(href)
-
   return (
     <animated.div
       style={{

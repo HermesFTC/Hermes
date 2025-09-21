@@ -24,13 +24,10 @@ export default function ProgressBar() {
             break;
     }
 
-    console.log(localStorage.getItem("TuningStage"))
-
     const [percent, setPercent] = useState(idx * 100 / totalIndex);
 
     useEffect(() => {
         function handleStorage() {
-            console.log("trigger!")
             setCurrentIndex(localStorage.getItem('TuningProgress'))
             setPercent(parseInt(currentIndex as string) * 100 / totalIndex)
         }

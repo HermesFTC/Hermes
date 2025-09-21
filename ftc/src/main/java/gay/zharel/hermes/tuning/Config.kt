@@ -279,7 +279,7 @@ object DashUtility {
                         }
                     } else {
                         for (nestedField in fieldClass.fields) {
-                            if (Modifier.isFinal(field.modifiers)) {
+                            if (Modifier.isFinal(nestedField.modifiers)) {
                                 continue
                             }
 

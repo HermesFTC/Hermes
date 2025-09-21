@@ -2,9 +2,6 @@
 export { default as LinearRegressionChart } from './graph';
 export type { RegressionOptions, LinearRegressionChartProps, LinearRegressionChartRef } from './graph';
 
-// Demo component
-export { default as RegressionDemo } from './RegressionDemo';
-
 // Specific regression analysis components
 export {
   ForwardRampRegression,

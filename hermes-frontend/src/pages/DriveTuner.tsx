@@ -48,7 +48,6 @@ export default function DriveTuner() {
         for (let i = 0; i < chosenMotorsList.length; i++) {
             setConfig(CONFIG_PREFIX + "chosenMotors/" + i, chosenMotorsList[i])
         }
-        console.log(chosenMotorsMap)
     }
 
     return (
@@ -94,7 +93,6 @@ export function SelectionButton(props: GenericButtonProps) {
     const toggle = () => { props.onClick(); setActive(!active); }
 
     const classNames = props.className + " " + (active ? "bg-white" : "bg-transparent")
-    console.log(classNames)
 
     return GenericButton({
         ...props,
