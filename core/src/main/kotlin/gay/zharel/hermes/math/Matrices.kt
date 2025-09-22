@@ -2,22 +2,14 @@
 
 package gay.zharel.hermes.math
 
+import org.ejml.data.DMatrixRMaj
 import org.ejml.dense.row.decomposition.chol.CholeskyDecompositionInner_DDRM
+import org.ejml.dense.row.decomposition.chol.CholeskyDecompositionLDL_DDRM
 import org.ejml.dense.row.decomposition.lu.LUDecompositionAlt_DDRM
 import org.ejml.dense.row.decomposition.qr.QRDecompositionHouseholder_DDRM
-import org.ejml.data.DMatrixRMaj
-import org.ejml.dense.row.decomposition.chol.CholeskyDecompositionLDL_DDRM
 import org.ejml.interfaces.decomposition.CholeskyDecomposition
 import org.ejml.simple.SimpleMatrix
-import org.ejml.dense.row.decomposition.eig.EigenDecomposition_DDRM
-import org.ejml.dense.row.CommonOps_DDRM
-import org.ejml.data.Complex_F64
-import org.ejml.dense.row.EigenOps_DDRM
-import org.ejml.interfaces.decomposition.EigenDecomposition
-import org.ejml.interfaces.decomposition.EigenDecomposition_F64
 import kotlin.math.pow
-import kotlin.math.ln
-import kotlin.math.exp
 
 internal operator fun SimpleMatrix.unaryMinus() = this.times(-1.0)
 internal operator fun SimpleMatrix.times(other: SimpleMatrix): SimpleMatrix = this.mult(other)
@@ -395,26 +387,4 @@ data class QRDecomposition internal constructor(
 ) {
     val Q: Matrix get() = Matrix(SimpleMatrix(qr.getQ(null, false)))
     val R: Matrix get() = Matrix(SimpleMatrix(qr.getR(null, false)))
-}
-
-/** Data class for real eigendecomposition. */
-data class RealEigendecomposition(
-    private val eig: EigenDecomposition<DMatrixRMaj>
-) {
-    val eigenvalues: List<Double> get() = List(eig.numberOfEigenvalues) { eig.getEigenvalue(it).real }
-    val eigenvectors: List<Matrix> get() = List(eig.numberOfEigenvalues) {
-        Matrix(SimpleMatrix(eig.getEigenVector(it)))
-    }
-}
-
-/** Data class for complex eigendecomposition. */
-data class ComplexEigendecomposition(
-    private val eig: EigenDecomposition<DMatrixRMaj>
-) {
-    val eigenvalues: List<Complex_F64> get() = List(eig.numberOfEigenvalues) { eig.getEigenvalue(it) }
-    val eigenvectors: List<Pair<DoubleArray, DoubleArray>> get() = List(eig.numberOfEigenvalues) {
-        val v = eig.getEigenVector(it)
-        if (v == null) Pair(DoubleArray(0), DoubleArray(0))
-        else Pair(v.data, DoubleArray(v.data.size) { 0.0 }) // EJML only provides real part
-    }
 }
