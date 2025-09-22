@@ -1,8 +1,15 @@
 package gay.zharel.hermes.tuning
 
-import gay.zharel.hermes.hardware.Encoder
-import gay.zharel.hermes.hardware.EncoderGroup
-import gay.zharel.hermes.hardware.LynxQuadratureEncoderGroup
+import gay.zharel.hermes.ftc.Encoder
+import kotlinx.serialization.Serializable
+
+
+/**
+ * you fucked up your config and now i am mad at you
+ */
+class ConfigurationException(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {
+    constructor(cause: Throwable) : this(null, cause)
+}
 
 class MidpointTimer {
     private val beginTs = System.nanoTime()
@@ -20,27 +27,15 @@ class MidpointTimer {
     }
 }
 
-internal class MutableSignal(
+@Serializable
+class MutableSignal(
     val times: MutableList<Double> = mutableListOf(),
     val values: MutableList<Double> = mutableListOf()
-)
-
-
-// designed for manual bulk caching
-internal fun recordUnwrappedEncoderData(gs: List<EncoderGroup>, ts: List<Double>, er: EncoderRef, ps: MutableSignal, vs: MutableSignal) {
-    val t = ts[er.groupIndex]
-    val e = gs[er.groupIndex].unwrappedEncoders[er.index]
-    val pv = e.getPositionAndVelocity()
-
-    ps.times.add(t)
-    ps.values.add(pv.position.toDouble())
-
-    vs.times.add(t)
-    vs.values.add(pv.velocity.toDouble())
-}
-
-fun shouldFixVels(view: DriveView, er: EncoderRef): Boolean {
-    return view.encoderGroups[er.groupIndex] is LynxQuadratureEncoderGroup
+) {
+    fun asPair(): MutableList<Pair<Double, Double>> {
+        return this.times.zip(this.values) as MutableList<Pair<Double, Double>>
+    }
 }
 
 internal fun avgPos(es: List<Encoder>) = es.sumOf { it.getPositionAndVelocity().position.toDouble() } / es.size
+

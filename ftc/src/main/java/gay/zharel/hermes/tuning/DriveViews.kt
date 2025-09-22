@@ -1,140 +1,180 @@
 package gay.zharel.hermes.tuning
 
 import gay.zharel.hermes.control.MecanumKinematics
-import gay.zharel.hermes.control.MotorFeedforward
-import gay.zharel.hermes.control.TankKinematics
-import gay.zharel.hermes.geometry.PoseVelocity2d
+import gay.zharel.hermes.geometry.DualNum
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.math.Time
-import gay.zharel.hermes.hardware.Encoder
-import gay.zharel.hermes.hardware.EncoderGroup
-import gay.zharel.hermes.hardware.LazyImu
-import gay.zharel.hermes.hardware.LynxQuadratureEncoderGroup
-import com.google.gson.annotations.SerializedName
-import com.qualcomm.hardware.lynx.LynxModule
+import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.geometry.Twist2d
+import gay.zharel.hermes.geometry.Vector2d
+import gay.zharel.hermes.geometry.Vector2dDual
+import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
-import com.qualcomm.robotcore.hardware.VoltageSensor
-import kotlin.math.absoluteValue
-import kotlin.math.max
+import kotlin.collections.indexOf
 
+interface DriveView {
 
-enum class DriveType {
-    @SerializedName("mecanum")
-    MECANUM,
-    @SerializedName("tank")
-    TANK
+    /**
+     * Voltage overflows scale both to max voltage.
+     * @param rotationVoltage Counter-clockwise (standard).
+     */
+    fun voltageDrive(forwardVoltage: Double, rotationVoltage: Double)
+
 }
 
-fun interface FeedforwardFactory {
-    fun make(): MotorFeedforward
+interface DriveViewFactory {
+
+    fun make(hardwareMap: HardwareMap): DriveView
+
 }
 
-data class EncoderRef(
-    val groupIndex: Int,
-    val index: Int,
-)
-
-class DriveView(
-    val type: DriveType,
-    val inPerTick: Double,
-    val maxVel: Double,
-    val minAccel: Double,
-    val maxAccel: Double,
-    val encoderGroups: List<EncoderGroup>,
-    // ordered front to rear
-    val leftMotors: List<DcMotorEx>,
-    val rightMotors: List<DcMotorEx>,
-    // invariant: (leftEncs.isEmpty() && rightEncs.isEmpty()) ||
-    //                  (parEncs.isEmpty() && perpEncs.isEmpty())
-    val leftEncs: List<EncoderRef>,
-    val rightEncs: List<EncoderRef>,
-    val parEncs: List<EncoderRef>,
-    val perpEncs: List<EncoderRef>,
-    val imu: LazyImu,
-    val voltageSensor: VoltageSensor,
-    val feedforwardFactory: FeedforwardFactory,
-    bogus: Int,
-) {
-    // Legacy constructor to preserve compatibility with older quickstarts.
-    constructor(
-        type: DriveType,
-        inPerTick: Double,
-        maxVel: Double,
-        minAccel: Double,
-        maxAccel: Double,
-        lynxModules: List<LynxModule>,
-        // ordered front to rear
-        leftMotors: List<DcMotorEx>,
-        rightMotors: List<DcMotorEx>,
-        // invariant: (leftEncs.isEmpty() && rightEncs.isEmpty()) ||
-        //                  (parEncs.isEmpty() && perpEncs.isEmpty())
-        leftEncs: List<Encoder>,
-        rightEncs: List<Encoder>,
-        parEncs: List<Encoder>,
-        perpEncs: List<Encoder>,
-        imu: LazyImu,
-        voltageSensor: VoltageSensor,
-        feedforwardFactory: FeedforwardFactory,
-    ) : this(
-        type,
-        inPerTick,
-        maxVel,
-        minAccel,
-        maxAccel,
-        listOf(LynxQuadratureEncoderGroup(lynxModules, leftEncs + rightEncs + parEncs + perpEncs)),
-        leftMotors,
-        rightMotors,
-        List(leftEncs.size) { i -> EncoderRef(0, i) },
-        List(rightEncs.size) { i -> EncoderRef(0, leftEncs.size + i) },
-        List(parEncs.size) { i -> EncoderRef(0, leftEncs.size + rightEncs.size + i) },
-        List(perpEncs.size) { i -> EncoderRef(0, leftEncs.size + rightEncs.size + parEncs.size + i) },
-        imu,
-        voltageSensor,
-        feedforwardFactory,
-        0,
-    )
-
-    val motors = leftMotors + rightMotors
-
-    val forwardEncs = leftEncs + rightEncs + parEncs
-
-    init {
-        require((leftEncs.isEmpty() && rightEncs.isEmpty()) || (parEncs.isEmpty() && perpEncs.isEmpty()))
-    }
-
-    fun wrappedEncoder(ref: EncoderRef) = encoderGroups[ref.groupIndex].encoders[ref.index]
-    fun encoder(ref: EncoderRef) = encoderGroups[ref.groupIndex].encoders[ref.index]
-
-    fun setDrivePowers(powers: PoseVelocity2d) {
-        when (type) {
-            DriveType.MECANUM -> {
-                val wheelPowers = MecanumKinematics(1.0).inverse(PoseVelocity2dDual.constant<Time>(powers, 1))
-                val maxPowerMag = wheelPowers.all().maxOfOrNull { it.value().absoluteValue }!!
-                val divisor = max(1.0, maxPowerMag)
-
-                leftMotors[0].power = wheelPowers.leftFront.value() / divisor
-                leftMotors[1].power = wheelPowers.leftBack.value() / divisor
-                rightMotors[0].power = wheelPowers.rightFront.value() / divisor
-                rightMotors[1].power = wheelPowers.rightBack.value() / divisor
-            }
-
-            DriveType.TANK -> {
-                val wheelPowers = TankKinematics(2.0).inverse(PoseVelocity2dDual.constant<Time>(powers, 1))
-                val maxPowerMag = wheelPowers.all().maxOfOrNull { it.value().absoluteValue }!!
-                val divisor = max(1.0, maxPowerMag)
-
-                for (m in leftMotors) {
-                    m.power = wheelPowers.left.value() / divisor
-                }
-                for (m in rightMotors) {
-                    m.power = wheelPowers.right.value() / divisor
-                }
-            }
+object TuningDriveViewFactory : DriveViewFactory {
+    override fun make(hardwareMap: HardwareMap): DriveView {
+        return when (HermesConfig.config.drive) {
+            is MecanumParameters -> MecanumDriveView(HermesConfig.config.drive as MecanumParameters, hardwareMap)
+            CustomDrive -> error("Custom drive views may not be used with the default tuning factory. Consider implementing your own.")
+            DummyParameters -> error("Please select a drive type before running this opmode!")
         }
     }
 }
 
-interface DriveViewFactory {
-    fun make(h: HardwareMap): DriveView
+interface HolonomicDriveView : DriveView {
+
+    /**
+     * Voltage overflows scale all to max voltage.
+     * @param strafeVoltage Positive goes left.
+     * @param rotationVoltage Counter-clockwise (standard).
+     */
+    fun voltageDrive(forwardVoltage: Double, strafeVoltage: Double, rotationVoltage: Double)
+
+}
+
+class MecanumDriveView(parameters: MecanumParameters, hardwareMap: HardwareMap) : HolonomicDriveView {
+
+    private val motors: List<DcMotor> = arrayListOf(
+        parameters.leftFront.toDcMotor(hardwareMap),
+        parameters.leftBack.toDcMotor(hardwareMap),
+        parameters.rightBack.toDcMotor(hardwareMap),
+        parameters.rightFront.toDcMotor(hardwareMap),
+    )
+
+    /**
+     * Voltage overflows scale all to max voltage.
+     * @param strafeVoltage Positive goes left.
+     * @param rotationVoltage Counter-clockwise (standard).
+     */
+    override fun voltageDrive(
+        forwardVoltage: Double,
+        strafeVoltage: Double,
+        rotationVoltage: Double,
+    ) {
+        // normalize by voltage
+        val (x, y, r) = arrayListOf(
+            forwardVoltage,
+            strafeVoltage,
+            rotationVoltage,
+        ).map { it / VoltageCache.currentVoltage }
+
+        val wheelPowers = MecanumKinematics(1.0).inverse(
+            PoseVelocity2dDual(
+                Vector2dDual.Companion.constant<Time>(Vector2d(x, y), 1),
+                DualNum.Companion.constant<Time>(rotationVoltage, 1),
+            ),
+        )
+
+        motors.zip(wheelPowers.all()).forEach { (motor, power) -> motor.power = power.value() }
+    }
+
+    /**
+     * Voltage overflows scale both to max voltage.
+     * @param rotationVoltage Counter-clockwise (standard).
+     */
+    override fun voltageDrive(forwardVoltage: Double, rotationVoltage: Double) {
+        voltageDrive(forwardVoltage, 0.0, rotationVoltage)
+    }
+
+}
+
+interface DrivetrainConfigDriveView {
+    val actuators: List<DrivetrainActuator>
+
+    fun updateActuator(actuator: DrivetrainActuator, deltaPose: Twist2d)
+
+    interface DrivetrainActuator {
+
+        /**
+         * Move the actuator as desired.
+         * This method should be blocking!!
+         */
+        fun moveActuator(input: Double)
+
+    }
+
+    class MotorActuator(val motor: DcMotor) : DrivetrainActuator {
+        constructor(config: MotorConfig, hardwareMap: HardwareMap) : this(config.toDcMotorEx(hardwareMap))
+
+        override fun moveActuator(input: Double) {
+            motor.power = input
+            try {
+                Thread.sleep(250)
+            } catch (e: InterruptedException) {
+                throw e
+            }
+            motor.power = 0.0
+        }
+    }
+}
+
+interface DrivetrainConfigViewFactory {
+
+    fun make(hardwareMap: HardwareMap): DrivetrainConfigDriveView
+
+}
+
+object TuningDrivetrainConfigViewFactory : DrivetrainConfigViewFactory {
+    override fun make(hardwareMap: HardwareMap): DrivetrainConfigDriveView {
+        return when (HermesConfig.config.drive) {
+            is MecanumParameters -> MecanumConfigDriveView(hardwareMap)
+            CustomDrive -> error("Custom drive views may not be used with the default tuning factory. Consider implementing your own.")
+            DummyParameters -> error("Please select a drive type before running this opmode!")
+        }
+    }
+}
+
+class MecanumConfigDriveView(hardwareMap: HardwareMap) : DrivetrainConfigDriveView {
+
+    val config get() = HermesConfig.tuningConfig.drivetrainConfig.chosenMotors
+    val mecConfig get() = HermesConfig.config.drive as MecanumParameters
+
+    override val actuators = listOf(
+        DrivetrainConfigDriveView.MotorActuator(hardwareMap.dcMotor.get(config[0])),
+        DrivetrainConfigDriveView.MotorActuator(hardwareMap.dcMotor.get(config[1])),
+        DrivetrainConfigDriveView.MotorActuator(hardwareMap.dcMotor.get(config[2])),
+        DrivetrainConfigDriveView.MotorActuator(hardwareMap.dcMotor.get(config[3])),
+    )
+
+    override fun updateActuator(actuator: DrivetrainConfigDriveView.DrivetrainActuator, deltaPose: Twist2d) {
+        val idx = actuators.indexOf(actuator)
+        val direction = if (deltaPose.line.x > 0) DcMotorSimple.Direction.FORWARD else DcMotorSimple.Direction.REVERSE
+
+
+        val yDir = (deltaPose.line.y * if (direction == DcMotorSimple.Direction.FORWARD) 1.0 else -1.0) > 0
+        val rDir = (deltaPose.angle * if (direction == DcMotorSimple.Direction.FORWARD) 1.0 else -1.0) > 0
+
+        // figure out what wheel it was based on strafe and rot
+        if (yDir && rDir) {
+            // left + ccw -> fr
+            mecConfig.rightFront = MotorConfig(config[idx], direction)
+        } else if (yDir) {
+            // left + cw -> bl
+            mecConfig.leftBack = MotorConfig(config[idx], direction)
+        } else if (rDir) {
+            // right + ccw -> br
+            mecConfig.rightBack = MotorConfig(config[idx], direction)
+        } else {
+            // right + cw -> fl
+            mecConfig.leftFront = MotorConfig(config[idx], direction)
+        }
+    }
 }

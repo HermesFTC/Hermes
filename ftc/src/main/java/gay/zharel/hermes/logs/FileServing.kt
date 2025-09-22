@@ -139,8 +139,10 @@ object TuningFiles {
 
     enum class FileType(val baseName: String) {
         FORWARD_RAMP("forward-ramp"),
+        FORWARD_STEP("forward-step"),
         LATERAL_RAMP("lateral-ramp"),
         ANGULAR_RAMP("angular-ramp"),
+        ANGULAR_STEP("angular-step"),
         ACCEL("accel");
     }
 }
@@ -188,6 +190,109 @@ object LogFiles {
             }
             NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK,
                     "application/json", FileInputStream(f))
+        }
+    }
+}
+
+object ConfigFiles {
+    @WebHandlerRegistrar
+    @JvmStatic
+    fun registerRoutes(context: Context, manager: WebHandlerManager) {
+        manager.register("/config") {
+            val sb = StringBuilder()
+            sb.append("<!doctype html><html><head><title>Config</title></head><body>")
+
+            // Added a form for uploading files
+            sb.append("<h2>Upload a Config File</h2>")
+            sb.append("<form action=\"/config/upload\" method=\"post\" enctype=\"multipart/form-data\">")
+            sb.append("<input type=\"file\" name=\"uploadFile\" required><br><br>")
+            sb.append("<input type=\"submit\" value=\"Upload\">")
+            sb.append("</form>")
+
+            sb.append("<h2>Available Config Files</h2>")
+            sb.append("<ul>")
+            val fs = CONFIG_ROOT.listFiles()!!
+            fs.sortByDescending { it.lastModified() }
+            for (f in fs) {
+                sb.append("<li><a href=\"/config/download?file=")
+                sb.append(f.name)
+                sb.append("\" download=\"")
+                sb.append(f.name)
+                sb.append("\">")
+                sb.append(f.name)
+                sb.append("</a> (")
+                sb.append(f.length())
+                sb.append(" bytes)</li>")
+            }
+            sb.append("</ul></body></html>")
+            NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK,
+                NanoHTTPD.MIME_HTML, sb.toString())
+        }
+
+        manager.register("/config/download") { session: IHTTPSession ->
+            val pairs = session.queryParameterString.split("&".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            if (pairs.size != 1) {
+                return@register NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST,
+                    NanoHTTPD.MIME_PLAINTEXT, "expected one query parameter, got " + pairs.size)
+            }
+            val parts = pairs[0].split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
+            if (parts[0] != "file") {
+                return@register NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST,
+                    NanoHTTPD.MIME_PLAINTEXT, "expected file query parameter, got " + parts[0])
+            }
+            val f = File(CONFIG_ROOT, parts[1])
+            if (!f.exists()) {
+                return@register NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND,
+                    NanoHTTPD.MIME_PLAINTEXT, "file $f doesn't exist")
+            }
+            NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK,
+                "application/json", FileInputStream(f))
+        }
+
+        // Added a new handler for uploading files
+        manager.register("/config/upload") { session: IHTTPSession ->
+            try {
+                // Parse the body to handle the multipart form data
+                val files = hashMapOf<String, String>()
+                session.parseBody(files)
+
+                // Get the file name from the form data
+                val fileNames = session.parameters["uploadFile"]
+                if (fileNames.isNullOrEmpty()) {
+                    return@register NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST,
+                        NanoHTTPD.MIME_PLAINTEXT, "No file uploaded.")
+                }
+
+                val fileName = fileNames[0]
+
+                // Get the temporary file path where NanoHTTPD stored the uploaded file
+                val tempFilePath = files["uploadFile"]
+                if (tempFilePath.isNullOrEmpty()) {
+                    return@register NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.INTERNAL_ERROR,
+                        NanoHTTPD.MIME_PLAINTEXT, "Failed to get temp file path.")
+                }
+
+                val uploadedFile = File(tempFilePath)
+                val destFile = CONFIG_ROOT.resolve(fileName)
+
+                // Move the temporary file to the final destination
+                uploadedFile.renameTo(destFile)
+
+                // Redirect to the config page to see the new file
+                val redirectResponse = NanoHTTPD.newFixedLengthResponse(
+                    NanoHTTPD.Response.Status.REDIRECT_SEE_OTHER,
+                    NanoHTTPD.MIME_HTML,
+                    "File uploaded successfully."
+                )
+                redirectResponse.addHeader("Location", "/config")
+                return@register redirectResponse
+            } catch (e: Exception) {
+                return@register NanoHTTPD.newFixedLengthResponse(
+                    NanoHTTPD.Response.Status.INTERNAL_ERROR,
+                    NanoHTTPD.MIME_PLAINTEXT,
+                    "Upload failed: ${e.message}"
+                )
+            }
         }
     }
 }
