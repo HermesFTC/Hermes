@@ -34,9 +34,9 @@ class LTVUController : RobotPosVelController {
     private val timeSource = TimeSource.Monotonic
     private var lastTimeStamp = timeSource.markNow()
     private val times = ArrayDeque<Double>()
-    private val matrices = ArrayDeque<SimpleMatrix>()
+    private val matrices = ArrayDeque<Matrix>()
 
-    private val interpolator = InterpolatingMap<SimpleMatrix>(::lerpMatrix)
+    private val interpolator = InterpolatingMap<Matrix>(::lerpMatrix)
 
     /**
      * Constructs an LTV Unicycle controller for a differential/tank drive robot.
@@ -62,13 +62,13 @@ class LTVUController : RobotPosVelController {
         maxVel: Double,
         dt: Double = 0.0303
     ) {
-        val A_cont = SimpleMatrix(5, 5)
-        val B_cont = SimpleMatrix(5, 2).apply {
+        val A_cont = Matrix.zero(5, 5)
+        val B_cont = Matrix.zero(5, 2).apply {
             this[0, 0] = 1.0
             this[1, 2] = 1.0
         }
-        val Q = makeBrysonMatrix(qX, qY, qHeading, qV, qOmega).simple
-        val R = makeBrysonMatrix(rA, rAlpha).simple
+        val Q = makeBrysonMatrix(qX, qY, qHeading, qV, qOmega)
+        val R = makeBrysonMatrix(rA, rAlpha)
 
         rangeCentered(-maxVel, maxVel, 100).map {
             A_cont[1, 2] = if (it.absoluteValue < 1e-4) {
@@ -103,7 +103,7 @@ class LTVUController : RobotPosVelController {
         val error = Matrix.column(
             posError.line.x, posError.line.y, posError.angle,
             velError.linearVel.x, velError.angVel
-        ).simple
+        )
 
         val u = K * error
 
