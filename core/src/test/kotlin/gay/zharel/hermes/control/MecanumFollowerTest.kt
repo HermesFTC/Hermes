@@ -2,6 +2,9 @@ package gay.zharel.hermes.control
 
 import gay.zharel.hermes.TEST_PROFILE_PARAMS
 import gay.zharel.hermes.geometry.*
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.Time
+import gay.zharel.hermes.math.clamp
 import gay.zharel.hermes.paths.TangentPath
 import gay.zharel.hermes.profiles.CancelableProfile
 import gay.zharel.hermes.profiles.ProfileAccelConstraint

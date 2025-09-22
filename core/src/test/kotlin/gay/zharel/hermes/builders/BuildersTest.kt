@@ -4,12 +4,12 @@ import gay.zharel.hermes.TEST_PROFILE_PARAMS
 import gay.zharel.hermes.TEST_TRAJECTORY_BUILDER_PARAMS
 import gay.zharel.hermes.control.MecanumKinematics
 import gay.zharel.hermes.control.WheelVelConstraint
-import gay.zharel.hermes.geometry.DualParameter
+import gay.zharel.hermes.math.DualParameter
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Rotation2d
 import gay.zharel.hermes.geometry.Rotation2dDual
 import gay.zharel.hermes.geometry.Vector2d
-import gay.zharel.hermes.geometry.range
+import gay.zharel.hermes.math.range
 import gay.zharel.hermes.profiles.AngularVelConstraint
 import gay.zharel.hermes.paths.CompositePosePath
 import gay.zharel.hermes.paths.HeadingPosePath

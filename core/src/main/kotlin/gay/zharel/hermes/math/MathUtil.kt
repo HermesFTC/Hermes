@@ -1,6 +1,6 @@
 @file:JvmName("Math")
 
-package gay.zharel.hermes.geometry
+package gay.zharel.hermes.math
 
 import kotlinx.serialization.Serializable
 
@@ -8,10 +8,15 @@ import kotlinx.serialization.Serializable
 private const val EPS = 2.2e-15
 
 /**
- * @usesMathJax
+ * Returns a small value with the same sign as [x].
  *
  * Function \(snz(x)\) from section VI.A of the [SymForce paper](https://arxiv.org/abs/2204.07889) for use in
  * singularity handling.
+ * Returns a small positive value if [x] is non-negative,
+ * otherwise a small negative value.
+ *
+ * @param x The input value.
+ * @return A small value with the same sign as [x].
  */
 fun snz(x: Double) =
     if (x >= 0.0) {
@@ -20,6 +25,14 @@ fun snz(x: Double) =
         -EPS
     }
 
+/**
+ * Clamps [x] to the range [[lo], [hi]].
+ *
+ * @param x The value to clamp.
+ * @param lo The lower bound.
+ * @param hi The upper bound.
+ * @return [x] if it is within the range, otherwise [lo] or [hi].
+ */
 fun clamp(x: Double, lo: Double, hi: Double): Double {
     if (x < lo) {
         return lo
@@ -30,6 +43,12 @@ fun clamp(x: Double, lo: Double, hi: Double): Double {
     return x
 }
 
+/**
+ * Data class representing a minimum and maximum value pair.
+ *
+ * @property min The minimum value.
+ * @property max The maximum value.
+ */
 data class MinMax(@JvmField val min: Double, @JvmField val max: Double)
 
 /**
@@ -37,9 +56,11 @@ data class MinMax(@JvmField val min: Double, @JvmField val max: Double)
  *
  * Partitions \([a, b]\) into \((n - 1)\) equal intervals and returns the endpoints.
  *
- * @param[begin] \(a\)
- * @param[end] \(b\)
- * @param[samples] \(n\)
+ * @param begin \(a\) The start of the range.
+ * @param end \(b\) The end of the range.
+ * @param samples \(n\) The number of samples (must be at least 2).
+ * @return List of endpoints of the intervals.
+ * @throws IllegalArgumentException if [samples] < 2.
  */
 fun range(begin: Double, end: Double, samples: Int): List<Double> {
     require(samples >= 2) { "Number of samples ($samples) must be at least 2" }
@@ -52,9 +73,11 @@ fun range(begin: Double, end: Double, samples: Int): List<Double> {
  *
  * Partitions \([a, b]\) into \(n\) equal intervals and returns the center values.
  *
- * @param[begin] \(a\)
- * @param[end] \(b\)
- * @param[samples] \(n\)
+ * @param begin \(a\) The start of the range.
+ * @param end \(b\) The end of the range.
+ * @param samples \(n\) The number of samples (must be at least 1).
+ * @return List of center values of the intervals.
+ * @throws IllegalArgumentException if [samples] < 1.
  */
 fun rangeCentered(begin: Double, end: Double, samples: Int): List<Double> {
     require(samples >= 1) { "Number of samples must be at least 1" }
@@ -62,16 +85,12 @@ fun rangeCentered(begin: Double, end: Double, samples: Int): List<Double> {
     return (0 until samples).map { begin + 0.5 * dx + dx * it }
 }
 
-// TODO: is the branch here okay? would snz() on the denominator be better?
-fun lerp(x: Double, fromLo: Double, fromHi: Double, toLo: Double, toHi: Double) =
-    if (fromLo == fromHi) 0.0
-    else
-        toLo + (x - fromLo) * (toHi - toLo) / (fromHi - fromLo)
-
-fun lerp(low: Double, high: Double, t: Double) = low + (high - low) * t
-
-fun antiLerp(value: Double, low: Double, high: Double) = (value - low) / (high - low)
-
+/**
+ * Data class representing the result of an integral scan.
+ *
+ * @property values The sample points.
+ * @property sums The cumulative integrals at each sample point.
+ */
 @Serializable
 data class IntegralScanResult(
     @JvmField
@@ -84,13 +103,13 @@ data class IntegralScanResult(
  * @usesMathJax
  *
  * Returns samples of \(g(t) = \int_a^t f(x) \, dx\) for various values \(a \leq t \leq b\). The sampling points are
- * chosen adaptively using the algorithm `adaptsim` from [Gander and Gautschi](https://doi.org/10.1023/A:1022318402393)
- * ([more accessible link](https://users.wpi.edu/~walker/MA510/HANDOUTS/w.gander,w.gautschi,Adaptive_Quadrature,BIT_40,2000,84-101.pdf)).
+ * chosen adaptively using the algorithm `adaptsim` from [Gander and Gautschi](https://doi.org/10.1023/A:1022318402393).
  *
- * @param[a] \(a\)
- * @param[b] \(b\)
- * @param[f] \(f(x)\)
- * @param[eps] desired error in the length approximation \(g(b)\)
+ * @param a The lower bound of integration.
+ * @param b The upper bound of integration.
+ * @param eps Desired error in the length approximation \(g(b)\).
+ * @param f The function to integrate.
+ * @return [IntegralScanResult] containing sample points and their cumulative integrals.
  */
 fun integralScan(a: Double, b: Double, eps: Double, f: (Double) -> Double): IntegralScanResult {
     val m = (a + b) / 2
@@ -137,63 +156,13 @@ fun integralScan(a: Double, b: Double, eps: Double, f: (Double) -> Double): Inte
     return IntegralScanResult(values, sums)
 }
 
-// precondition: source, target sorted and share the same length
-fun lerpLookup(source: List<Double>, target: List<Double>, query: Double): Double {
-    require(source.size == target.size) { "source.size (${source.size}) != target.size (${target.size})" }
-    require(source.isNotEmpty()) { "source is empty" }
-
-    val index = source.binarySearch(query)
-    return if (index >= 0) {
-        target[index]
-    } else {
-        val insIndex = -(index + 1)
-        when {
-            insIndex <= 0 -> target.first()
-            insIndex >= source.size -> target.last()
-            else -> {
-                val sLo = source[insIndex - 1]
-                val sHi = source[insIndex]
-                val tLo = target[insIndex - 1]
-                val tHi = target[insIndex]
-                lerp(query, sLo, sHi, tLo, tHi)
-            }
-        }
-    }
-}
-
-// precondition: source, target sorted and share the same length; queries sorted
-fun lerpLookupMap(source: List<Double>, target: List<Double>, queries: List<Double>): List<Double> {
-    require(source.size == target.size) { "source.size (${source.size}) != target.size (${target.size})" }
-    require(source.isNotEmpty()) { "source is empty" }
-
-    val result = mutableListOf<Double>()
-
-    var i = 0
-    for (query in queries) {
-        if (query < source[0]) {
-            result.add(target[0])
-            continue
-        }
-
-        while (i + 1 < source.size && source[i + 1] < query) {
-            i++
-        }
-
-        if (i + 1 == source.size) {
-            result.add(target.last())
-            continue
-        }
-
-        val sLo = source[i]
-        val sHi = source[i + 1]
-        val tLo = target[i]
-        val tHi = target[i + 1]
-        result.add(lerp(query, sLo, sHi, tLo, tHi))
-    }
-
-    return result
-}
-
+/**
+ * Computes the factorial of this integer.
+ *
+ * @receiver The integer to compute the factorial of (must be non-negative).
+ * @return The factorial of this integer.
+ * @throws IllegalArgumentException if the integer is negative.
+ */
 fun Int.fact(): Int {
     require(this >= 0)
     return when (this) {

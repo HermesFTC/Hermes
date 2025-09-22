@@ -1,9 +1,8 @@
 package gay.zharel.hermes.serialization
 
 import gay.zharel.hermes.*
-import gay.zharel.hermes.geometry.range
+import gay.zharel.hermes.math.range
 import gay.zharel.hermes.trajectories.CompositeCancelableTrajectory
-import gay.zharel.hermes.trajectories.CompositeTrajectory
 import gay.zharel.hermes.trajectories.TrajectoryBuilder
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

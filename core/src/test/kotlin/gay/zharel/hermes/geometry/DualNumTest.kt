@@ -1,5 +1,8 @@
 package gay.zharel.hermes.geometry
 
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.DualParameter
+import gay.zharel.hermes.math.TestParam
 import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.math.sqrt

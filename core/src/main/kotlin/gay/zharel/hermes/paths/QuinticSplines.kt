@@ -1,7 +1,7 @@
 package gay.zharel.hermes.paths
 
-import gay.zharel.hermes.geometry.DualNum
-import gay.zharel.hermes.geometry.Internal
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.Internal
 import gay.zharel.hermes.geometry.Vector2dDual
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

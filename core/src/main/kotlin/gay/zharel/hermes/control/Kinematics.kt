@@ -1,14 +1,14 @@
 package gay.zharel.hermes.control
 
-import gay.zharel.hermes.geometry.Arclength
-import gay.zharel.hermes.geometry.DualNum
-import gay.zharel.hermes.geometry.DualParameter
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.DualParameter
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.geometry.Twist2dDual
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.geometry.Vector2dDual
-import gay.zharel.hermes.geometry.atan2
+import gay.zharel.hermes.math.atan2
 import gay.zharel.hermes.paths.PosePath
 import gay.zharel.hermes.profiles.VelConstraint
 import kotlin.collections.forEach

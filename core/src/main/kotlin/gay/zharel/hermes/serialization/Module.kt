@@ -3,7 +3,7 @@
 
 package gay.zharel.hermes.serialization
 
-import gay.zharel.hermes.geometry.Arclength
+import gay.zharel.hermes.math.Arclength
 import gay.zharel.hermes.paths.*
 import gay.zharel.hermes.profiles.CancelableProfile
 import gay.zharel.hermes.profiles.DisplacementProfile

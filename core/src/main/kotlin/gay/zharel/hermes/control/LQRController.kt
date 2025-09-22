@@ -3,22 +3,19 @@
 package gay.zharel.hermes.control
 
 import gay.zharel.hermes.geometry.Acceleration2d
-import gay.zharel.hermes.geometry.DualNum
-import gay.zharel.hermes.geometry.DualParameter
-import gay.zharel.hermes.geometry.Matrix
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.DualParameter
+import gay.zharel.hermes.math.Matrix
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Pose2dDual
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Twist2d
 import gay.zharel.hermes.geometry.Twist2dDual
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.geometry.Vector2dDual
-import gay.zharel.hermes.geometry.makeBrysonMatrix
-import gay.zharel.hermes.geometry.times
-import gay.zharel.hermes.geometry.unaryMinus
-import org.ejml.simple.SimpleMatrix
+import gay.zharel.hermes.math.makeBrysonMatrix
 import kotlin.time.DurationUnit
 import kotlin.time.TimeSource
 
@@ -42,7 +39,7 @@ import kotlin.time.TimeSource
  * @see <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/state-space/state-space-intro.html#the-linear-quadratic-regulator">LQR in WPILib</a>
  */
 class LQRController : RobotPosVelController{
-    private val K: SimpleMatrix
+    private val K: Matrix
     private val dt: Double
     private val timeSource = TimeSource.Monotonic
     private var lastTimeStamp = timeSource.markNow()
@@ -79,15 +76,15 @@ class LQRController : RobotPosVelController{
         rAx: Double, rAy: Double, rAlpha: Double,
         dt: Double = 0.0303
     ) {
-        val A_cont = SimpleMatrix(6, 6)
-        A_cont.set(0, 3, 1.0) // d(delta_x)/dt = delta_vx
-        A_cont.set(1, 4, 1.0) // d(delta_y)/dt = delta_vy
-        A_cont.set(2, 5, 1.0) // d(delta_theta)/dt = delta_omega
+        val A_cont = Matrix.zero(6, 6)
+        A_cont[0, 3] = 1.0 // d(delta_x)/dt = delta_vx
+        A_cont[1, 4] = 1.0 // d(delta_y)/dt = delta_vy
+        A_cont[2, 5] = 1.0 // d(delta_theta)/dt = delta_omega
 
-        val B_cont = SimpleMatrix(6, 3)
-        B_cont.set(3, 0, 1.0) // d(delta_vx)/dt = ax_cmd
-        B_cont.set(4, 1, 1.0) // d(delta_vy)/dt = ay_cmd
-        B_cont.set(5, 2, 1.0) // d(delta_omega)/dt = alpha_cmd
+        val B_cont = Matrix.zero(6, 3)
+        B_cont[3, 0] = 1.0 // d(delta_vx)/dt = ax_cmd
+        B_cont[4, 1] = 1.0 // d(delta_vy)/dt = ay_cmd
+        B_cont[5, 2] = 1.0 // d(delta_omega)/dt = alpha_cmd
 
         // discretize continuous A and B matrices for DARE
         val (Ad, Bd) = discretizeSystem(A_cont, B_cont, dt)
@@ -95,7 +92,7 @@ class LQRController : RobotPosVelController{
         val Q = makeBrysonMatrix(qX, qY, qHeading, qVx, qVy, qOmega)
         val R = makeBrysonMatrix(rAx, rAy, rAlpha)
 
-        val (_, K) = computeLQRGain(Ad, Bd, Q.simple, R.simple)
+        val (_, K) = computeLQRGain(Ad, Bd, Q, R)
 
         this.K = K
         this.dt = dt
@@ -113,8 +110,6 @@ class LQRController : RobotPosVelController{
      * @param Q The state cost matrix.
      * @param R The control cost matrix.
      * @param dt The time step for the discrete-time model (your loop time)
-     * @param maxIter The maximum number of iterations for the DARE solver.
-     * @param epsilon The convergence tolerance for the DARE solver.
      */
     @JvmOverloads
     constructor(
@@ -128,9 +123,9 @@ class LQRController : RobotPosVelController{
         require(A.numRows == A.numColumns && A.numRows == Q.numRows && Q.numRows == Q.numColumns) { "A and Q must be square and match dimensions." }
         require(B.numRows == A.numRows && B.numColumns == R.numRows && R.numRows == R.numColumns) { "B and R must have compatible dimensions with A and each other." }
 
-        val (Ad, Bd) = discretizeSystem(A.simple, B.simple, dt)
+        val (Ad, Bd) = discretizeSystem(A, B, dt)
 
-        val (_, K) = computeLQRGain(Ad, Bd, Q.simple, R.simple)
+        val (_, K) = computeLQRGain(Ad, Bd, Q, R)
 
         this.K = K
         this.dt = dt
@@ -146,9 +141,9 @@ class LQRController : RobotPosVelController{
      * The matrix will have dimensions 3 x 1: [ax, ay, alpha].
      * */
     fun update(error: Matrix): Matrix {
-        require(error.numColumns == K.numCols)
+        require(error.numColumns == K.numColumns)
 
-        return Matrix(-K * error.simple)
+        return -K * error
     }
 
     /**
@@ -204,35 +199,35 @@ class LQRController : RobotPosVelController{
  * @author Zach Harel (Kotlin implementation)
  */
 internal fun solveDARE(
-    Ad: SimpleMatrix, Bd: SimpleMatrix, Q: SimpleMatrix, R: SimpleMatrix,
+    Ad: Matrix, Bd: Matrix, Q: Matrix, R: Matrix,
     maxIter: Int = -1, epsilon: Double = 1e-6)
-: SimpleMatrix {
+: Matrix {
     // Initialize matrices
     var A_K = Ad.copy()
 
     // Calculate G_k = B * R^-1 * B^T using Cholesky decomposition
     // Equivalent to B * R.llt().solve(B.transpose())
-    var G_K = Bd * R.solve(Bd.transpose())
+    var G_K = Bd * R.solve(Bd.transpose)
 
     var H_K1 = Q.copy()
-    var H_K: SimpleMatrix
+    var H_K: Matrix
 
     var i = 0
 
     do {
         H_K = H_K1.copy()
 
-        val W = SimpleMatrix.identity(H_K.numRows) + G_K * H_K
+        val W = Matrix.identity(H_K.numRows) + G_K * H_K
 
         val v1 = W.solve(A_K)
-        val v2 = W.solve(G_K.transpose()).transpose()
+        val v2 = W.solve(G_K.transpose).transpose
 
-        G_K = (G_K + A_K * v2 * A_K.transpose())
+        G_K = (G_K + A_K * v2 * A_K.transpose)
 
-        H_K1 += v1.transpose() * H_K * A_K
+        H_K1 += v1.transpose * H_K * A_K
 
         A_K *= v1
-    } while ((H_K1 - H_K).normF() > epsilon * H_K1.normF() && (maxIter < 0 || i++ < maxIter))
+    } while ((H_K1 - H_K).norm > epsilon * H_K1.norm && (maxIter < 0 || i++ < maxIter))
 
     return H_K1
 }
@@ -243,14 +238,14 @@ internal fun solveDARE(
  * @return Pair of DARE solution X and K.
  */
 internal fun computeLQRGain(
-    Ad: SimpleMatrix, Bd: SimpleMatrix, Q: SimpleMatrix, R: SimpleMatrix,
+    Ad: Matrix, Bd: Matrix, Q: Matrix, R: Matrix,
     maxIter: Int = -1, epsilon: Double = 1e-6
-): Pair<SimpleMatrix, SimpleMatrix> {
+): Pair<Matrix, Matrix> {
     val X = solveDARE(Ad, Bd, Q, R, maxIter, epsilon)
 
-    val btx = Bd.transpose() * X
+    val btx = Bd.transpose * X
     val btxb = btx * Bd
-    val K = (R + btxb).invert() * btx * Ad
+    val K = (R + btxb).inverse * btx * Ad
 
     return X to K
 }
@@ -261,10 +256,10 @@ internal fun computeLQRGain(
  * Ad = e^(A*dt)
  * Bd = (∫ e^(Aτ) dτ from 0 to dt) * B ≈ (I*dt + A*dt²/2! + ...) * B
  */
-internal fun discretizeSystem(A: SimpleMatrix, B: SimpleMatrix, dt: Double, taylorTerms: Int = 10): Pair<SimpleMatrix, SimpleMatrix> {
+internal fun discretizeSystem(A: Matrix, B: Matrix, dt: Double, taylorTerms: Int = 10): Pair<Matrix, Matrix> {
     val n = A.numRows
-    var Ad = SimpleMatrix.identity(n)
-    var Bd_integral = SimpleMatrix.identity(n).times(dt) // Start with I*dt
+    var Ad = Matrix.identity(n)
+    var Bd_integral = Matrix.identity(n).times(dt) // Start with I*dt
 
     var APowerDt = A.times(dt)
     var dtPower = dt

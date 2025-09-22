@@ -1,7 +1,7 @@
 package gay.zharel.hermes
 
-import gay.zharel.hermes.geometry.DualNum
-import gay.zharel.hermes.geometry.DualParameter
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.DualParameter
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Rotation2d
 import gay.zharel.hermes.geometry.Vector2d

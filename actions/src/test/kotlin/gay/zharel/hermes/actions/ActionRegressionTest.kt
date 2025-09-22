@@ -1,14 +1,10 @@
 package gay.zharel.hermes.actions
 
-import com.acmerobotics.dashboard.canvas.Canvas
-import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import gay.zharel.hermes.TEST_TRAJECTORY_BUILDER_PARAMS
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Rotation2d
 import gay.zharel.hermes.profiles.ProfileAccelConstraint
 import gay.zharel.hermes.profiles.TranslationalVelConstraint
-import gay.zharel.hermes.trajectories.TimeTrajectory
-import gay.zharel.hermes.trajectories.TimeTurn
 import gay.zharel.hermes.trajectories.TurnConstraints
 import java.io.File
 import java.io.PrintWriter
@@ -18,7 +14,6 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFails
 import kotlin.test.assertFalse
-import kotlin.time.DurationUnit
 
 class ActionRegressionTest {
     companion object {

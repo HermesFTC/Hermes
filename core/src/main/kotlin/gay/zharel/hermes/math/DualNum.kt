@@ -1,5 +1,7 @@
-package gay.zharel.hermes.geometry
+package gay.zharel.hermes.math
 
+import gay.zharel.hermes.geometry.Vector2d
+import gay.zharel.hermes.geometry.Vector2dDual
 import kotlinx.serialization.Serializable
 import kotlin.math.atan2
 import kotlin.math.min

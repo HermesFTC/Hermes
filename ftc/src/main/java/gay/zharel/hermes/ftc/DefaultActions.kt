@@ -8,8 +8,6 @@ import gay.zharel.hermes.actions.drawPoseHistory
 import gay.zharel.hermes.actions.drawRobot
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.Vector2d
-import gay.zharel.hermes.geometry.xs
-import gay.zharel.hermes.geometry.ys
 import gay.zharel.hermes.paths.PosePath
 import gay.zharel.hermes.profiles.AccelConstraint
 import gay.zharel.hermes.profiles.VelConstraint

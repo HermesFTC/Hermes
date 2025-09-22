@@ -1,6 +1,6 @@
 package gay.zharel.hermes.profiles
 
-import gay.zharel.hermes.geometry.rangeCentered
+import gay.zharel.hermes.math.rangeCentered
 import kotlin.math.ceil
 import kotlin.math.max
 

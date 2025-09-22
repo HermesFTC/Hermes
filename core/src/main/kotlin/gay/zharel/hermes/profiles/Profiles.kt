@@ -2,7 +2,11 @@
 
 package gay.zharel.hermes.profiles
 
-import gay.zharel.hermes.geometry.*
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.Time
+import gay.zharel.hermes.math.integralScan
+import gay.zharel.hermes.math.lerpLookupMap
+import gay.zharel.hermes.math.rangeCentered
 import gay.zharel.hermes.paths.PosePath
 import kotlin.math.*
 

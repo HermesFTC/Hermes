@@ -1,6 +1,9 @@
 package gay.zharel.hermes.paths
 
 import gay.zharel.hermes.geometry.*
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.Internal
 import kotlinx.serialization.Serializable
 
 /**

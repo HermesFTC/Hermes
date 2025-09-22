@@ -1,7 +1,7 @@
 package gay.zharel.hermes.profiles
 
-import gay.zharel.hermes.geometry.DualNum
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.paths.PosePath
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

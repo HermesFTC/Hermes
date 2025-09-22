@@ -4,9 +4,9 @@ import gay.zharel.hermes.TEST_PROFILE_PARAMS
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.geometry.Rotation2d
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2d
-import gay.zharel.hermes.geometry.range
+import gay.zharel.hermes.math.range
 import gay.zharel.hermes.profiles.ProfileAccelConstraint
 import gay.zharel.hermes.paths.TangentPath
 import gay.zharel.hermes.profiles.TimeProfile

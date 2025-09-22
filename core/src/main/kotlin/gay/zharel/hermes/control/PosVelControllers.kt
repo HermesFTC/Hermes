@@ -1,14 +1,14 @@
 package gay.zharel.hermes.control
 
-import gay.zharel.hermes.geometry.Arclength
-import gay.zharel.hermes.geometry.DualNum
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.DualNum
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Pose2dDual
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2d
-import gay.zharel.hermes.geometry.snz
+import gay.zharel.hermes.math.snz
 import kotlin.math.sign
 import kotlin.math.sin
 import kotlin.math.sqrt

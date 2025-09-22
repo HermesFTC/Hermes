@@ -10,7 +10,7 @@ import gay.zharel.hermes.dualEqual
 import gay.zharel.hermes.dualPoseEqual
 import gay.zharel.hermes.geometry.Rotation2d
 import gay.zharel.hermes.geometry.Vector2d
-import gay.zharel.hermes.geometry.range
+import gay.zharel.hermes.math.range
 import gay.zharel.hermes.posPathSeqBuilder
 import gay.zharel.hermes.profiles.generatePathBasedForwardProfile
 import gay.zharel.hermes.randomAngle

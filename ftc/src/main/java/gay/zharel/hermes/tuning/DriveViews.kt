@@ -1,9 +1,9 @@
 package gay.zharel.hermes.tuning
 
 import gay.zharel.hermes.control.MecanumKinematics
-import gay.zharel.hermes.geometry.DualNum
+import gay.zharel.hermes.math.DualNum
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Twist2d
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.geometry.Vector2dDual

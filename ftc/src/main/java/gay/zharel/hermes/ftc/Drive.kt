@@ -4,7 +4,7 @@ import gay.zharel.hermes.control.RobotPosVelController
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.paths.PosePath
 import gay.zharel.hermes.profiles.AccelConstraint
 import gay.zharel.hermes.profiles.VelConstraint
