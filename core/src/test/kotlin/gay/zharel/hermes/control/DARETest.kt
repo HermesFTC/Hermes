@@ -21,11 +21,11 @@ fun assertDARESolution(
     eps: Double = 1e-6
 ) {
     val Y =
-        ((((A.transpose() * X) * A) - X) -
-                (((A.transpose() * X) * B) * (((B.transpose() * X) * B) + R).invert()) *
-                ((B.transpose() * X) * A)) + Q
+        ((((A.transpose * X) * A) - X) -
+                (((A.transpose * X) * B) * (((B.transpose * X) * B) + R).inverse) *
+                ((B.transpose * X) * A)) + Q
 
-    Y.normF() shouldBe (0.0 plusOrMinus eps)
+    Y.norm shouldBe (0.0 plusOrMinus eps)
 }
 
 class DARETest : FunSpec(
@@ -91,7 +91,7 @@ class DARETest : FunSpec(
                 // For unstable systems, it will still try to stabilize with minimal effort.
                 // This specific case might lead to K = 0 if the system is already stable
                 // and there's no incentive to move states from zero.
-                K.normF() shouldBe (0.0 plusOrMinus 1e-6) // Expect K to be very small or zero
+                K.norm shouldBe (0.0 plusOrMinus 1e-6) // Expect K to be very small or zero
             }
 
             test("solveDARE should handle very small epsilon for convergence") {

@@ -105,9 +105,11 @@ class Matrix internal constructor(internal val simple: SimpleMatrix) {
     @JvmField val size = numRows to numColumns
 
     /**
-     * Returns the transpose of this matrix.
+     * The transpose of this matrix.
      */
-    fun transpose() = Matrix(simple.transpose())
+    @get:JvmName("transpose")
+    val transpose: Matrix
+        get() = Matrix(simple.transpose())
 
     /**
      * Returns a copy of this matrix.
@@ -115,16 +117,29 @@ class Matrix internal constructor(internal val simple: SimpleMatrix) {
     fun copy() = Matrix(simple.copy())
 
     /**
-     * Returns the inverse of this matrix.
+     * The inverse of this matrix.
+     * The matrix must be square and invertible.
+     * If the matrix is not square, use [pseudoInverse] instead.
+     */
+    @get:JvmName("inverse")
+    val inverse: Matrix
+        get() = Matrix(simple.invert())
+
+    /**
+     * The pseudo-inverse of this matrix.
      * The matrix must be square and invertible.
      */
-    fun invert() = Matrix(simple.invert())
+    @get:JvmName("pseudoInverse")
+    val pseudoInverse: Matrix
+        get() = Matrix(simple.pseudoInverse())
 
     /**
      * Returns the Frobenius norm of this matrix.
      * The Frobenius norm is the square root of the sum of squares of all elements.
      */
-    fun normF() = simple.normF()
+    @get:JvmName("norm")
+    val norm: Double
+        get() = simple.normF()
 
     /**
      * Returns the matrix with all elements negated.
@@ -199,9 +214,7 @@ class Matrix internal constructor(internal val simple: SimpleMatrix) {
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-        other as Matrix
-        return simple.isIdentical(other.simple, 1e-6)
+        return other is Matrix && this.simple.isIdentical(other.simple, 1e-6)
     }
 
     override fun hashCode(): Int {

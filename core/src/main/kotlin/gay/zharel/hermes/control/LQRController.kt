@@ -16,8 +16,6 @@ import gay.zharel.hermes.geometry.Twist2dDual
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.geometry.Vector2dDual
 import gay.zharel.hermes.math.makeBrysonMatrix
-import gay.zharel.hermes.math.times
-import gay.zharel.hermes.math.unaryMinus
 import kotlin.time.DurationUnit
 import kotlin.time.TimeSource
 
@@ -209,7 +207,7 @@ internal fun solveDARE(
 
     // Calculate G_k = B * R^-1 * B^T using Cholesky decomposition
     // Equivalent to B * R.llt().solve(B.transpose())
-    var G_K = Bd * R.solve(Bd.transpose())
+    var G_K = Bd * R.solve(Bd.transpose)
 
     var H_K1 = Q.copy()
     var H_K: Matrix
@@ -222,14 +220,14 @@ internal fun solveDARE(
         val W = Matrix.identity(H_K.numRows) + G_K * H_K
 
         val v1 = W.solve(A_K)
-        val v2 = W.solve(G_K.transpose()).transpose()
+        val v2 = W.solve(G_K.transpose).transpose
 
-        G_K = (G_K + A_K * v2 * A_K.transpose())
+        G_K = (G_K + A_K * v2 * A_K.transpose)
 
-        H_K1 += v1.transpose() * H_K * A_K
+        H_K1 += v1.transpose * H_K * A_K
 
         A_K *= v1
-    } while ((H_K1 - H_K).normF() > epsilon * H_K1.normF() && (maxIter < 0 || i++ < maxIter))
+    } while ((H_K1 - H_K).norm > epsilon * H_K1.norm && (maxIter < 0 || i++ < maxIter))
 
     return H_K1
 }
@@ -245,9 +243,9 @@ internal fun computeLQRGain(
 ): Pair<Matrix, Matrix> {
     val X = solveDARE(Ad, Bd, Q, R, maxIter, epsilon)
 
-    val btx = Bd.transpose() * X
+    val btx = Bd.transpose * X
     val btxb = btx * Bd
-    val K = (R + btxb).invert() * btx * Ad
+    val K = (R + btxb).inverse * btx * Ad
 
     return X to K
 }
