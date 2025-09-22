@@ -4,31 +4,26 @@ package gay.zharel.hermes.control
 import gay.zharel.hermes.beSymmetric
 import gay.zharel.hermes.hasInfinite
 import gay.zharel.hermes.hasNaN
+import gay.zharel.hermes.math.Matrix
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.doubles.plusOrMinus
 import io.kotest.matchers.should
 import io.kotest.matchers.shouldBe
-import org.ejml.data.MatrixType
 import org.ejml.data.SingularMatrixException
-import org.ejml.simple.SimpleMatrix
 
 fun assertDARESolution(
-    A: SimpleMatrix,
-    B: SimpleMatrix,
-    Q: SimpleMatrix,
-    R: SimpleMatrix,
-    X: SimpleMatrix,
+    A: Matrix,
+    B: Matrix,
+    Q: Matrix,
+    R: Matrix,
+    X: Matrix,
     eps: Double = 1e-6
 ) {
-    val Y = (A.transpose().mult(X).mult(A))
-        .minus(X)
-        .minus(
-            (A.transpose().mult(X).mult(B))
-                .mult((B.transpose().mult(X).mult(B).plus(R)).invert())
-                .mult(B.transpose().mult(X).mult(A)),
-        )
-        .plus(Q);
+    val Y =
+        ((((A.transpose() * X) * A) - X) -
+                (((A.transpose() * X) * B) * (((B.transpose() * X) * B) + R).invert()) *
+                ((B.transpose() * X) * A)) + Q
 
     Y.normF() shouldBe (0.0 plusOrMinus eps)
 }
@@ -41,26 +36,28 @@ class DARETest : FunSpec(
                 // This is a more complex scenario, so we'll primarily check for convergence and that the DARE equation holds.
 
                 val dt = 0.02
-                val A_cont = SimpleMatrix(6, 6)
-                A_cont.set(0, 3, 1.0)
-                A_cont.set(1, 4, 1.0)
-                A_cont.set(2, 5, 1.0)
+                val A_cont = Matrix.zero(6, 6).also {
+                    it[0, 3] = 1.0
+                    it[1, 4] = 1.0
+                    it[2, 5] = 1.0
+                }
 
-                val B_cont = SimpleMatrix(6, 3)
-                B_cont.set(3, 0, 1.0)
-                B_cont.set(4, 1, 1.0)
-                B_cont.set(5, 2, 1.0)
+                val B_cont = Matrix.zero(6, 3).also {
+                    it[3, 0] = 1.0
+                    it[4, 1] = 1.0
+                    it[5, 2] = 1.0
+                }
 
-                val Q = SimpleMatrix.diag(100.0, 100.0, 50.0, 10.0, 10.0, 5.0)
-                val R = SimpleMatrix.diag(0.1, 0.1, 0.05)
+                val Q = Matrix.diagonal(100.0, 100.0, 50.0, 10.0, 10.0, 5.0)
+                val R = Matrix.diagonal(0.1, 0.1, 0.05)
 
                 val (Ad, Bd) = discretizeSystem(A_cont, B_cont, dt)
 
                 val (_, K) = computeLQRGain(Ad, Bd, Q, R, maxIter = 500, epsilon = 1e-7)
 
                 // Verify K has correct dimensions (num_inputs x num_states)
-                K.numRows shouldBe B_cont.numCols
-                K.numCols shouldBe A_cont.numRows
+                K.numRows shouldBe B_cont.numColumns
+                K.numColumns shouldBe A_cont.numRows
 
                 // Optionally, re-calculate P using K, and then verify P satisfies DARE
                 // (This would be redundant if solveDARE already guarantees the P it used is correct)
@@ -79,10 +76,13 @@ class DARETest : FunSpec(
             }
 
             test("solveDARE should handle zero Q and R (edge case)") {
-                val Ad = SimpleMatrix(2, 2, true, 0.9, 0.1, 0.0, 0.8)
-                val Bd = SimpleMatrix(2, 1, true, 0.1, 1.0)
-                val Q = SimpleMatrix(2, 2, MatrixType.DDRM) // All zeros
-                val R = SimpleMatrix.identity(1) // R must be positive definite, so cannot be zero
+                val Ad = Matrix(arrayOf(
+                    doubleArrayOf(0.9, 0.1),
+                    doubleArrayOf(0.0, 0.8)
+                ))
+                val Bd = Matrix.column(0.1, 1.0)
+                val Q = Matrix.zero(2) // All zeros
+                val R = Matrix.identity(1) // R must be positive definite, so cannot be zero
 
                 val (_, K) = computeLQRGain(Ad, Bd, Q, R)
 
@@ -95,10 +95,16 @@ class DARETest : FunSpec(
             }
 
             test("solveDARE should handle very small epsilon for convergence") {
-                val Ad = SimpleMatrix(2, 2, true, 0.9, 0.1, 0.0, 0.8)
-                val Bd = SimpleMatrix(2, 1, true, 0.1, 1.0)
-                val Q = SimpleMatrix.identity(2).scale(0.1)
-                val R = SimpleMatrix.identity(1).scale(0.1)
+                val Ad = Matrix(arrayOf(
+                    doubleArrayOf(0.9, 0.1),
+                    doubleArrayOf(0.0, 0.8)
+                ))
+                val Bd = Matrix(arrayOf(
+                    doubleArrayOf(0.1),
+                    doubleArrayOf(1.0)
+                ))
+                val Q = Matrix.identity(2) * (0.1)
+                val R = Matrix.identity(1) * (0.1)
 
                 // Expect it to converge within maxIter even with small epsilon
                 val (_, K) = computeLQRGain(Ad, Bd, Q, R, maxIter = 1000, epsilon = 1e-9)
@@ -108,10 +114,16 @@ class DARETest : FunSpec(
             }
 
             test("solveDARE should throw error if R is not invertible (not positive definite)") {
-                val Ad = SimpleMatrix(2, 2, true, 0.9, 0.1, 0.0, 0.8)
-                val Bd = SimpleMatrix(2, 1, true, 0.1, 1.0)
-                val Q = SimpleMatrix.identity(2)
-                val R = SimpleMatrix(1, 1, MatrixType.DDRM) // R is zero, not invertible
+                val Ad = Matrix(arrayOf(
+                    doubleArrayOf(0.9, 0.1),
+                    doubleArrayOf(0.0, 0.8)
+                ))
+                val Bd = Matrix(arrayOf(
+                    doubleArrayOf(0.1),
+                    doubleArrayOf(1.0)
+                ))
+                val Q = Matrix.identity(2)
+                val R = Matrix.zero(1)
 
                 // R must be positive definite for LQR.
                 shouldThrow<SingularMatrixException> { solveDARE(Ad, Bd, Q, R) }
@@ -120,15 +132,17 @@ class DARETest : FunSpec(
 
         context("actual content tests from wpilib") {
             test("non invertible A") {
-                val Ad = SimpleMatrix(
-                    4, 4, true,
-                    0.5, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
-                )
-                val Bd = SimpleMatrix(4, 1, true, 0.0, 0.0, 0.0, 1.0)
-                val Q = SimpleMatrix(4, 4, MatrixType.DDRM).also {
+                val Ad = Matrix(arrayOf(
+                    doubleArrayOf(0.5, 1.0, 0.0, 0.0),
+                    doubleArrayOf(0.0, 0.0, 1.0, 0.0),
+                    doubleArrayOf(0.0, 0.0, 0.0, 1.0),
+                    doubleArrayOf(0.0, 0.0, 0.0, 0.0)
+                ))
+                val Bd = Matrix.column(0.0, 0.0, 0.0, 1.0)
+                val Q = Matrix.zero(4).also {
                     it[0, 0] = 1.0
                 }
-                val R = SimpleMatrix(1, 1, true, 0.625)
+                val R = Matrix.row(0.625)
 
                 val P = solveDARE(Ad, Bd, Q, R, 10)
 
@@ -138,10 +152,14 @@ class DARETest : FunSpec(
             }
 
             test("invertible A") {
-                val A = SimpleMatrix(2, 2, true, 1.0, 1.0, 0.0, 1.0)
-                val B = SimpleMatrix(2, 1, true, 0.0, 1.0)
-                val Q = SimpleMatrix(2, 2, true, 1.0, 0.0, 0.0, 0.0)
-                val R = SimpleMatrix(1, 1, true, 0.3)
+                val A = Matrix.identity(2).also {
+                    it[0, 1] = 1.0
+                }
+                val B = Matrix.column(0.0, 1.0)
+                val Q = Matrix.zero(2).also {
+                    it[0, 0] = 1.0
+                }
+                val R = Matrix.row(0.3)
 
                 val P = solveDARE(A, B, Q, R, 100)
 
