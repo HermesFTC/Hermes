@@ -1,6 +1,6 @@
 package gay.zharel.hermes.tuning
 
-import gay.zharel.hermes.geometry.lerp
+import gay.zharel.hermes.math.lerp
 import kotlinx.serialization.Serializable
 import java.util.LinkedList
 import java.util.Queue
