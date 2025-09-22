@@ -25,7 +25,7 @@ import gay.zharel.hermes.trajectories.TurnConstraints
 import java.util.*
 
 class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
-    class Params {
+    object PARAMS {
         // IMU orientation
         // TODO: fill in these values based on
         //   see https://ftc-docs.firstinspires.org/en/latest/programming_resources/imu/imu.html?highlight=imu#physical-hub-mounting
@@ -255,9 +255,5 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
 
     override fun trajectoryBuilder(): TrajectoryBuilder {
         return trajectoryBuilder(localizer.pose)
-    }
-
-    companion object {
-        var PARAMS: Params = Params()
     }
 }
