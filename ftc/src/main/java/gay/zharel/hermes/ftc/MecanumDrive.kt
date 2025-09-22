@@ -1,5 +1,6 @@
-package org.firstinspires.ftc.teamcode
+package gay.zharel.hermes.ftc
 
+import com.acmerobotics.dashboard.canvas.Canvas
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
@@ -9,7 +10,6 @@ import gay.zharel.hermes.control.HolonomicController
 import gay.zharel.hermes.control.MecanumKinematics
 import gay.zharel.hermes.control.MotorFeedforward
 import gay.zharel.hermes.control.WheelVelConstraint
-import gay.zharel.hermes.ftc.*
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
@@ -201,7 +201,7 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         return vel
     }
 
-    private fun drawPoseHistory(c: com.acmerobotics.dashboard.canvas.Canvas) {
+    private fun drawPoseHistory(c: Canvas) {
         val xPoints = DoubleArray(poseHistory.size)
         val yPoints = DoubleArray(poseHistory.size)
 
