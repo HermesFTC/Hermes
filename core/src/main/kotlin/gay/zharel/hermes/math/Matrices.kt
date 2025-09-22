@@ -16,16 +16,16 @@ internal operator fun Double.times(other: SimpleMatrix): SimpleMatrix = other.ti
  * Represents a matrix of doubles.
  * Internally represented as a SimpleMatrix from EJML.
  */
-class Matrix(data: Array<DoubleArray>) {
+class Matrix internal constructor(internal val simple: SimpleMatrix) {
+    /**
+     * Constructor to create a [Matrix] from a 2D array.
+     */
+    constructor(data: Array<DoubleArray>) : this(SimpleMatrix(data))
+
     /**
      * Constructor to create a [Matrix] from a list of lists.
      */
     constructor(data: Collection<Collection<Double>>) : this(data.map { it.toDoubleArray() }.toTypedArray())
-
-    /**
-     * Internal constructor to create a [Matrix] from an EJML [SimpleMatrix].
-     */
-    internal constructor(matrix: SimpleMatrix) : this(matrix.toArray2())
 
     companion object {
         /**
@@ -87,8 +87,6 @@ class Matrix(data: Array<DoubleArray>) {
         fun column(data: Collection<Double>) = column(*data.toDoubleArray())
     }
 
-    internal val simple = SimpleMatrix(data)
-
     /**
      * The number of columns in the matrix.
      */
@@ -111,6 +109,22 @@ class Matrix(data: Array<DoubleArray>) {
      */
     fun transpose() = Matrix(simple.transpose())
 
+    /**
+     * Returns a copy of this matrix.
+     */
+    fun copy() = Matrix(simple.copy())
+
+    /**
+     * Returns the inverse of this matrix.
+     * The matrix must be square and invertible.
+     */
+    fun invert() = Matrix(simple.invert())
+
+    /**
+     * Returns the Frobenius norm of this matrix.
+     * The Frobenius norm is the square root of the sum of squares of all elements.
+     */
+    fun normF() = simple.normF()
 
     /**
      * Returns the matrix with all elements negated.
