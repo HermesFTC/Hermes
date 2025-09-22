@@ -3,7 +3,7 @@ package gay.zharel.hermes.logs
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.geometry.Time
-import gay.zharel.hermes.hardware.PositionVelocityPair
+import gay.zharel.hermes.ftc.PositionVelocityPair
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles

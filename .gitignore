@@ -19,8 +19,6 @@ videos
 
 playground
 
-*.html
-
 local.properties
 /.junie/
 
@@ -29,3 +27,29 @@ ftc/src/main/assets/
 bin
 
 core/output.json
+
+# frontend config
+
+# dependencies
+hermes-frontend/node_modules
+hermes-frontend/.pnp
+hermes-frontend/.pnp.js
+
+# testing
+hermes-frontend/coverage
+
+# production
+hermes-frontend/dist
+
+# misc
+hermes-frontend/.DS_Store
+hermes-frontend/.env.local
+hermes-frontend/.env.development.local
+hermes-frontend/.env.test.local
+hermes-frontend/.env.production.local
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+.eslintcache
