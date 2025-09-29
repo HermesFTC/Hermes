@@ -22,16 +22,13 @@ import gay.zharel.hermes.profiles.*
 import gay.zharel.hermes.trajectories.TrajectoryBuilder
 import gay.zharel.hermes.trajectories.TrajectoryBuilderParams
 import gay.zharel.hermes.trajectories.TurnConstraints
-import gay.zharel.hermes.tuning.FeedforwardParameters
 import gay.zharel.hermes.tuning.HermesConfig
 import gay.zharel.hermes.tuning.MecanumParameters
 import gay.zharel.hermes.tuning.TuningLocalizerFactory
-import gay.zharel.hermes.tuning.VoltageCache
 import java.util.*
 
 class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
-    object PARAMS {
-    class Params {
+    object Params {
         private val feedforwardConfig get() = HermesConfig.config.feedforward
 
         // IMU orientation
@@ -71,23 +68,23 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
     }
 
     val kinematics: MecanumKinematics = MecanumKinematics(
-        PARAMS.inPerTick * PARAMS.trackWidthTicks, PARAMS.inPerTick / PARAMS.lateralInPerTick
+        Params.inPerTick * Params.trackWidthTicks, Params.inPerTick / Params.lateralInPerTick
     )
 
 
     override val defaultTurnConstraints: TurnConstraints = TurnConstraints(
-        PARAMS.maxAngVel, -PARAMS.maxAngAccel, PARAMS.maxAngAccel
+        Params.maxAngVel, -Params.maxAngAccel, Params.maxAngAccel
     )
 
     override val defaultVelConstraint: VelConstraint = MinVelConstraint(
         listOf(
-            WheelVelConstraint(kinematics, PARAMS.maxWheelVel),
-            AngularVelConstraint(PARAMS.maxAngVel)
+            WheelVelConstraint(kinematics, Params.maxWheelVel),
+            AngularVelConstraint(Params.maxAngVel)
         )
     )
 
     override val defaultAccelConstraint: AccelConstraint =
-        ProfileAccelConstraint(PARAMS.minProfileAccel, PARAMS.maxProfileAccel)
+        ProfileAccelConstraint(Params.minProfileAccel, Params.maxProfileAccel)
 
     override val followerParams: FollowerParams = FollowerParams(
         ProfileParams(
@@ -131,8 +128,8 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         val imu = (hardwareMap["imu"] as IMU).also {
             it.initialize(IMU.Parameters(
                 RevHubOrientationOnRobot(
-                    PARAMS.logoFacingDirection,
-                    PARAMS.usbFacingDirection
+                    Params.logoFacingDirection,
+                    Params.usbFacingDirection
                 )
             ))
         }
@@ -140,11 +137,11 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         voltageSensor = hardwareMap.voltageSensor.iterator().next()
 
         controller = HolonomicController(
-            PARAMS.axialGain, PARAMS.lateralGain, PARAMS.headingGain,
-            PARAMS.axialVelGain, PARAMS.lateralVelGain, PARAMS.headingVelGain
+            Params.axialGain, Params.lateralGain, Params.headingGain,
+            Params.axialVelGain, Params.lateralVelGain, Params.headingVelGain
         )
 
-        FlightRecorder.write("MECANUM_PARAMS", PARAMS)
+        FlightRecorder.write("MECANUM_PARAMS", Params)
     }
 
     override fun setDrivePowers(powers: PoseVelocity2dDual<Time>) {
@@ -166,8 +163,8 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         val voltage = voltageSensor.voltage
 
         val feedforward = MotorFeedforward(
-            PARAMS.kS,
-            PARAMS.kV / PARAMS.inPerTick, PARAMS.kA / PARAMS.inPerTick
+            Params.kS,
+            Params.kV / Params.inPerTick, Params.kA / Params.inPerTick
         )
         val leftFrontPower: Double = feedforward.compute(wheelVels.leftFront) / voltage
         val leftBackPower: Double = feedforward.compute(wheelVels.leftBack) / voltage
