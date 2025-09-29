@@ -21,6 +21,7 @@ data class RobotConfig(
 object DummyParameters : LocalizerParameters, DriveParameters, DriveFeedforwardParameters {
     override var translational: FeedforwardParameters = error("no")
     override var rotational: FeedforwardParameters = error("no")
+    override var inPerTick: Double = error("no")
 }
 
 sealed interface DriveParameters
@@ -103,16 +104,20 @@ data class FeedforwardParameters(
     operator fun invoke() = MotorFeedforward(kStatic, kV, kA)
 }
 
-sealed interface LocalizerParameters
+sealed interface LocalizerParameters {
+    val inPerTick: Double
+}
 
 @Serializable
 @SerialName("CustomLocalizer")
-object CustomLocalizer : LocalizerParameters
+object CustomLocalizer : LocalizerParameters {
+    override var inPerTick: Double = 0.0
+}
 
 @Serializable
 @SerialName("PinpointParameters")
 data class PinpointParameters(
-    var inPerTick: Double = 1.0,
+    override var inPerTick: Double = 1.0,
     var name: String = "pinpoint",
     var parYTicks: Double = 0.0,
     var perpXTicks: Double = 0.0,
