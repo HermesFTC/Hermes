@@ -22,10 +22,18 @@ import gay.zharel.hermes.profiles.*
 import gay.zharel.hermes.trajectories.TrajectoryBuilder
 import gay.zharel.hermes.trajectories.TrajectoryBuilderParams
 import gay.zharel.hermes.trajectories.TurnConstraints
+import gay.zharel.hermes.tuning.FeedforwardParameters
+import gay.zharel.hermes.tuning.HermesConfig
+import gay.zharel.hermes.tuning.MecanumParameters
+import gay.zharel.hermes.tuning.TuningLocalizerFactory
+import gay.zharel.hermes.tuning.VoltageCache
 import java.util.*
 
 class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
     object PARAMS {
+    class Params {
+        private val feedforwardConfig get() = HermesConfig.config.feedforward
+
         // IMU orientation
         // TODO: fill in these values based on
         //   see https://ftc-docs.firstinspires.org/en/latest/programming_resources/imu/imu.html?highlight=imu#physical-hub-mounting
@@ -39,9 +47,9 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         var trackWidthTicks: Double = 0.0
 
         // feedforward parameters (in tick units)
-        var kS: Double = 0.0
-        var kV: Double = 0.0
-        var kA: Double = 0.0
+        var kS: Double = feedforwardConfig.translational.kStatic
+        var kV: Double = feedforwardConfig.translational.kV
+        var kA: Double = feedforwardConfig.translational.kA
 
         // path profile parameters (in inches)
         var maxWheelVel: Double = 50.0
@@ -88,14 +96,18 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         defaultVelConstraint, defaultAccelConstraint
     )
 
-    val leftFront: DcMotorEx
-    val leftBack: DcMotorEx
-    val rightBack: DcMotorEx
-    val rightFront: DcMotorEx
+    private val driveConfig get() = HermesConfig.config.drive as MecanumParameters
+
+    val leftFront: DcMotorEx = driveConfig.leftFront.toDcMotorEx(hardwareMap)
+    val leftBack: DcMotorEx = driveConfig.leftBack.toDcMotorEx(hardwareMap)
+    val rightBack: DcMotorEx = driveConfig.rightBack.toDcMotorEx(hardwareMap)
+    val rightFront: DcMotorEx = driveConfig.rightFront.toDcMotorEx(hardwareMap)
 
     val voltageSensor: VoltageSensor
 
-    override val localizer: Localizer
+    // if you would like to use a custom localizer, overwrite this line with your own.
+    override val localizer: Localizer = TuningLocalizerFactory.make(hardwareMap)
+
     override val controller: HolonomicController
     private val poseHistory: LinkedList<Pose2d> = LinkedList<Pose2d>()
 
@@ -109,20 +121,10 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
             module.setBulkCachingMode(LynxModule.BulkCachingMode.AUTO)
         }
 
-        // TODO: make sure your config has motors with these names (or change them)
-        //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        leftFront = hardwareMap.get(DcMotorEx::class.java, "leftFront")
-        leftBack = hardwareMap.get(DcMotorEx::class.java, "leftBack")
-        rightBack = hardwareMap.get(DcMotorEx::class.java, "rightBack")
-        rightFront = hardwareMap.get(DcMotorEx::class.java, "rightFront")
-
         leftFront.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         leftBack.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         rightBack.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         rightFront.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-        // TODO: reverse motor directions if needed
-        //   leftFront.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
         //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
@@ -136,10 +138,6 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         }
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next()
-
-        localizer = MecanumDriveLocalizer(hardwareMap, PARAMS.inPerTick, imu, kinematics)
-            .fromMotors(leftFront, leftBack, rightFront, rightBack)
-            .withInitialPose(pose)
 
         controller = HolonomicController(
             PARAMS.axialGain, PARAMS.lateralGain, PARAMS.headingGain,
