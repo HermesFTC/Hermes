@@ -25,11 +25,11 @@ import gay.zharel.hermes.trajectories.TurnConstraints
 import gay.zharel.hermes.tuning.HermesConfig
 import gay.zharel.hermes.tuning.MecanumParameters
 import gay.zharel.hermes.tuning.TuningLocalizerFactory
-import java.util.*
 
-class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
+class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pose2d = Pose2d.zero) : Drive {
     object Params {
-        private val feedforwardConfig get() = HermesConfig.config.feedforward
+        internal val driveConfig get() = HermesConfig.config.drive as MecanumParameters
+        internal val feedforwardConfig get() = HermesConfig.config.feedforward
 
         // IMU orientation
         // TODO: fill in these values based on
@@ -39,7 +39,7 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
 
         // drive model parameters
-        var inPerTick: Double = 1.0
+        var inPerTick: Double = HermesConfig.config.localizer.inPerTick
         var lateralInPerTick: Double = inPerTick
         var trackWidthTicks: Double = 0.0
 
@@ -67,6 +67,11 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         var headingVelGain: Double = 0.0 // shared with turn
     }
 
+    val feedforward = MotorFeedforward(
+        Params.kS,
+        Params.kV / Params.inPerTick, Params.kA / Params.inPerTick
+    )
+
     val kinematics: MecanumKinematics = MecanumKinematics(
         Params.inPerTick * Params.trackWidthTicks, Params.inPerTick / Params.lateralInPerTick
     )
@@ -93,12 +98,10 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         defaultVelConstraint, defaultAccelConstraint
     )
 
-    private val driveConfig get() = HermesConfig.config.drive as MecanumParameters
-
-    val leftFront: DcMotorEx = driveConfig.leftFront.toDcMotorEx(hardwareMap)
-    val leftBack: DcMotorEx = driveConfig.leftBack.toDcMotorEx(hardwareMap)
-    val rightBack: DcMotorEx = driveConfig.rightBack.toDcMotorEx(hardwareMap)
-    val rightFront: DcMotorEx = driveConfig.rightFront.toDcMotorEx(hardwareMap)
+    val leftFront: DcMotorEx = Params.driveConfig.leftFront.toDcMotorEx(hardwareMap)
+    val leftBack: DcMotorEx = Params.driveConfig.leftBack.toDcMotorEx(hardwareMap)
+    val rightBack: DcMotorEx = Params.driveConfig.rightBack.toDcMotorEx(hardwareMap)
+    val rightFront: DcMotorEx = Params.driveConfig.rightFront.toDcMotorEx(hardwareMap)
 
     val voltageSensor: VoltageSensor
 
@@ -106,7 +109,7 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
     override val localizer: Localizer = TuningLocalizerFactory.make(hardwareMap)
 
     override val controller: HolonomicController
-    private val poseHistory: LinkedList<Pose2d> = LinkedList<Pose2d>()
+    private val poseHistory: ArrayDeque<Pose2d> = ArrayDeque()
 
     private val estimatedPoseWriter: DownsampledWriter = DownsampledWriter("ESTIMATED_POSE", 50000000)
     private val targetPoseWriter: DownsampledWriter = DownsampledWriter("TARGET_POSE", 50000000)
@@ -162,10 +165,6 @@ class MecanumDrive(hardwareMap: HardwareMap, pose: Pose2d) : Drive {
         val wheelVels: MecanumKinematics.MecanumWheelVelocities<Time> = kinematics.inverse(powers)
         val voltage = voltageSensor.voltage
 
-        val feedforward = MotorFeedforward(
-            Params.kS,
-            Params.kV / Params.inPerTick, Params.kA / Params.inPerTick
-        )
         val leftFrontPower: Double = feedforward.compute(wheelVels.leftFront) / voltage
         val leftBackPower: Double = feedforward.compute(wheelVels.leftBack) / voltage
         val rightBackPower: Double = feedforward.compute(wheelVels.rightBack) / voltage
