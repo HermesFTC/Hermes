@@ -56,16 +56,12 @@ data class MecanumKinematics @JvmOverloads constructor(
     @JvmField
     val trackWidth: Double,
     @JvmField
+    val wheelbase: Double,
+    @JvmField
     val lateralMultiplier: Double = 1.0
 ) : RobotKinematics<MecanumKinematics.MecanumWheelIncrements<*>, WheelVelocities<*>> {
-    /**
-     * @param[wheelbase] distance between wheels on the same side; see the diagram in [MecanumKinematics]
-     */
-    constructor(
-        trackWidth: Double,
-        wheelbase: Double,
-        lateralMultiplier: Double = 1.0
-    ) : this((trackWidth + wheelbase) / 2, lateralMultiplier)
+    // The effective radius for rotation is the average of trackWidth and wheelbase
+    private val effectiveRadius: Double = (trackWidth + wheelbase) / 2.0
 
     data class MecanumWheelIncrements<Param : DualParameter>(
         @JvmField
@@ -86,7 +82,7 @@ data class MecanumKinematics @JvmOverloads constructor(
                 (w.leftFront + w.leftBack + w.rightBack + w.rightFront) * 0.25,
                 (-w.leftFront + w.leftBack - w.rightBack + w.rightFront) * (0.25 / lateralMultiplier),
             ),
-            (-w.leftFront - w.leftBack + w.rightBack + w.rightFront) * (0.25 / trackWidth),
+            (-w.leftFront - w.leftBack + w.rightBack + w.rightFront) * (0.25 / effectiveRadius),
         )
     }
 
@@ -104,10 +100,10 @@ data class MecanumKinematics @JvmOverloads constructor(
     }
 
     override fun <Param : DualParameter> inverse(t: PoseVelocity2dDual<Param>) = MecanumWheelVelocities(
-        t.linearVel.x - t.linearVel.y * lateralMultiplier - t.angVel * trackWidth,
-        t.linearVel.x + t.linearVel.y * lateralMultiplier - t.angVel * trackWidth,
-        t.linearVel.x - t.linearVel.y * lateralMultiplier + t.angVel * trackWidth,
-        t.linearVel.x + t.linearVel.y * lateralMultiplier + t.angVel * trackWidth,
+        t.linearVel.x - t.linearVel.y * lateralMultiplier - t.angVel * effectiveRadius,
+        t.linearVel.x + t.linearVel.y * lateralMultiplier - t.angVel * effectiveRadius,
+        t.linearVel.x - t.linearVel.y * lateralMultiplier + t.angVel * effectiveRadius,
+        t.linearVel.x + t.linearVel.y * lateralMultiplier + t.angVel * effectiveRadius,
     )
 }
 
