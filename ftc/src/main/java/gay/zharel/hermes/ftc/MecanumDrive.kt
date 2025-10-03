@@ -31,17 +31,8 @@ class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pos
         internal val driveConfig get() = HermesConfig.config.drive as MecanumParameters
         internal val feedforwardConfig get() = HermesConfig.config.feedforward
 
-        // IMU orientation
-        // TODO: fill in these values based on
-        //   see https://ftc-docs.firstinspires.org/en/latest/programming_resources/imu/imu.html?highlight=imu#physical-hub-mounting
-        var logoFacingDirection: RevHubOrientationOnRobot.LogoFacingDirection =
-            RevHubOrientationOnRobot.LogoFacingDirection.UP
-        var usbFacingDirection: UsbFacingDirection = UsbFacingDirection.FORWARD
-
         // drive model parameters
         var inPerTick: Double = HermesConfig.config.localizer.inPerTick
-        var lateralInPerTick: Double = inPerTick
-        var trackWidthTicks: Double = 0.0
 
         // feedforward parameters (in tick units)
         var kS: Double = feedforwardConfig.translational.kStatic
@@ -73,7 +64,8 @@ class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pos
     )
 
     val kinematics: MecanumKinematics = MecanumKinematics(
-        Params.inPerTick * Params.trackWidthTicks, Params.inPerTick / Params.lateralInPerTick
+        Params.inPerTick * Params.driveConfig.trackWidth,
+        Params.inPerTick * Params.driveConfig.wheelBase,
     )
 
 
@@ -125,17 +117,6 @@ class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pos
         leftBack.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         rightBack.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         rightFront.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-
-        // TODO: make sure your config has an IMU with this name (can be BNO or BHI)
-        //   see https://ftc-docs.firstinspires.org/en/latest/hardware_and_software_configuration/configuring/index.html
-        val imu = (hardwareMap["imu"] as IMU).also {
-            it.initialize(IMU.Parameters(
-                RevHubOrientationOnRobot(
-                    Params.logoFacingDirection,
-                    Params.usbFacingDirection
-                )
-            ))
-        }
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next()
 
