@@ -48,8 +48,8 @@ class ComposeTest {
         (0..100).map {
             Random.nextDouble(0.0, composedTraj.length())
         }.sorted().forEach {
-            val composedPose = composedTraj[it].value()
-            val compositePose = compositeTraj[it].value()
+            val composedPose = composedTraj[it].pose
+            val compositePose = compositeTraj[it].pose
             println("disp $it, composed pose ${composedPose}, composite pose $compositePose")
             assertEquals(composedPose, compositePose)
         }
@@ -73,7 +73,7 @@ class ComposeTest {
         val samples = (0..100).map { Random.nextDouble(0.0, traj.length()) }.sorted()
 
         samples.forEach {
-            val pose = traj[it].value()
+            val pose = traj[it].pose
             println("disp $it, pose $pose")
         }
     }

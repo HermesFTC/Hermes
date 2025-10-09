@@ -4,6 +4,7 @@ package gay.zharel.hermes.trajectories
 import gay.zharel.hermes.math.Arclength
 import gay.zharel.hermes.math.DualParameter
 import gay.zharel.hermes.geometry.Pose2dDual
+import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.paths.CompositePosePath
@@ -24,9 +25,10 @@ interface Trajectory<Param : DualParameter> {
     fun length(): Double
     fun duration() = wrtTime().duration
 
+    operator fun get(param: Double): RobotState
 
-    operator fun get(param: Double): Pose2dDual<Time>
     fun start() = get(0.0)
+
     fun endWrtDisp() = wrtDisp()[length()]
     fun endWrtTime() = wrtTime()[duration().toDouble(DurationUnit.SECONDS)]
 
@@ -83,7 +85,8 @@ open class DisplacementTrajectory(
 
     override fun project(query: Vector2d, init: Double) = path.project(query, init)
 
-    override operator fun get(s: Double): Pose2dDual<Time> = path[s, 3].reparam(profile[s])
+    override operator fun get(s: Double): RobotState =
+        RobotState.fromDualPose(path[s, 3].reparam(profile[s]))
 }
 
 @Serializable
@@ -105,9 +108,9 @@ class TimeTrajectory(
 
     override fun length(): Double = path.length()
 
-    override operator fun get(t: Double): Pose2dDual<Time> {
+    override operator fun get(t: Double): RobotState {
         val s = profile[t]
-        return path[s.value(), 3].reparam(s)
+        return RobotState.fromDualPose(path[s.value(), 3].reparam(s))
     }
 
     override fun project(query: Vector2d, init: Double): Double = path.project(query, init)
@@ -137,9 +140,9 @@ class CompositeTrajectory @JvmOverloads constructor(
         }
     }
 
-    override fun get(s: Double): Pose2dDual<Time> {
+    override fun get(s: Double): RobotState {
         if (s > length) {
-            return Pose2dDual.Companion.constant(trajectories.last().path.end(1).value(), 3)
+            return RobotState.fromDualPose(Pose2dDual.Companion.constant(trajectories.last().path.end(1).value(), 3))
         }
 
         for ((offset, traj) in offsets.zip(trajectories).reversed()) {

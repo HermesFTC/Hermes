@@ -2,6 +2,7 @@ package gay.zharel.hermes.trajectories
 
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Pose2dDual
+import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.geometry.Rotation2dDual
 import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2dDual
@@ -49,9 +50,9 @@ class TimeTurn(
     @JvmField
     val reversed = angle < 0
 
-    operator fun get(t: Double): Pose2dDual<Time> {
+    operator fun get(t: Double): RobotState {
         val x = profile[t]
-        return Pose2dDual(
+        val dualPose = Pose2dDual<Time>(
             Vector2dDual.constant(beginPose.position, x.size()),
             Rotation2dDual.exp(
                 if (reversed) {
@@ -61,5 +62,6 @@ class TimeTurn(
                 }
             ) * beginPose.heading
         )
+        return RobotState.fromDualPose(dualPose)
     }
 }
