@@ -76,7 +76,7 @@ class MecanumDriveView(parameters: MecanumParameters, hardwareMap: HardwareMap) 
             rotationVoltage,
         ).map { it / VoltageCache.currentVoltage }
 
-        val wheelPowers = MecanumKinematics(1.0).inverse(
+        val wheelPowers = MecanumKinematics(1.0, 1.0).inverse(
             PoseVelocity2dDual(
                 Vector2dDual.Companion.constant<Time>(Vector2d(x, y), 1),
                 DualNum.Companion.constant<Time>(rotationVoltage, 1),
