@@ -59,8 +59,8 @@ class SerializerTest : FunSpec(
                 val actPose = actual[it]
                 val expPose = expected[it]
 
-                actPose.value() shouldBe expPose.value()
-                actPose.velocity().value() shouldBe expPose.velocity().value()
+                actPose.pose shouldBe expPose.pose
+                actPose.vel shouldBe expPose.vel
             }
         }
 
