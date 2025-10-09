@@ -24,7 +24,7 @@ class MecanumFollowerTest {
     fun testTimeFollower() {
         val dt = 1 / 25.0
 
-        val kinematics = MecanumKinematics(3.0)
+        val kinematics = MecanumKinematics(3.0, 3.0)
 
         val path = TangentPath(
             PositionPathSeqBuilder(
@@ -129,7 +129,7 @@ class MecanumFollowerTest {
     fun testDispFollower() {
         val dt = 1 / 25.0
 
-        val kinematics = MecanumKinematics(3.0)
+        val kinematics = MecanumKinematics(3.0, 3.0)
 
         val path = TangentPath(
             PositionPathSeqBuilder(

@@ -246,7 +246,7 @@ class ProfilesTest {
                     0.0,
                     MinVelConstraint(
                         listOf(
-                            WheelVelConstraint(MecanumKinematics(10.0), 10.0),
+                            WheelVelConstraint(MecanumKinematics(10.0, 10.0), 10.0),
                             AngularVelConstraint(10.0)
                         )
                     ),

@@ -22,7 +22,7 @@ import kotlin.test.assertEquals
 class KinematicsTest {
     @Test
     fun testMecKinematicsComposition() {
-        val kinematics = MecanumKinematics(10.0)
+        val kinematics = MecanumKinematics(10.0, 10.0)
 
         val r = Random.Default
         repeat(100) {
@@ -47,7 +47,7 @@ class KinematicsTest {
 
     @Test
     fun testMecWheelVelocityLimiting() {
-        val kinematics = MecanumKinematics(10.0)
+        val kinematics = MecanumKinematics(10.0, 10.0)
 
         val posPath = PositionPathSeqBuilder(
             Vector2d(0.0, 0.0),

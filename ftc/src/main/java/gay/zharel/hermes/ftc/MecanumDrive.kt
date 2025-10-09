@@ -13,7 +13,7 @@ import gay.zharel.hermes.control.WheelVelConstraint
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.geometry.Time
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.logs.DownsampledWriter
 import gay.zharel.hermes.logs.FlightRecorder
 import gay.zharel.hermes.logs.MecanumCommandMessage
