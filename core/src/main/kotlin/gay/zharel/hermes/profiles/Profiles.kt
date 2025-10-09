@@ -23,7 +23,33 @@ data class ProfileParams(
     val angSamplingEps: Double,
 )
 
+/**
+ * @usesMathJax
+ *
+ * Represents a motion profile that maps from one parameter space to time with derivatives.
+ *
+ * A profile defines how to traverse a path over time, typically encoding velocity and
+ * acceleration constraints.
+ * It maps from a displacement or other parameter \(x\) to
+ * time \(t\) along with time derivatives, enabling computation of velocities and accelerations.
+ *
+ * Profiles are essential for trajectory generation, converting geometric paths into
+ * time-parameterized trajectories that respect kinematic and dynamic constraints.
+ */
 interface Profile {
+    /**
+     * @usesMathJax
+     *
+     * Evaluates the profile at parameter \(x\) to obtain time and its derivatives.
+     *
+     * Returns a dual number containing:
+     * - Value: time \(t(x)\) at the given parameter
+     * - First derivative: \(dt/dx\) (inverse velocity with respect to the parameter)
+     * - Higher derivatives as applicable
+     *
+     * @param x The parameter value at which to evaluate the profile
+     * @return A [DualNum] of type [Time] containing time and its derivatives with respect to the parameter
+     */
     operator fun get(x: Double): DualNum<Time>
 }
 
@@ -45,5 +71,3 @@ fun samplePathByRotation(
         )
     )
 }
-
-

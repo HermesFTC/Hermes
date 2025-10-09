@@ -12,24 +12,80 @@ import kotlinx.serialization.Serializable
 /**
  * @usesMathJax
  *
- * Pose path \((x(s), y(s), \theta(s))\)
+ * Represents a parametric 2D pose path \((x(s), y(s), \theta(s))\) with automatic differentiation support.
+ *
+ * A pose path extends a position path by including heading/orientation information. The path
+ * is parameterized by arc length [Arclength] and can be evaluated to obtain pose (position + heading)
+ * and derivatives at any point along the path.
+ *
+ * Pose paths are fundamental building blocks for robot trajectory planning, as they define
+ * the spatial configuration the robot should follow.
  */
 interface PosePath {
+    /**
+     * @usesMathJax
+     *
+     * Evaluates the pose path at arc length \(s\) with derivatives up to order n.
+     *
+     * @param s The arc length parameter at which to evaluate the path
+     * @param n The number of derivatives to compute (0 for pose only, 1 for velocity, etc.)
+     * @return A [Pose2dDual] containing the pose and up to n derivatives with respect to arc length
+     */
     operator fun get(s: Double, n: Int): Pose2dDual<Arclength>
 
+    /**
+     * Returns the total arc length of the path.
+     */
     fun length(): Double
 
+    /**
+     * Evaluates the pose path at the beginning (arc length = 0).
+     *
+     * @param n The number of derivatives to compute
+     * @return The pose and derivatives at the start of the path
+     */
     fun begin(n: Int) = get(0.0, n)
+
+    /**
+     * Evaluates the pose path at the end (arc length = length).
+     *
+     * @param n The number of derivatives to compute
+     * @return The pose and derivatives at the end of the path
+     */
     fun end(n: Int) = get(length(), n)
 
+    /**
+     * Projects a query position onto the path using Newton's method.
+     *
+     * Finds the arc length parameter where the path's position component is closest
+     * to the query point. Note that this projection only considers position, not heading.
+     *
+     * @param query The 2D position to project onto the path
+     * @param init Initial guess for the arc length parameter (default: 0.0)
+     * @return The arc length parameter at the closest point on the path to the query
+     */
     fun project(query: Vector2d, init: Double = 0.0) = (1..10).fold(init) { s, _ ->
         val guess = this[s, 3].position.bind()
         val ds = (query - guess.value()) dot guess.drop(1).value()
         clamp(s + ds, 0.0, this.length())
     }
 
+    /**
+     * Applies a pose transformation map to this path.
+     *
+     * @param map The [PoseMap] transformation to apply
+     * @return A new [MappedPosePath] with the transformation applied
+     */
     fun map(map: PoseMap) = MappedPosePath(this, map)
 
+    /**
+     * Combines this path with another path to create a composite path.
+     *
+     * The resulting path will traverse this path first, then the other path.
+     *
+     * @param other The path to append after this one
+     * @return A [CompositePosePath] containing both paths in sequence
+     */
     operator fun plus(other: PosePath) = CompositePosePath(listOf(this, other))
 }
 

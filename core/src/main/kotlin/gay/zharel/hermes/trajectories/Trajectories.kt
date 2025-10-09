@@ -21,24 +21,95 @@ import kotlinx.serialization.Transient
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 
+/**
+ * @usesMathJax
+ *
+ * Represents a robot trajectory that combines a geometric path with a motion profile.
+ *
+ * A trajectory defines both the spatial path the robot follows and the timing/velocity
+ * profile for traversing that path. It can be parameterized by displacement ([Arclength])
+ * or time ([Time]), and provides conversions between these representations.
+ *
+ * Trajectories are the primary output of motion planning and can be queried to obtain
+ * the robot's desired state (position, heading, velocity, acceleration) at any point.
+ *
+ * @param Param The parameter type used to parameterize the trajectory (e.g., [Arclength], [Time])
+ */
 interface Trajectory<Param : DualParameter> {
+    /**
+     * Returns the total arc length of the trajectory.
+     */
     fun length(): Double
+
+    /**
+     * Returns the total time duration required to execute the trajectory.
+     */
     fun duration() = wrtTime().duration
 
+    /**
+     * Evaluates the trajectory at the given parameter value to obtain the robot state.
+     *
+     * @param param The parameter value (displacement or time) at which to evaluate
+     * @return The [RobotState] containing position, heading, velocities, and accelerations
+     */
     operator fun get(param: Double): RobotState
 
+    /**
+     * Returns the robot state at the start of the trajectory (parameter = 0).
+     */
     fun start() = get(0.0)
 
+    /**
+     * Returns the robot state at the end of the trajectory with respect to displacement.
+     */
     fun endWrtDisp() = wrtDisp()[length()]
+
+    /**
+     * Returns the robot state at the end of the trajectory with respect to time.
+     */
     fun endWrtTime() = wrtTime()[duration().toDouble(DurationUnit.SECONDS)]
 
+    /**
+     * Projects a query position onto the trajectory's path using Newton's method.
+     *
+     * Finds the parameter value where the trajectory's path is closest to the query point.
+     *
+     * @param query The 2D position to project onto the trajectory
+     * @param init Initial guess for the parameter value (default: 0.0)
+     * @return The parameter value at the closest point on the trajectory to the query
+     */
     fun project(query: Vector2d, init: Double): Double
 
+    /**
+     * Converts this trajectory to a displacement-parameterized representation.
+     *
+     * In displacement parameterization, the trajectory is indexed by arc length along the path.
+     */
     fun wrtDisp(): DisplacementTrajectory
+
+    /**
+     * Converts this trajectory to a time-parameterized representation.
+     *
+     * In time parameterization, the trajectory is indexed by elapsed time.
+     */
     fun wrtTime(): TimeTrajectory
 
+    /**
+     * Combines this trajectory with another trajectory to create a composite trajectory.
+     *
+     * The resulting trajectory will execute this trajectory first, then the other trajectory.
+     *
+     * @param other The trajectory to append after this one
+     */
     operator fun plus(other: Trajectory<Param>) = CompositeTrajectory(this, other)
 
+    /**
+     * Applies a pose transformation map to this trajectory.
+     *
+     * Transforms the trajectory's path using the given [PoseMap] while preserving the motion profile.
+     *
+     * @return A new [DisplacementTrajectory] with the transformation applied
+     */
     fun map(map: PoseMap) = wrtDisp().let {
         DisplacementTrajectory(
             MappedPosePath(it.path, map),
