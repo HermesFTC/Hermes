@@ -1,15 +1,14 @@
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.serialization)
 
     `java-library`
     `java-test-fixtures`
 
-    id("org.jetbrains.dokka")
+    alias(libs.plugins.dokka)
 
     `maven-publish`
     signing
-    id("io.deepmedia.tools.deployer")
 }
 
 repositories {
@@ -48,24 +47,8 @@ val dokkaJar = tasks.register<Jar>("dokkaJar") {
 
 deployer {
     projectInfo {
-        groupId.set("me.zharel.hermes")
         artifactId.set("core")
-
-        name.set("Hermes")
         description.set("A modern fork of RoadRunner.")
-        url.set("https://github.com/HermesFTC/Hermes")
-        scm {
-            fromGithub("HermesFTC", "Hermes")
-        }
-        license("MIT License", "https://opensource.org/license/mit")
-
-        developer("Zachary Harel", "ftc@zharel.me", url = "https://github.com/zachwaffle4")
-        developer("Ryan Brott", "rcbrott@gmail.com", url = "https://github.com/rbrott")
-    }
-
-    signing {
-        key.set(secret("MVN_GPG_KEY"))
-        password.set(secret("MVN_GPG_PASSWORD"))
     }
 
     content {
@@ -73,26 +56,5 @@ deployer {
             kotlinSources()
             docs(dokkaJar)
         }
-    }
-
-    localSpec {
-        release.version.set("$version")
-    }
-
-    nexusSpec("snapshot") {
-        release.version.set("$version")
-        repositoryUrl.set("https://central.sonatype.com/repository/maven-snapshots/")
-        auth {
-            user.set(secret("SONATYPE_USERNAME"))
-            password.set(secret("SONATYPE_PASSWORD"))
-        }
-    }
-
-    centralPortalSpec {
-        auth {
-            user.set(secret("SONATYPE_USERNAME"))
-            password.set(secret("SONATYPE_PASSWORD"))
-        }
-        allowMavenCentralSync.set((property("automaticMavenCentralSync") as String).toBoolean())
     }
 }
