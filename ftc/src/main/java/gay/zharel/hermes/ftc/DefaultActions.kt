@@ -8,6 +8,7 @@ import gay.zharel.hermes.actions.drawPoseHistory
 import gay.zharel.hermes.actions.drawRobot
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.Vector2d
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.paths.PosePath
 import gay.zharel.hermes.profiles.AccelConstraint
 import gay.zharel.hermes.profiles.VelConstraint
@@ -78,7 +79,8 @@ class TurnAction(
             return false
         }
 
-        val target = turn[t]
+        val targetState = turn[t]
+        val target = targetState.toDualPose<Time>()
         val robotVel = drive.localizer.update()
 
         val command = drive.controller.compute(

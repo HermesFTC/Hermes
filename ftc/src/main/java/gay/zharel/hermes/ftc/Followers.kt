@@ -50,7 +50,7 @@ fun interface EndCondition {
 
         @JvmStatic
         fun dispFromEnd(disp: Double) =
-            createEndCondition { trajectory.endWrtDisp().value().position.norm() < disp}
+            createEndCondition { trajectory.endWrtDisp().pose.position.norm() < disp}
 
         @JvmStatic
         fun robotVel(vel: Double) =
@@ -127,7 +127,7 @@ class DisplacementFollower @JvmOverloads constructor(
         endConditions
     )
 
-    override var currentTarget: Pose2d = trajectory[0.0].value()
+    override var currentTarget: Pose2d = trajectory[0.0].pose
         private set
     override var lastCommand: PoseVelocity2dDual<Time> = PoseVelocity2dDual.zero();
     override val timer: ElapsedTime = ElapsedTime()
@@ -142,7 +142,7 @@ class DisplacementFollower @JvmOverloads constructor(
         trajectory.length(),
         max(2, ceil(trajectory.length() / 2).toInt()),
     ).map {
-               trajectory[it].value().position
+               trajectory[it].pose.position
             }
 
     override val triggeredMarkers: MutableSet<Marker> = mutableSetOf()
@@ -166,8 +166,9 @@ class DisplacementFollower @JvmOverloads constructor(
                 return PoseVelocity2dDual.zero()
             }
 
-            val target: Pose2dDual<Time> = disptraj[ds]
-            currentTarget = target.value()
+            val targetState: RobotState = disptraj[ds]
+            val target: Pose2dDual<Time> = targetState.toDualPose()
+            currentTarget = targetState.pose
 
             // Marker handling
             trajectory.markers.forEach { marker ->
@@ -241,7 +242,7 @@ class TimeFollower @JvmOverloads constructor(
 
     private val timetraj = trajectory.wrtTime()
 
-    override var currentTarget: Pose2d = trajectory[0.0].value()
+    override var currentTarget: Pose2d = trajectory[0.0].pose
         private set
     override var lastCommand: PoseVelocity2dDual<Time> = PoseVelocity2dDual.zero();
 
@@ -255,7 +256,7 @@ class TimeFollower @JvmOverloads constructor(
         trajectory.length(),
         max(2, ceil(trajectory.length() / 2).toInt()),
     ).map {
-        trajectory[it].value().position
+        trajectory[it].pose.position
     }
 
     override val triggeredMarkers: MutableSet<Marker> = mutableSetOf()
@@ -277,9 +278,10 @@ class TimeFollower @JvmOverloads constructor(
                 return PoseVelocity2dDual.zero()
             }
 
-            val target: Pose2dDual<Time> = trajectory[dt]
+            val targetState: RobotState = trajectory[dt]
+            val target: Pose2dDual<Time> = targetState.toDualPose()
 
-            currentTarget = target.value()
+            currentTarget = targetState.pose
 
             // Marker handling
             val s = timetraj.profile[dt].value()

@@ -16,24 +16,57 @@ import kotlinx.serialization.Serializable
 /**
  * @usesMathJax
  *
- * Path \((x(t), y(t))\)
+ * Represents a parametric 2D position path \((x(t), y(t))\) with automatic differentiation support.
  *
- * @param[Param] \(t\)
+ * This interface defines a path in 2D space parameterized by a value of type [Param]. The path
+ * can be evaluated at any parameter value to obtain position and derivatives up to order n.
+ *
+ * @param Param The parameter type \(t\) used to parameterize the path (e.g., arc length, time)
  */
 interface PositionPath<Param : DualParameter> {
 
     /**
      * @usesMathJax
      *
-     * @param[param] \(t\)
+     * Evaluates the path at parameter \(t\) with derivatives up to order n.
+     *
+     * @param param The parameter value \(t\) at which to evaluate the path
+     * @param n The number of derivatives to compute (0 for position only, 1 for velocity, etc.)
+     * @return A [Vector2dDual] containing the position and up to n derivatives
      */
     operator fun get(param: Double, n: Int): Vector2dDual<Param>
 
+    /**
+     * Returns the total length of the path in the parameter space.
+     */
     fun length(): Double
 
+    /**
+     * Evaluates the path at the beginning (parameter = 0).
+     *
+     * @param n The number of derivatives to compute
+     * @return The position and derivatives at the start of the path
+     */
     fun begin(n: Int) = get(0.0, n)
+
+    /**
+     * Evaluates the path at the end (parameter = length).
+     *
+     * @param n The number of derivatives to compute
+     * @return The position and derivatives at the end of the path
+     */
     fun end(n: Int) = get(length(), n)
 
+    /**
+     * Projects a query point onto the path using Newton's method.
+     *
+     * Performs up to 10 iterations of Newton's method to find the parameter value
+     * where the path is closest to the query point.
+     *
+     * @param query The 2D point to project onto the path
+     * @param init Initial guess for the parameter value (default: 0.0)
+     * @return The parameter value at the closest point on the path to the query
+     */
     fun project(query: Vector2d, init: Double = 0.0) = (1..10).fold(init) { s, _ ->
         val guess = this[s, 3]
         val ds = (query - guess.value()) dot guess.drop(1).value()
