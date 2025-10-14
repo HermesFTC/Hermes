@@ -25,6 +25,25 @@ import gay.zharel.hermes.tuning.HermesConfig
 import gay.zharel.hermes.tuning.MecanumParameters
 import gay.zharel.hermes.tuning.TuningLocalizerFactory
 
+/**
+ * Mecanum drive implementation for FTC robots with holonomic movement capabilities.
+ *
+ * This class provides a complete drive system for mecanum wheel robots, including:
+ * - Motor control with feedforward compensation
+ * - Pose estimation and tracking via localizer
+ * - Trajectory following with velocity and acceleration constraints
+ * - Holonomic control for omnidirectional movement
+ *
+ * The drive system automatically configures motors, sensors, and control systems based on
+ * the provided parameters and hardware map.
+ *
+ * @param params The drive parameters including PID gains and motion constraints
+ * @param hardwareMap The FTC hardware map containing motor and sensor configurations
+ * @param pose The initial pose of the robot (defaults to origin)
+ *
+ * @see MecanumDriveBuilder
+ * @see Drive
+ */
 class MecanumDrive @JvmOverloads constructor(
     val params: Parameters,
     hardwareMap: HardwareMap, 
@@ -33,8 +52,21 @@ class MecanumDrive @JvmOverloads constructor(
     internal val driveConfig get() = HermesConfig.config.drive as MecanumParameters
     internal val feedforwardConfig get() = HermesConfig.config.feedforward
     
+    /** Conversion factor from encoder ticks to inches */
     val inPerTick: Double get() = HermesConfig.config.localizer.inPerTick
 
+    /**
+     * Configuration parameters for the mecanum drive system.
+     *
+     * @property axialGains PID gains for forward/backward movement control
+     * @property lateralGains PID gains for left/right strafe movement control
+     * @property headingGains PID gains for rotational movement control
+     * @property maxWheelVel Maximum velocity for any individual wheel in inches per second
+     * @property minTransAccel Minimum (most negative) translational acceleration in inches per second squared
+     * @property maxTransAccel Maximum translational acceleration in inches per second squared
+     * @property maxAngVel Maximum angular velocity in radians per second
+     * @property maxAngAccel Maximum angular acceleration in radians per second squared
+     */
     data class Parameters(
         @JvmField var axialGains: PosVelGain = PosVelGain(0.1),
         @JvmField var lateralGains: PosVelGain = PosVelGain(0.1),
@@ -46,22 +78,26 @@ class MecanumDrive @JvmOverloads constructor(
         @JvmField var maxAngAccel: Double = Math.PI,
     )
 
+    /** Motor feedforward controller for velocity and acceleration compensation */
     val feedforward = MotorFeedforward(
         feedforwardConfig.translational.kStatic,
         feedforwardConfig.translational.kV / inPerTick, 
         feedforwardConfig.translational.kA / inPerTick
     )
 
+    /** Mecanum kinematics calculator for converting robot velocities to wheel velocities */
     val kinematics: MecanumKinematics = MecanumKinematics(
         inPerTick * driveConfig.trackWidth,
         inPerTick * driveConfig.wheelBase,
     )
 
 
+    /** Default constraints for turn-in-place movements */
     override val defaultTurnConstraints: TurnConstraints = TurnConstraints(
         params.maxAngVel, -params.maxAngAccel, params.maxAngAccel
     )
 
+    /** Default velocity constraint combining wheel and angular velocity limits */
     override val defaultVelConstraint: VelConstraint = MinVelConstraint(
         listOf(
             WheelVelConstraint(kinematics, params.maxWheelVel),
@@ -69,9 +105,11 @@ class MecanumDrive @JvmOverloads constructor(
         )
     )
 
+    /** Default acceleration constraint for translational movement */
     override val defaultAccelConstraint: AccelConstraint =
         ProfileAccelConstraint(params.minTransAccel, params.maxTransAccel)
 
+    /** Follower parameters used for trajectory following */
     override val followerParams: FollowerParams = FollowerParams(
         ProfileParams(
             0.25, 0.1, 1e-2
@@ -79,17 +117,30 @@ class MecanumDrive @JvmOverloads constructor(
         defaultVelConstraint, defaultAccelConstraint
     )
 
+    /** Left front drive motor */
     val leftFront: DcMotorEx = driveConfig.leftFront.toDcMotorEx(hardwareMap)
+
+    /** Left back drive motor */
     val leftBack: DcMotorEx = driveConfig.leftBack.toDcMotorEx(hardwareMap)
+
+    /** Right back drive motor */
     val rightBack: DcMotorEx = driveConfig.rightBack.toDcMotorEx(hardwareMap)
+
+    /** Right front drive motor */
     val rightFront: DcMotorEx = driveConfig.rightFront.toDcMotorEx(hardwareMap)
 
+    /** Voltage sensor for feedforward compensation */
     val voltageSensor: VoltageSensor
 
-    // if you would like to use a custom localizer, overwrite this line with your own.
+    /**
+     * Localizer for pose estimation and tracking.
+     * Can be overridden with a custom localizer implementation.
+     */
     override val localizer: Localizer = TuningLocalizerFactory.make(hardwareMap)
 
+    /** Holonomic controller for trajectory following */
     override val controller = HolonomicController(params.axialGains, params.lateralGains, params.headingGains,)
+
     private val poseHistory: ArrayDeque<Pose2d> = ArrayDeque()
 
     private val estimatedPoseWriter: DownsampledWriter = DownsampledWriter("ESTIMATED_POSE", 50000000)
@@ -112,6 +163,15 @@ class MecanumDrive @JvmOverloads constructor(
         FlightRecorder.write("MECANUM_PARAMS", params)
     }
 
+    /**
+     * Sets drive motor powers based on desired robot velocities without feedforward.
+     *
+     * Converts the desired pose velocity to individual wheel velocities using inverse kinematics,
+     * then normalizes and applies them as motor powers. Powers are scaled to keep all values
+     * within [-1.0, 1.0] range.
+     *
+     * @param powers The desired robot velocity as a pose velocity dual
+     */
     override fun setDrivePowers(powers: PoseVelocity2dDual<Time>) {
         val wheelVels: MecanumKinematics.MecanumWheelVelocities<Time> = kinematics.inverse(powers)
 
@@ -126,6 +186,15 @@ class MecanumDrive @JvmOverloads constructor(
         rightFront.power = wheelVels.rightFront[0] / maxPowerMag
     }
 
+    /**
+     * Sets drive motor powers with feedforward compensation.
+     *
+     * Converts the desired pose velocity to individual wheel velocities using inverse kinematics,
+     * applies feedforward control to compensate for motor dynamics, and adjusts for battery voltage.
+     * This provides more accurate velocity control than [setDrivePowers].
+     *
+     * @param powers The desired robot velocity as a pose velocity dual
+     */
     override fun setDrivePowersWithFF(powers: PoseVelocity2dDual<Time>) {
         val wheelVels: MecanumKinematics.MecanumWheelVelocities<Time> = kinematics.inverse(powers)
         val voltage = voltageSensor.voltage
@@ -146,6 +215,15 @@ class MecanumDrive @JvmOverloads constructor(
         rightFront.power = rightFrontPower
     }
 
+    /**
+     * Updates the robot's pose estimate using the localizer.
+     *
+     * This method should be called periodically (typically in the main loop) to update
+     * the robot's position and velocity estimates. It also maintains a history of recent
+     * poses for visualization and debugging.
+     *
+     * @return The current velocity of the robot
+     */
     override fun updatePoseEstimate(): PoseVelocity2d {
         val vel: PoseVelocity2d = localizer.update()
         poseHistory.add(localizer.pose)
@@ -160,6 +238,11 @@ class MecanumDrive @JvmOverloads constructor(
         return vel
     }
 
+    /**
+     * Draws the robot's pose history on a canvas for visualization.
+     *
+     * @param c The canvas to draw on
+     */
     private fun drawPoseHistory(c: Canvas) {
         val xPoints = DoubleArray(poseHistory.size)
         val yPoints = DoubleArray(poseHistory.size)
@@ -177,6 +260,15 @@ class MecanumDrive @JvmOverloads constructor(
         c.strokePolyline(xPoints, yPoints)
     }
 
+    /**
+     * Creates a trajectory action builder starting from a specified pose.
+     *
+     * The action builder provides a fluent API for constructing complex trajectories
+     * with turns, splines, and straight segments that can be executed as actions.
+     *
+     * @param beginPose The starting pose for the trajectory
+     * @return A new trajectory action builder
+     */
     fun actionBuilder(beginPose: Pose2d): TrajectoryActionBuilder {
         return TrajectoryActionBuilder(
             { turn -> TurnAction(turn, this) },
@@ -196,10 +288,24 @@ class MecanumDrive @JvmOverloads constructor(
         )
     }
 
+    /**
+     * Creates a trajectory action builder starting from the current robot pose.
+     *
+     * @return A new trajectory action builder starting at the current localizer pose
+     */
     fun actionBuilder(): TrajectoryActionBuilder {
         return actionBuilder(localizer.pose)
     }
 
+    /**
+     * Creates a trajectory builder starting from a specified pose.
+     *
+     * The trajectory builder provides a fluent API for constructing trajectories
+     * with motion profiling and constraints.
+     *
+     * @param startPose The starting pose for the trajectory
+     * @return A new trajectory builder
+     */
     override fun trajectoryBuilder(startPose: Pose2d): TrajectoryBuilder {
         return TrajectoryBuilder(
             TrajectoryBuilderParams(
@@ -212,6 +318,11 @@ class MecanumDrive @JvmOverloads constructor(
         )
     }
 
+    /**
+     * Creates a trajectory builder starting from the current robot pose.
+     *
+     * @return A new trajectory builder starting at the current localizer pose
+     */
     override fun trajectoryBuilder(): TrajectoryBuilder {
         return trajectoryBuilder(localizer.pose)
     }
