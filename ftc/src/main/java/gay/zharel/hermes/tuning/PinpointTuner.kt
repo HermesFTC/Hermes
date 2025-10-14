@@ -1,9 +1,9 @@
 package gay.zharel.hermes.tuning
 
 import gay.zharel.hermes.ftc.PositionVelocityPair
-import gay.zharel.hermes.logs.FlightRecorder
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver
 import com.qualcomm.robotcore.hardware.HardwareMap
+import gay.zharel.fateweaver.flight.FlightRecorder
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import kotlin.math.PI
 

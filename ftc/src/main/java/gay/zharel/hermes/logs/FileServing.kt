@@ -1,5 +1,6 @@
 package gay.zharel.hermes.logs
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.res.AssetManager
 import com.fasterxml.jackson.core.JsonFactory
@@ -15,7 +16,13 @@ import org.firstinspires.ftc.robotserver.internal.webserver.MimeTypesUtil
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.text.SimpleDateFormat
 import java.util.*
+
+val CONFIG_ROOT = File(AppUtil.ROOT_FOLDER, "Hermes/config")
+
+@SuppressLint("SimpleDateFormat")
+private val DATE_FORMAT = SimpleDateFormat("yyyy_MM_dd__HH_mm_ss_SSS")
 
 private fun newStaticAssetHandler(assetManager: AssetManager, file: String): WebHandler {
     return WebHandler { session: IHTTPSession ->
@@ -122,7 +129,7 @@ object TuningFiles {
             val assetManager = context.assets
             registerAssetsUnderPath(manager, assetManager, "assets")
             registerAssetsUnderPath(manager, assetManager, "tuning")
-            for (ty in FileType.values()) {
+            for (ty in FileType.entries) {
                 val base = "/tuning/" + ty.baseName
                 val dir = getFileTypeDir(ty)
                 dir.mkdirs()
@@ -144,53 +151,6 @@ object TuningFiles {
         ANGULAR_RAMP("angular-ramp"),
         ANGULAR_STEP("angular-step"),
         ACCEL("accel");
-    }
-}
-
-object LogFiles {
-    @WebHandlerRegistrar
-    @JvmStatic
-    fun registerRoutes(context: Context, manager: WebHandlerManager) {
-        manager.register("/logs") {
-            val sb = StringBuilder()
-            sb.append("<!doctype html><html><head><title>Logs</title></head><body><ul>")
-            val fs = LOG_ROOT.listFiles()!!
-            fs.sortByDescending { it.lastModified() }
-            for (f in fs) {
-                sb.append("<li><a href=\"/logs/download?file=")
-                sb.append(f.name)
-                sb.append("\" download=\"")
-                sb.append(f.name)
-                sb.append("\">")
-                sb.append(f.name)
-                sb.append("</a> (")
-                sb.append(f.length())
-                sb.append(" bytes)</li>")
-            }
-            sb.append("</ul></body></html>")
-            NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.OK,
-                    NanoHTTPD.MIME_HTML, sb.toString())
-        }
-
-        manager.register("/logs/download") { session: IHTTPSession ->
-            val pairs = session.queryParameterString.split("&".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            if (pairs.size != 1) {
-                return@register NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST,
-                        NanoHTTPD.MIME_PLAINTEXT, "expected one query parameter, got " + pairs.size)
-            }
-            val parts = pairs[0].split("=".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()
-            if (parts[0] != "file") {
-                return@register NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.BAD_REQUEST,
-                        NanoHTTPD.MIME_PLAINTEXT, "expected file query parameter, got " + parts[0])
-            }
-            val f = File(LOG_ROOT, parts[1])
-            if (!f.exists()) {
-                return@register NanoHTTPD.newFixedLengthResponse(NanoHTTPD.Response.Status.NOT_FOUND,
-                        NanoHTTPD.MIME_PLAINTEXT, "file $f doesn't exist")
-            }
-            NanoHTTPD.newChunkedResponse(NanoHTTPD.Response.Status.OK,
-                    "application/json", FileInputStream(f))
-        }
     }
 }
 

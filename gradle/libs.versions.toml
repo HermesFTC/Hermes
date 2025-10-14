@@ -11,6 +11,7 @@ mockk = "1.14.4"
 xchart = "3.8.8"
 ejml = "0.44.0"
 deployer = "0.18.0"
+fateweaver = "0.3.3"
 
 [libraries]
 dashboard-core = { module = "com.acmerobotics.dashboard:core", version.ref = "dash" }
@@ -29,6 +30,7 @@ mathjax-plugin = { module = "org.jetbrains.dokka:mathjax-plugin", version.ref = 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 xchart = { module = "org.knowm.xchart:xchart", version.ref = "xchart" }
 ejml = { module = "org.ejml:ejml-simple", version.ref = "ejml" }
+fateweaver = { module = "gay.zharel.fateweaver:ftc", version.ref = "fateweaver" }
 
 [bundles]
 dashboard = ["dashboard-core", "dashboard-dashboard"]

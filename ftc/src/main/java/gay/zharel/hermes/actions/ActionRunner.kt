@@ -9,6 +9,7 @@ import com.acmerobotics.dashboard.telemetry.TelemetryPacket
 import com.qualcomm.ftccommon.FtcEventLoop
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpModeManagerNotifier
+import gay.zharel.fateweaver.flight.FlightRecorder
 import org.firstinspires.ftc.ftccommon.external.OnCreateEventLoop
 
 
@@ -104,8 +105,7 @@ object ActionRunner : OpModeManagerNotifier.Notifications {
             b = a.run(p)
 
             dash.sendTelemetryPacket(p)
+            FlightRecorder.timestamp()
         }
     }
 }
-
-class OpModeAction

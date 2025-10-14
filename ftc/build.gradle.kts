@@ -60,7 +60,8 @@ dependencies {
     api(project(":core"))
     api(project(":actions"))
 
-    implementation(libs.bundles.dashboard)
+    api(libs.bundles.dashboard)
+    api(libs.fateweaver)
 
     implementation(libs.bundles.ftcsdk)
 
