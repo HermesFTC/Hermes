@@ -216,3 +216,101 @@ class MecanumDrive @JvmOverloads constructor(
         return trajectoryBuilder(localizer.pose)
     }
 }
+
+/**
+ * Builder class for constructing a [MecanumDrive] instance with custom parameters.
+ *
+ * This builder provides a fluent API for configuring drive parameters before constructing
+ * the final MecanumDrive object.
+ *
+ * @see MecanumDrive
+ */
+class MecanumDriveBuilder {
+    private var parameters = MecanumDrive.Parameters()
+
+    /**
+     * Sets the axial (forward/backward) PID gains.
+     *
+     * @param posGain The proportional gain for axial position control
+     * @param velGain The derivative gain for axial velocity control
+     * @return This builder instance for method chaining
+     */
+    fun withAxialGains(posGain: Double, velGain: Double) = apply {
+        parameters.axialGains = PosVelGain(posGain, velGain)
+    }
+
+    /**
+     * Sets the lateral (left/right strafe) PID gains.
+     *
+     * @param posGain The proportional gain for lateral position control
+     * @param velGain The derivative gain for lateral velocity control
+     * @return This builder instance for method chaining
+     */
+    fun withLateralGains(posGain: Double, velGain: Double) = apply {
+        parameters.lateralGains = PosVelGain(posGain, velGain)
+    }
+
+    /**
+     * Sets the heading (rotational) PID gains.
+     *
+     * @param posGain The proportional gain for heading position control
+     * @param velGain The derivative gain for heading velocity control
+     * @return This builder instance for method chaining
+     */
+    fun withHeadingGains(posGain: Double, velGain: Double) = apply {
+        parameters.headingGains = PosVelGain(posGain, velGain)
+    }
+
+    /**
+     * Sets the maximum wheel velocity.
+     *
+     * @param maxWheelVel The maximum velocity for any wheel in inches per second
+     * @return This builder instance for method chaining
+     */
+    fun withMaxWheelVel(maxWheelVel: Double) = apply {
+        parameters.maxWheelVel = maxWheelVel
+    }
+
+    /**
+     * Sets the translational acceleration limits.
+     *
+     * @param minTransAccel The minimum (most negative) translational acceleration in inches per second squared
+     * @param maxTransAccel The maximum translational acceleration in inches per second squared
+     * @return This builder instance for method chaining
+     */
+    fun withTransAccelLimits(minTransAccel: Double, maxTransAccel: Double) = apply {
+        parameters.minTransAccel = minTransAccel
+        parameters.maxTransAccel = maxTransAccel
+    }
+
+    /**
+     * Sets the maximum angular velocity.
+     *
+     * @param maxAngVel The maximum angular velocity in radians per second
+     * @return This builder instance for method chaining
+     */
+    fun withMaxAngVel(maxAngVel: Double) = apply {
+        parameters.maxAngVel = maxAngVel
+    }
+
+    /**
+     * Sets the maximum angular acceleration.
+     *
+     * @param maxAngAccel The maximum angular acceleration in radians per second squared
+     * @return This builder instance for method chaining
+     */
+    fun withMaxAngAccel(maxAngAccel: Double) = apply {
+        parameters.maxAngAccel = maxAngAccel
+    }
+
+    /**
+     * Builds and returns a new [MecanumDrive] instance with the configured parameters.
+     *
+     * @param hardwareMap The FTC hardware map containing motor and sensor configurations
+     * @param pose The initial pose of the robot (defaults to zero)
+     * @return A new MecanumDrive instance
+     */
+    fun build(hardwareMap: HardwareMap, pose: Pose2d = Pose2d.zero): MecanumDrive {
+        return MecanumDrive(parameters, hardwareMap, pose)
+    }
+}
