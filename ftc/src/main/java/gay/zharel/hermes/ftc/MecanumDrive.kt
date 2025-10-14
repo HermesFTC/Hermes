@@ -3,6 +3,7 @@ package gay.zharel.hermes.ftc
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.hardware.*
+import gay.zharel.fateweaver.flight.FlightRecorder
 import gay.zharel.hermes.actions.TrajectoryActionBuilder
 import gay.zharel.hermes.control.HolonomicController
 import gay.zharel.hermes.control.MecanumKinematics
@@ -13,8 +14,6 @@ import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.math.Time
-import gay.zharel.hermes.logs.DownsampledWriter
-import gay.zharel.hermes.logs.FlightRecorder
 import gay.zharel.hermes.logs.MecanumCommandMessage
 import gay.zharel.hermes.logs.PoseMessage
 import gay.zharel.hermes.profiles.*
@@ -143,10 +142,12 @@ class MecanumDrive @JvmOverloads constructor(
 
     private val poseHistory: ArrayDeque<Pose2d> = ArrayDeque()
 
-    private val estimatedPoseWriter: DownsampledWriter = DownsampledWriter("ESTIMATED_POSE", 50000000)
-    private val targetPoseWriter: DownsampledWriter = DownsampledWriter("TARGET_POSE", 50000000)
-    private val driveCommandWriter: DownsampledWriter = DownsampledWriter("DRIVE_COMMAND", 50000000)
-    private val mecanumCommandWriter: DownsampledWriter = DownsampledWriter("MECANUM_COMMAND", 50000000)
+    private val estimatedPoseWriter =
+        FlightRecorder.createChannel("ESTIMATED_POSE", PoseMessage::class.java)
+            .downsample(50000000)
+    private val mecanumCommandWriter =
+        FlightRecorder.createChannel("MECANUM_COMMAND", MecanumCommandMessage::class.java)
+            .downsample(50000000)
 
     init {
         for (module in hardwareMap.getAll<LynxModule>(LynxModule::class.java)) {
@@ -203,7 +204,8 @@ class MecanumDrive @JvmOverloads constructor(
         val leftBackPower: Double = feedforward.compute(wheelVels.leftBack) / voltage
         val rightBackPower: Double = feedforward.compute(wheelVels.rightBack) / voltage
         val rightFrontPower: Double = feedforward.compute(wheelVels.rightFront) / voltage
-        mecanumCommandWriter.write(
+
+        mecanumCommandWriter.put(
             MecanumCommandMessage(
                 voltage, leftFrontPower, leftBackPower, rightBackPower, rightFrontPower
             )
@@ -232,8 +234,7 @@ class MecanumDrive @JvmOverloads constructor(
             poseHistory.removeFirst()
         }
 
-        estimatedPoseWriter.write(PoseMessage(localizer.pose))
-
+        estimatedPoseWriter.put(PoseMessage(localizer.pose))
 
         return vel
     }
