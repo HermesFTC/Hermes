@@ -27,18 +27,12 @@ import gay.zharel.hermes.tuning.MecanumParameters
 import gay.zharel.hermes.tuning.TuningLocalizerFactory
 
 class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pose2d = Pose2d.zero) : Drive {
+    internal val driveConfig get() = HermesConfig.config.drive as MecanumParameters
+    internal val feedforwardConfig get() = HermesConfig.config.feedforward
+    
+    val inPerTick: Double get() = HermesConfig.config.localizer.inPerTick
+    
     object Params {
-        internal val driveConfig get() = HermesConfig.config.drive as MecanumParameters
-        internal val feedforwardConfig get() = HermesConfig.config.feedforward
-
-        // drive model parameters
-        var inPerTick: Double = HermesConfig.config.localizer.inPerTick
-
-        // feedforward parameters (in tick units)
-        var kS: Double = feedforwardConfig.translational.kStatic
-        var kV: Double = feedforwardConfig.translational.kV
-        var kA: Double = feedforwardConfig.translational.kA
-
         // path profile parameters (in inches)
         var maxWheelVel: Double = 50.0
         var minProfileAccel: Double = -30.0
@@ -59,13 +53,14 @@ class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pos
     }
 
     val feedforward = MotorFeedforward(
-        Params.kS,
-        Params.kV / Params.inPerTick, Params.kA / Params.inPerTick
+        feedforwardConfig.translational.kStatic,
+        feedforwardConfig.translational.kV / inPerTick, 
+        feedforwardConfig.translational.kA / inPerTick
     )
 
     val kinematics: MecanumKinematics = MecanumKinematics(
-        Params.inPerTick * Params.driveConfig.trackWidth,
-        Params.inPerTick * Params.driveConfig.wheelBase,
+        inPerTick * driveConfig.trackWidth,
+        inPerTick * driveConfig.wheelBase,
     )
 
 
@@ -90,10 +85,10 @@ class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pos
         defaultVelConstraint, defaultAccelConstraint
     )
 
-    val leftFront: DcMotorEx = Params.driveConfig.leftFront.toDcMotorEx(hardwareMap)
-    val leftBack: DcMotorEx = Params.driveConfig.leftBack.toDcMotorEx(hardwareMap)
-    val rightBack: DcMotorEx = Params.driveConfig.rightBack.toDcMotorEx(hardwareMap)
-    val rightFront: DcMotorEx = Params.driveConfig.rightFront.toDcMotorEx(hardwareMap)
+    val leftFront: DcMotorEx = driveConfig.leftFront.toDcMotorEx(hardwareMap)
+    val leftBack: DcMotorEx = driveConfig.leftBack.toDcMotorEx(hardwareMap)
+    val rightBack: DcMotorEx = driveConfig.rightBack.toDcMotorEx(hardwareMap)
+    val rightFront: DcMotorEx = driveConfig.rightFront.toDcMotorEx(hardwareMap)
 
     val voltageSensor: VoltageSensor
 
