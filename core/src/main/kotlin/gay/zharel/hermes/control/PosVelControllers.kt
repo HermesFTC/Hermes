@@ -69,9 +69,9 @@ interface RobotPosVelController {
  * @property posGain proportional gain for position
  * @property velGain proportional gain for velocity
  */
-data class PosVelGain(
+data class PosVelGain @JvmOverloads constructor(
     @JvmField var posGain: Double,
-    @JvmField var velGain: Double,
+    @JvmField var velGain: Double = 0.0,
 )
 
 /**
