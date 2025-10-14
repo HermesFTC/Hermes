@@ -1,6 +1,8 @@
 package gay.zharel.hermes.ftc
 
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket
+import gay.zharel.fateweaver.flight.FlightRecorder
+import gay.zharel.fateweaver.schemas.DoubleSchema
 import gay.zharel.hermes.actions.Action
 import gay.zharel.hermes.actions.ActionEx
 import gay.zharel.hermes.actions.Actions
@@ -8,6 +10,7 @@ import gay.zharel.hermes.actions.drawPoseHistory
 import gay.zharel.hermes.actions.drawRobot
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.Vector2d
+import gay.zharel.hermes.logs.PoseMessage
 import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.paths.PosePath
 import gay.zharel.hermes.profiles.AccelConstraint
@@ -19,6 +22,13 @@ import kotlin.properties.Delegates
 class FollowTrajectoryAction(private val follower: Follower, private val drive: Drive) : Action {
     private val xPoints: DoubleArray = follower.points.map { it.x }.toDoubleArray()
     private val yPoints: DoubleArray = follower.points.map { it.y }.toDoubleArray()
+
+    private val currentPoses =
+        FlightRecorder.createChannel("followTrajectory/currentPoses", PoseMessage::class.java)
+    private val targetPoses =
+        FlightRecorder.createChannel("followTrajectory/targetPoses", PoseMessage::class.java)
+    private val errors =
+        FlightRecorder.createChannel("followTrajectory/errors", DoubleSchema)
 
     constructor(traj: Trajectory<*>, drive: Drive) : this(DisplacementFollower(traj, drive), drive)
 
@@ -36,10 +46,15 @@ class FollowTrajectoryAction(private val follower: Follower, private val drive: 
         p.put("y", drive.localizer.pose.position.y)
         p.put("heading (deg)", Math.toDegrees(drive.localizer.pose.heading.toDouble()))
 
+        targetPoses.put(PoseMessage(follower.currentTarget))
+        currentPoses.put(PoseMessage(drive.localizer.pose))
+
         val error = follower.currentTarget.minusExp(drive.localizer.pose)
         p.put("xError", error.position.x)
         p.put("yError", error.position.y)
         p.put("headingError (deg)", Math.toDegrees(error.heading.toDouble()))
+
+        errors.put(error.position.norm())
 
         // only draw when active; only one drive action should be active at a time
         val c = p.fieldOverlay()
@@ -67,6 +82,13 @@ class TurnAction(
 ) : ActionEx() {
     var startTime by Delegates.notNull<Double>()
 
+    private val currentPoses =
+        FlightRecorder.createChannel("turn/currentPoses", PoseMessage::class.java)
+    private val targetPoses =
+        FlightRecorder.createChannel("turn/targetPoses", PoseMessage::class.java)
+    private val errors =
+        FlightRecorder.createChannel("turn/errors", DoubleSchema)
+
     override fun init(p: TelemetryPacket) {
         startTime = Actions.now()
     }
@@ -88,6 +110,10 @@ class TurnAction(
             drive.localizer.pose,
             robotVel,
         )
+
+        currentPoses.put(PoseMessage(drive.localizer.pose))
+        targetPoses.put(PoseMessage(targetState.pose))
+        errors.put((targetState.pose.position - drive.localizer.pose.position).norm())
 
         drive.setDrivePowersWithFF(command)
 
