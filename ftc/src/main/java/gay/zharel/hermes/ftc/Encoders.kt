@@ -3,6 +3,7 @@ package gay.zharel.hermes.ftc
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
+import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.util.ElapsedTime
 import kotlin.math.absoluteValue
 import kotlin.math.max
@@ -120,34 +121,9 @@ class OverflowEncoder(@JvmField val encoder: RawEncoder) : Encoder {
         }
 }
 
-// TODO: Ideally there would be a separate group for each Lynx module, though this is an easier
-// API to deal with (and still permits the more efficient / precise option)
-class LynxQuadratureEncoderGroup(
-    val modules: List<LynxModule>,
-    override val encoders: List<Encoder>,
-) : EncoderGroup {
-    override val unwrappedEncoders = encoders.map {
-        when (it) {
-            is OverflowEncoder -> it.encoder
-            else -> it
-        }
-    }
+internal fun HardwareMap.overflowEncoder(name: String) =
+    OverflowEncoder(RawEncoder(get(DcMotorEx::class.java, name)))
 
-    init {
-        for (module in modules) {
-            if (module.bulkCachingMode != LynxModule.BulkCachingMode.AUTO) {
-                module.bulkCachingMode = LynxModule.BulkCachingMode.AUTO
-            }
-        }
-    }
-
-    override fun bulkRead() {
-        for (module in modules) {
-            module.clearBulkCache()
-            module.bulkData
-        }
-    }
-}
 
 /**
  * An encoder that wraps its position to [0, cpr).
