@@ -2,13 +2,12 @@ package gay.zharel.hermes.ftc
 
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.qualcomm.hardware.lynx.LynxModule
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
-import com.qualcomm.hardware.rev.RevHubOrientationOnRobot.UsbFacingDirection
 import com.qualcomm.robotcore.hardware.*
 import gay.zharel.hermes.actions.TrajectoryActionBuilder
 import gay.zharel.hermes.control.HolonomicController
 import gay.zharel.hermes.control.MecanumKinematics
 import gay.zharel.hermes.control.MotorFeedforward
+import gay.zharel.hermes.control.PosVelGain
 import gay.zharel.hermes.control.WheelVelConstraint
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
@@ -26,31 +25,26 @@ import gay.zharel.hermes.tuning.HermesConfig
 import gay.zharel.hermes.tuning.MecanumParameters
 import gay.zharel.hermes.tuning.TuningLocalizerFactory
 
-class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pose2d = Pose2d.zero) : Drive {
+class MecanumDrive @JvmOverloads constructor(
+    val params: Parameters,
+    hardwareMap: HardwareMap, 
+    pose: Pose2d = Pose2d.zero
+) : Drive {
     internal val driveConfig get() = HermesConfig.config.drive as MecanumParameters
     internal val feedforwardConfig get() = HermesConfig.config.feedforward
     
     val inPerTick: Double get() = HermesConfig.config.localizer.inPerTick
-    
-    object Params {
-        // path profile parameters (in inches)
-        var maxWheelVel: Double = 50.0
-        var minProfileAccel: Double = -30.0
-        var maxProfileAccel: Double = 50.0
 
-        // turn profile parameters (in radians)
-        var maxAngVel: Double = Math.PI // shared with path
-        var maxAngAccel: Double = Math.PI
-
-        // path controller gains
-        var axialGain: Double = 0.0
-        var lateralGain: Double = 0.0
-        var headingGain: Double = 0.0 // shared with turn
-
-        var axialVelGain: Double = 0.0
-        var lateralVelGain: Double = 0.0
-        var headingVelGain: Double = 0.0 // shared with turn
-    }
+    data class Parameters(
+        @JvmField var axialGains: PosVelGain = PosVelGain(0.1),
+        @JvmField var lateralGains: PosVelGain = PosVelGain(0.1),
+        @JvmField var headingGains: PosVelGain = PosVelGain(0.1),
+        @JvmField var maxWheelVel: Double = 50.0,
+        @JvmField var minTransAccel: Double = -30.0,
+        @JvmField var maxTransAccel: Double = 50.0,
+        @JvmField var maxAngVel: Double = Math.PI,
+        @JvmField var maxAngAccel: Double = Math.PI,
+    )
 
     val feedforward = MotorFeedforward(
         feedforwardConfig.translational.kStatic,
@@ -65,18 +59,18 @@ class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pos
 
 
     override val defaultTurnConstraints: TurnConstraints = TurnConstraints(
-        Params.maxAngVel, -Params.maxAngAccel, Params.maxAngAccel
+        params.maxAngVel, -params.maxAngAccel, params.maxAngAccel
     )
 
     override val defaultVelConstraint: VelConstraint = MinVelConstraint(
         listOf(
-            WheelVelConstraint(kinematics, Params.maxWheelVel),
-            AngularVelConstraint(Params.maxAngVel)
+            WheelVelConstraint(kinematics, params.maxWheelVel),
+            AngularVelConstraint(params.maxAngVel)
         )
     )
 
     override val defaultAccelConstraint: AccelConstraint =
-        ProfileAccelConstraint(Params.minProfileAccel, Params.maxProfileAccel)
+        ProfileAccelConstraint(params.minTransAccel, params.maxTransAccel)
 
     override val followerParams: FollowerParams = FollowerParams(
         ProfileParams(
@@ -95,7 +89,7 @@ class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pos
     // if you would like to use a custom localizer, overwrite this line with your own.
     override val localizer: Localizer = TuningLocalizerFactory.make(hardwareMap)
 
-    override val controller: HolonomicController
+    override val controller = HolonomicController(params.axialGains, params.lateralGains, params.headingGains,)
     private val poseHistory: ArrayDeque<Pose2d> = ArrayDeque()
 
     private val estimatedPoseWriter: DownsampledWriter = DownsampledWriter("ESTIMATED_POSE", 50000000)
@@ -115,12 +109,7 @@ class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pos
 
         voltageSensor = hardwareMap.voltageSensor.iterator().next()
 
-        controller = HolonomicController(
-            Params.axialGain, Params.lateralGain, Params.headingGain,
-            Params.axialVelGain, Params.lateralVelGain, Params.headingVelGain
-        )
-
-        FlightRecorder.write("MECANUM_PARAMS", Params)
+        FlightRecorder.write("MECANUM_PARAMS", params)
     }
 
     override fun setDrivePowers(powers: PoseVelocity2dDual<Time>) {
@@ -211,13 +200,13 @@ class MecanumDrive @JvmOverloads constructor(hardwareMap: HardwareMap, pose: Pos
         return actionBuilder(localizer.pose)
     }
 
-    override fun trajectoryBuilder(beginPose: Pose2d): TrajectoryBuilder {
+    override fun trajectoryBuilder(startPose: Pose2d): TrajectoryBuilder {
         return TrajectoryBuilder(
             TrajectoryBuilderParams(
                 1e-6,
                 followerParams.profileParams
             ),
-            beginPose, 0.0,
+            startPose, 0.0,
             defaultVelConstraint,
             defaultAccelConstraint
         )
