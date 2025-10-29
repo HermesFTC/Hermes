@@ -32,8 +32,6 @@ dependencies {
     testFixturesApi(libs.ejml)
     testFixturesApi(libs.bundles.kotest)
 
-    testImplementation(libs.xchart)
-
     dokkaHtmlPlugin(libs.mathjax.plugin)
 }
 
