@@ -1,7 +1,6 @@
 rootProject.name = "Hermes"
 include("core")
-include("actions")
-include("ftc")
+include("wpi")
 
 pluginManagement {
 

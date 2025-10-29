@@ -1,20 +1,25 @@
 [versions]
 dash = "0.4.17"
-jacksonDatabind = "2.19.1"
-kotlin = "2.0.0"
-kotest = "5.9.1"
+jacksonDatabind = "2.20.0"
+kotlin = "2.2.21"
+dokka = "2.0.0"
+kotest = "6.0.4"
 android = "8.6.1"
 ftcsdk = "10.3.0"
-kxserialization = "1.8.0"
-mathjaxPlugin = "2.0.0"
+kxserialization = "1.9.0"
+mathjaxPlugin = "2.1.0"
 mockk = "1.14.4"
+quickbufRuntime = "1.4"
 xchart = "3.8.8"
 ejml = "0.44.0"
 deployer = "0.18.0"
+wpilib = "2027.424242.+"
 
 [libraries]
 dashboard-core = { module = "com.acmerobotics.dashboard:core", version.ref = "dash" }
 dashboard-dashboard = { module = "com.acmerobotics.dashboard:dashboard", version.ref = "dash" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonDatabind" }
+jackson-core = { module = "com.fasterxml.jackson.core:jackson-core", version.ref = "jacksonDatabind" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version.ref = "jacksonDatabind" }
 jetbrains-kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
@@ -27,13 +32,19 @@ ftcsdk-hardware = { module = "org.firstinspires.ftc:Hardware", version.ref = "ft
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kxserialization" }
 mathjax-plugin = { module = "org.jetbrains.dokka:mathjax-plugin", version.ref = "mathjaxPlugin" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+quickbuf-runtime = { module = "us.hebi.quickbuf:quickbuf-runtime", version.ref = "quickbufRuntime" }
 xchart = { module = "org.knowm.xchart:xchart", version.ref = "xchart" }
 ejml = { module = "org.ejml:ejml-simple", version.ref = "ejml" }
+wpimath = { module = "edu.wpi.first.wpimath:wpimath-java", version.ref = "wpilib" }
+wpiutil = { module = "edu.wpi.first.wpiutil:wpiutil-java", version.ref = "wpilib" }
+wpiunits = { module = "edu.wpi.first.wpiunits:wpiunits-java", version.ref = "wpilib" }
 
 [bundles]
 dashboard = ["dashboard-core", "dashboard-dashboard"]
 kotest = ["kotest-runner-junit5", "kotest-assertions-core", "kotest-property"]
 ftcsdk = ["ftcsdk-common", "ftcsdk-robotcore", "ftcsdk-hardware"]
+wpilib = ["wpimath", "wpiutil", "wpiunits"]
+jackson = ["jackson-annotations", "jackson-core", "jackson-databind"]
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }
@@ -42,5 +53,5 @@ kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
-dokka = { id = "org.jetbrains.dokka", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 deployer = { id = "io.deepmedia.tools.deployer", version.ref = "deployer" }

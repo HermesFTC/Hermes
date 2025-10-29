@@ -66,6 +66,5 @@ subprojects {
 
 dependencies {
     dokka(project(":core"))
-    dokka(project(":actions"))
-    dokka(project(":ftc"))
+    dokka(project(":wpi"))
 }
