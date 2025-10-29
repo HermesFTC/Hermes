@@ -28,6 +28,7 @@ dependencies {
 }
 
 kotlin {
+    jvmToolchain(21)
     compilerOptions {
         freeCompilerArgs.set(listOf("-Xjvm-default=all"))
     }

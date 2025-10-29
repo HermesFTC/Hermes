@@ -36,6 +36,7 @@ dependencies {
 }
 
 kotlin {
+    jvmToolchain(21)
     compilerOptions {
         freeCompilerArgs.set(listOf("-Xjvm-default=all"))
     }
@@ -53,8 +54,8 @@ val dokkaJar = tasks.register<Jar>("dokkaJar") {
 
 deployer {
     projectInfo {
-        artifactId.set("core")
-        description.set("A modern fork of RoadRunner.")
+        artifactId.set("wpi")
+        description.set("Integrations between Hermes and WPILib.")
     }
 
     content {
