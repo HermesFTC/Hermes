@@ -4,18 +4,19 @@
  * Use of this source code is governed by an MIT-style
  * license that can be found in the LICENSE file at the root of this repository or at
  * https://opensource.org/licenses/MIT.
+ *
+ * Some code in this file is adapted from WPILib under a BSD-style license
+ * that can be found in the External-Licenses file at the root of this repository.
  */
 
 package gay.zharel.hermes.kinematics
 
+import gay.zharel.hermes.geometry.PoseVelocity2dDual
+import gay.zharel.hermes.geometry.Twist2dDual
 import gay.zharel.hermes.math.DualNum
 import gay.zharel.hermes.math.DualParameter
-import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.geometry.RobotState
-import gay.zharel.hermes.geometry.Twist2dDual
 import gay.zharel.hermes.math.Time
-import gay.zharel.hermes.paths.PosePath
-import gay.zharel.hermes.profiles.VelConstraint
+import kotlin.math.sign
 import kotlin.math.withSign
 
 interface WheelIncrements<Param : DualParameter>
@@ -73,35 +74,6 @@ interface RobotKinematics<in WI: WheelIncrements<*>, in WV: WheelVelocities<*>> 
 }
 
 /**
- * Velocity constraint based on maximum wheel velocities.
- *
- * This constraint calculates the maximum robot velocity by considering the
- * physical limits of the wheel velocities through inverse and forward kinematics.
- *
- * @property kinematics The robot kinematics model
- * @property maxWheelVel The maximum allowable wheel velocity
- */
-class WheelVelConstraint<WI : WheelIncrements<*>, WV : WheelVelocities<*>>(
-    @JvmField
-    val kinematics: RobotKinematics<WI, WV>,
-    @JvmField
-    val maxWheelVel: Double
-) : VelConstraint {
-    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double {
-        val txRobotWorld = robotState.pose.inverse()
-        val robotVelWorld = robotState.vel
-        val robotVelRobot = txRobotWorld * robotVelWorld
-
-        val wheelVels = kinematics.inverse(PoseVelocity2dDual.constant(robotVelRobot, 1))
-            .desaturate(maxWheelVel) as WV
-
-        val poseVel = kinematics.forward<DualParameter>(wheelVels)
-
-        return poseVel.linearVel.norm().value()
-    }
-}
-
-/**
  * @usesMathJax
  *
  * Kinematic motor feedforward
@@ -129,4 +101,16 @@ data class MotorFeedforward(
     fun compute(vel: Double, accel: Double) = kS.withSign(vel) + kV * vel + kA * accel
 
     fun compute(vel: DualNum<Time>) = compute(vel[0], vel[1])
+
+    /**
+     * Computes the maximum achievable acceleration given the maximum voltage and velocity.
+     */
+    fun maxAchievableAcceleration(maxVoltage: Double, velocity: Double) =
+        (maxVoltage - kS * sign(velocity) - velocity * kV) / kA
+
+    /**
+     * Computes the maximum achievable acceleration given the maximum voltage and velocity.
+     */
+    fun minAchievableAcceleration(maxVoltage: Double, velocity: Double) =
+        maxAchievableAcceleration(-maxVoltage, velocity)
 }
