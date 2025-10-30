@@ -14,6 +14,7 @@ import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.geometry.Twist2dDual
 import gay.zharel.hermes.geometry.Vector2dDual
 import kotlin.math.abs
+import kotlin.math.absoluteValue
 
 /**
  * Kinematics for a tank (differential) drive train.
@@ -53,7 +54,7 @@ data class TankKinematics(@JvmField val trackWidth: Double) :
         override fun all() = listOf(left, right)
 
         override fun desaturate(maxPhysicalSpeed: Double): WheelVelocities<Param> {
-            val realMax = all().maxOf { it.value() }
+            val realMax = all().maxOf { it.value().absoluteValue }
             return if (realMax > maxPhysicalSpeed) {
                 TankWheelVelocities(
                     left * maxPhysicalSpeed / realMax,

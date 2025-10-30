@@ -15,6 +15,7 @@ import gay.zharel.hermes.geometry.Twist2dDual
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.geometry.Vector2dDual
 import gay.zharel.hermes.math.atan2
+import kotlin.math.absoluteValue
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -96,7 +97,15 @@ data class SwerveKinematics(
 
             val moduleX = delta.wheelDelta * cosAngle
             val moduleY = delta.wheelDelta * sinAngle
-            val angularContribution = (moduleY * module.x) - (moduleX * module.y)
+
+            // Angular contribution: cross product divided by radius squared
+            // omega = (v_y * r_x - v_x * r_y) / r²
+            val rSquared = module.x * module.x + module.y * module.y
+            val angularContribution = if (rSquared > 1e-9) {
+                ((moduleY * module.x) - (moduleX * module.y)) / rSquared
+            } else {
+                delta.wheelDelta * 0.0 // Zero contribution if at center
+            }
 
             Triple(moduleX, moduleY, angularContribution)
         }
@@ -116,7 +125,7 @@ data class SwerveKinematics(
         override fun all() = states.map { it.velocity }
 
         override fun desaturate(maxPhysicalSpeed: Double): SwerveWheelVelocities<Param> {
-            val realMax = all().maxOf { it.value() }
+            val realMax = all().maxOf { it.value().absoluteValue }
             return if (realMax > maxPhysicalSpeed) {
                 SwerveWheelVelocities(
                     states.map { it.copy(velocity = it.velocity * maxPhysicalSpeed / realMax) }
@@ -137,7 +146,15 @@ data class SwerveKinematics(
 
             val moduleX = state.velocity * cosAngle
             val moduleY = state.velocity * sinAngle
-            val angularContribution = (moduleY * module.x) - (moduleX * module.y)
+
+            // Angular contribution: cross product divided by radius squared
+            // omega = (v_y * r_x - v_x * r_y) / r²
+            val rSquared = module.x * module.x + module.y * module.y
+            val angularContribution = if (rSquared > 1e-9) {
+                ((moduleY * module.x) - (moduleX * module.y)) / rSquared
+            } else {
+                state.velocity * 0.0 // Zero contribution if at center
+            }
 
             Triple(moduleX, moduleY, angularContribution)
         }
@@ -169,20 +186,10 @@ data class SwerveKinematics(
             val wheelVel = totalVelX.times(totalVelX).plus(totalVelY.times(totalVelY)).sqrt()
             wheelVels.add(wheelVel)
 
-            // Calculate the steering angle using Rotation2d
+            // Calculate the steering angle using atan2
             // We use atan2 to get the angle of the velocity vector
             val steeringAngle = atan2(totalVelY, totalVelX)
             steeringAngles.add(steeringAngle)
-        }
-
-        // Find maximum wheel velocity for normalization if needed
-        val maxWheelVel = wheelVels.maxBy { it.value() }
-
-        // Normalize wheel velocities if any exceeds 1.0
-        if (maxWheelVel.value() > 1.0) {
-            wheelVels.forEachIndexed { index, wheelVel ->
-                wheelVels[index] = wheelVel.div(maxWheelVel)
-            }
         }
 
         return SwerveWheelVelocities(

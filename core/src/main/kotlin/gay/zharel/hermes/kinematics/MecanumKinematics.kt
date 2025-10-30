@@ -13,6 +13,7 @@ import gay.zharel.hermes.math.DualParameter
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.geometry.Twist2dDual
 import gay.zharel.hermes.geometry.Vector2dDual
+import kotlin.math.absoluteValue
 
 /**
  * Kinematics for a mecanum drive train.
@@ -71,7 +72,7 @@ data class MecanumKinematics @JvmOverloads constructor(
         override fun all() = listOf(leftFront, leftBack, rightBack, rightFront)
 
         override fun desaturate(maxPhysicalSpeed: Double): WheelVelocities<Param> {
-            val realMax = all().maxOf { it.value() }
+            val realMax = all().maxOf { it.value().absoluteValue }
             return if (realMax > maxPhysicalSpeed) {
                 MecanumWheelVelocities(
                     leftFront * maxPhysicalSpeed / realMax,
