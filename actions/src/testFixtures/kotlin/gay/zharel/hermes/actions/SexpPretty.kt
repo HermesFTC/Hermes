@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2025 Hermes FTC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file at the root of this repository or at
+ * https://opensource.org/licenses/MIT.
+ */
+
 package gay.zharel.hermes.actions
 
 // Ported from https://github.com/janestreet/sexp_pretty/blob/9ed833044944eb9d803be9a0753ccd15990cd387/src/sexp_pretty.ml
