@@ -1,4 +1,4 @@
-package gay.zharel.hermes.wpilib
+package gay.zharel.hermes.wpiconversions
 
 typealias HPose2d = gay.zharel.hermes.geometry.Pose2d
 typealias HRotation2d = gay.zharel.hermes.geometry.Rotation2d

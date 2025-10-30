@@ -1,4 +1,4 @@
-package gay.zharel.hermes.wpilib
+package gay.zharel.hermes.wpiconversions
 
 import edu.wpi.first.math.geometry.Pose2d
 import edu.wpi.first.math.geometry.Rotation2d
