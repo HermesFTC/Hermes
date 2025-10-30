@@ -13,8 +13,10 @@ import gay.zharel.hermes.math.DualParameter
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.geometry.Twist2dDual
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.paths.PosePath
 import gay.zharel.hermes.profiles.VelConstraint
+import kotlin.math.withSign
 
 interface WheelIncrements<Param : DualParameter>
 
@@ -99,3 +101,32 @@ class WheelVelConstraint<WI : WheelIncrements<*>, WV : WheelVelocities<*>>(
     }
 }
 
+/**
+ * @usesMathJax
+ *
+ * Kinematic motor feedforward
+ *
+ * @property[kS] kStatic, \(k_s\)
+ * @property[kV] kVelocity, \(k_v\)
+ * @property[kA] kStatic, \(k_a\)
+ */
+data class MotorFeedforward(
+    @JvmField
+    val kS: Double,
+    @JvmField
+    val kV: Double,
+    @JvmField
+    val kA: Double,
+) {
+    /**
+     * @usesMathJax
+     *
+     * Computes the (normalized) voltage \(k_s \cdot \operatorname{sign}(k_v \cdot v + k_a \cdot a) + k_v \cdot v + k_a \cdot a\).
+     *
+     * @param[vel] \(v\)
+     * @param[accel] \(a\)
+     */
+    fun compute(vel: Double, accel: Double) = kS.withSign(vel) + kV * vel + kA * accel
+
+    fun compute(vel: DualNum<Time>) = compute(vel[0], vel[1])
+}

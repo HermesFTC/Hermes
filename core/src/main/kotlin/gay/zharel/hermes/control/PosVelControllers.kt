@@ -17,41 +17,8 @@ import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.math.sinc
-import gay.zharel.hermes.math.snz
 import kotlin.math.sign
-import kotlin.math.sin
 import kotlin.math.sqrt
-import kotlin.math.withSign
-
-/**
- * @usesMathJax
- *
- * Kinematic motor feedforward
- *
- * @property[kS] kStatic, \(k_s\)
- * @property[kV] kVelocity, \(k_v\)
- * @property[kA] kStatic, \(k_a\)
- */
-data class MotorFeedforward(
-    @JvmField
-    val kS: Double,
-    @JvmField
-    val kV: Double,
-    @JvmField
-    val kA: Double,
-) {
-    /**
-     * @usesMathJax
-     *
-     * Computes the (normalized) voltage \(k_s \cdot \operatorname{sign}(k_v \cdot v + k_a \cdot a) + k_v \cdot v + k_a \cdot a\).
-     *
-     * @param[vel] \(v\)
-     * @param[accel] \(a\)
-     */
-    fun compute(vel: Double, accel: Double) = kS.withSign(vel) + kV * vel + kA * accel
-
-    fun compute(vel: DualNum<Time>) = compute(vel[0], vel[1])
-}
 
 /**
  * Abstract controller for computing the velocity and acceleration commands for a robot.

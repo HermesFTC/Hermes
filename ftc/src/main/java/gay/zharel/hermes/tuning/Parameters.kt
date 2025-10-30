@@ -8,8 +8,7 @@
 
 package gay.zharel.hermes.tuning
 
-import gay.zharel.hermes.control.MotorFeedforward
-import gay.zharel.hermes.geometry.Pose2d
+import gay.zharel.hermes.kinematics.MotorFeedforward
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple

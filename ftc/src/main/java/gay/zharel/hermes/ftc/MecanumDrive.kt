@@ -17,7 +17,7 @@ import com.qualcomm.robotcore.hardware.VoltageSensor
 import gay.zharel.fateweaver.flight.FlightRecorder
 import gay.zharel.hermes.actions.TrajectoryActionBuilder
 import gay.zharel.hermes.control.HolonomicController
-import gay.zharel.hermes.control.MotorFeedforward
+import gay.zharel.hermes.kinematics.MotorFeedforward
 import gay.zharel.hermes.control.PosVelGain
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
