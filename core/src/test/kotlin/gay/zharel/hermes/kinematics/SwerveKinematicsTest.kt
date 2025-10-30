@@ -10,19 +10,17 @@ package gay.zharel.hermes.kinematics
 
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.geometry.Rotation2d
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.math.DualNum
 import gay.zharel.hermes.math.Time
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class SwerveKinematicsTest {
-    private val kEpsilon = 1e-9
+const val EPSILON = 1e-9
 
+class SwerveKinematicsTest {
     private val fl = Vector2d(12.0, 12.0)
     private val fr = Vector2d(12.0, -12.0)
     private val bl = Vector2d(-12.0, 12.0)
@@ -36,14 +34,14 @@ class SwerveKinematicsTest {
         val velocity = PoseVelocity2d(Vector2d(5.0, 0.0), 0.0)
         val moduleStates = kinematics.inverse(PoseVelocity2dDual.constant<Time>(velocity, 1))
 
-        assertEquals(5.0, moduleStates.states[0].velocity.value(), kEpsilon)
-        assertEquals(5.0, moduleStates.states[1].velocity.value(), kEpsilon)
-        assertEquals(5.0, moduleStates.states[2].velocity.value(), kEpsilon)
-        assertEquals(5.0, moduleStates.states[3].velocity.value(), kEpsilon)
-        assertEquals(0.0, moduleStates.states[0].angle.value(), kEpsilon)
-        assertEquals(0.0, moduleStates.states[1].angle.value(), kEpsilon)
-        assertEquals(0.0, moduleStates.states[2].angle.value(), kEpsilon)
-        assertEquals(0.0, moduleStates.states[3].angle.value(), kEpsilon)
+        assertEquals(5.0, moduleStates.states[0].velocity.value(), EPSILON)
+        assertEquals(5.0, moduleStates.states[1].velocity.value(), EPSILON)
+        assertEquals(5.0, moduleStates.states[2].velocity.value(), EPSILON)
+        assertEquals(5.0, moduleStates.states[3].velocity.value(), EPSILON)
+        assertEquals(0.0, moduleStates.states[0].angle.value(), EPSILON)
+        assertEquals(0.0, moduleStates.states[1].angle.value(), EPSILON)
+        assertEquals(0.0, moduleStates.states[2].angle.value(), EPSILON)
+        assertEquals(0.0, moduleStates.states[3].angle.value(), EPSILON)
     }
 
     @Test
@@ -56,9 +54,9 @@ class SwerveKinematicsTest {
         val velocities = SwerveKinematics.SwerveWheelVelocities(listOf(state, state, state, state))
         val chassisVel = kinematics.forward<Time>(velocities)
 
-        assertEquals(5.0, chassisVel.linearVel.x.value(), kEpsilon)
-        assertEquals(0.0, chassisVel.linearVel.y.value(), kEpsilon)
-        assertEquals(0.0, chassisVel.angVel.value(), kEpsilon)
+        assertEquals(5.0, chassisVel.linearVel.x.value(), EPSILON)
+        assertEquals(0.0, chassisVel.linearVel.y.value(), EPSILON)
+        assertEquals(0.0, chassisVel.angVel.value(), EPSILON)
     }
 
     @Test
@@ -68,9 +66,9 @@ class SwerveKinematicsTest {
         val increments = SwerveKinematics.SwerveWheelIncrements(listOf(delta, delta, delta, delta))
         val twist = kinematics.forward<Time>(increments)
 
-        assertEquals(5.0, twist.line.x.value(), kEpsilon)
-        assertEquals(0.0, twist.line.y.value(), kEpsilon)
-        assertEquals(0.0, twist.angle.value(), kEpsilon)
+        assertEquals(5.0, twist.line.x.value(), EPSILON)
+        assertEquals(0.0, twist.line.y.value(), EPSILON)
+        assertEquals(0.0, twist.angle.value(), EPSILON)
     }
 
     @Test
@@ -78,14 +76,14 @@ class SwerveKinematicsTest {
         val velocity = PoseVelocity2d(Vector2d(0.0, 5.0), 0.0)
         val moduleStates = kinematics.inverse(PoseVelocity2dDual.constant<Time>(velocity, 1))
 
-        assertEquals(5.0, moduleStates.states[0].velocity.value(), kEpsilon)
-        assertEquals(5.0, moduleStates.states[1].velocity.value(), kEpsilon)
-        assertEquals(5.0, moduleStates.states[2].velocity.value(), kEpsilon)
-        assertEquals(5.0, moduleStates.states[3].velocity.value(), kEpsilon)
-        assertEquals(90.0, Math.toDegrees(moduleStates.states[0].angle.value()), kEpsilon)
-        assertEquals(90.0, Math.toDegrees(moduleStates.states[1].angle.value()), kEpsilon)
-        assertEquals(90.0, Math.toDegrees(moduleStates.states[2].angle.value()), kEpsilon)
-        assertEquals(90.0, Math.toDegrees(moduleStates.states[3].angle.value()), kEpsilon)
+        assertEquals(5.0, moduleStates.states[0].velocity.value(), EPSILON)
+        assertEquals(5.0, moduleStates.states[1].velocity.value(), EPSILON)
+        assertEquals(5.0, moduleStates.states[2].velocity.value(), EPSILON)
+        assertEquals(5.0, moduleStates.states[3].velocity.value(), EPSILON)
+        assertEquals(90.0, Math.toDegrees(moduleStates.states[0].angle.value()), EPSILON)
+        assertEquals(90.0, Math.toDegrees(moduleStates.states[1].angle.value()), EPSILON)
+        assertEquals(90.0, Math.toDegrees(moduleStates.states[2].angle.value()), EPSILON)
+        assertEquals(90.0, Math.toDegrees(moduleStates.states[3].angle.value()), EPSILON)
     }
 
     @Test
@@ -97,9 +95,9 @@ class SwerveKinematicsTest {
         val velocities = SwerveKinematics.SwerveWheelVelocities(listOf(state, state, state, state))
         val chassisVel = kinematics.forward<Time>(velocities)
 
-        assertEquals(0.0, chassisVel.linearVel.x.value(), kEpsilon)
-        assertEquals(5.0, chassisVel.linearVel.y.value(), kEpsilon)
-        assertEquals(0.0, chassisVel.angVel.value(), kEpsilon)
+        assertEquals(0.0, chassisVel.linearVel.x.value(), EPSILON)
+        assertEquals(5.0, chassisVel.linearVel.y.value(), EPSILON)
+        assertEquals(0.0, chassisVel.angVel.value(), EPSILON)
     }
 
     @Test
@@ -108,9 +106,9 @@ class SwerveKinematicsTest {
         val increments = SwerveKinematics.SwerveWheelIncrements(listOf(delta, delta, delta, delta))
         val twist = kinematics.forward<Time>(increments)
 
-        assertEquals(0.0, twist.line.x.value(), kEpsilon)
-        assertEquals(5.0, twist.line.y.value(), kEpsilon)
-        assertEquals(0.0, twist.angle.value(), kEpsilon)
+        assertEquals(0.0, twist.line.x.value(), EPSILON)
+        assertEquals(5.0, twist.line.y.value(), EPSILON)
+        assertEquals(0.0, twist.angle.value(), EPSILON)
     }
 
     @Test
@@ -127,10 +125,10 @@ class SwerveKinematicsTest {
         assertEquals(106.63, moduleStates.states[1].velocity.value(), 0.1)
         assertEquals(106.63, moduleStates.states[2].velocity.value(), 0.1)
         assertEquals(106.63, moduleStates.states[3].velocity.value(), 0.1)
-        assertEquals(135.0, Math.toDegrees(moduleStates.states[0].angle.value()), kEpsilon)
-        assertEquals(45.0, Math.toDegrees(moduleStates.states[1].angle.value()), kEpsilon)
-        assertEquals(-135.0, Math.toDegrees(moduleStates.states[2].angle.value()), kEpsilon)
-        assertEquals(-45.0, Math.toDegrees(moduleStates.states[3].angle.value()), kEpsilon)
+        assertEquals(135.0, Math.toDegrees(moduleStates.states[0].angle.value()), EPSILON)
+        assertEquals(45.0, Math.toDegrees(moduleStates.states[1].angle.value()), EPSILON)
+        assertEquals(-135.0, Math.toDegrees(moduleStates.states[2].angle.value()), EPSILON)
+        assertEquals(-45.0, Math.toDegrees(moduleStates.states[3].angle.value()), EPSILON)
     }
 
     @Test
@@ -155,8 +153,8 @@ class SwerveKinematicsTest {
         val velocities = SwerveKinematics.SwerveWheelVelocities(listOf(flState, frState, blState, brState))
         val chassisVel = kinematics.forward<Time>(velocities)
 
-        assertEquals(0.0, chassisVel.linearVel.x.value(), kEpsilon)
-        assertEquals(0.0, chassisVel.linearVel.y.value(), kEpsilon)
+        assertEquals(0.0, chassisVel.linearVel.x.value(), EPSILON)
+        assertEquals(0.0, chassisVel.linearVel.y.value(), EPSILON)
         assertEquals(2 * PI, chassisVel.angVel.value(), 0.1)
     }
 
@@ -170,8 +168,8 @@ class SwerveKinematicsTest {
         val increments = SwerveKinematics.SwerveWheelIncrements(listOf(flDelta, frDelta, blDelta, brDelta))
         val twist = kinematics.forward<Time>(increments)
 
-        assertEquals(0.0, twist.line.x.value(), kEpsilon)
-        assertEquals(0.0, twist.line.y.value(), kEpsilon)
+        assertEquals(0.0, twist.line.x.value(), EPSILON)
+        assertEquals(0.0, twist.line.y.value(), EPSILON)
         assertEquals(2 * PI, twist.angle.value(), 0.1)
     }
 
@@ -229,10 +227,10 @@ class SwerveKinematicsTest {
 
         val factor = 5.5 / 7.0
 
-        assertEquals(5.0 * factor, desaturated.states[0].velocity.value(), kEpsilon)
-        assertEquals(6.0 * factor, desaturated.states[1].velocity.value(), kEpsilon)
-        assertEquals(4.0 * factor, desaturated.states[2].velocity.value(), kEpsilon)
-        assertEquals(7.0 * factor, desaturated.states[3].velocity.value(), kEpsilon)
+        assertEquals(5.0 * factor, desaturated.states[0].velocity.value(), EPSILON)
+        assertEquals(6.0 * factor, desaturated.states[1].velocity.value(), EPSILON)
+        assertEquals(4.0 * factor, desaturated.states[2].velocity.value(), EPSILON)
+        assertEquals(7.0 * factor, desaturated.states[3].velocity.value(), EPSILON)
     }
 
     @Test
@@ -245,10 +243,10 @@ class SwerveKinematicsTest {
         val velocities = SwerveKinematics.SwerveWheelVelocities(listOf(fl, fr, bl, br))
         val desaturated = velocities.desaturate(1.0)
 
-        assertEquals(0.5, desaturated.states[0].velocity.value(), kEpsilon)
-        assertEquals(0.5, desaturated.states[1].velocity.value(), kEpsilon)
-        assertEquals(-1.0, desaturated.states[2].velocity.value(), kEpsilon)
-        assertEquals(-1.0, desaturated.states[3].velocity.value(), kEpsilon)
+        assertEquals(0.5, desaturated.states[0].velocity.value(), EPSILON)
+        assertEquals(0.5, desaturated.states[1].velocity.value(), EPSILON)
+        assertEquals(-1.0, desaturated.states[2].velocity.value(), EPSILON)
+        assertEquals(-1.0, desaturated.states[3].velocity.value(), EPSILON)
     }
 
     @Test
@@ -270,10 +268,10 @@ class SwerveKinematicsTest {
         // Verify that module positions are correctly configured
         val centerRadius = sqrt(12.0 * 12.0 + 12.0 * 12.0)
 
-        assertEquals(centerRadius, fl.norm(), kEpsilon)
-        assertEquals(centerRadius, fr.norm(), kEpsilon)
-        assertEquals(centerRadius, bl.norm(), kEpsilon)
-        assertEquals(centerRadius, br.norm(), kEpsilon)
+        assertEquals(centerRadius, fl.norm(), EPSILON)
+        assertEquals(centerRadius, fr.norm(), EPSILON)
+        assertEquals(centerRadius, bl.norm(), EPSILON)
+        assertEquals(centerRadius, br.norm(), EPSILON)
     }
 }
 
