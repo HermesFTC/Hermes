@@ -18,7 +18,7 @@ import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-const val EPSILON = 1e-9
+private const val EPSILON = 1e-9
 
 class SwerveKinematicsTest {
     private val fl = Vector2d(12.0, 12.0)
