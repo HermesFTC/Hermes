@@ -9,22 +9,13 @@
 package gay.zharel.hermes.paths
 
 import gay.zharel.hermes.TEST_TRAJECTORY_BUILDER_PARAMS
-import gay.zharel.hermes.control.MecanumKinematics
-import gay.zharel.hermes.control.WheelVelConstraint
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Vector2d
+import gay.zharel.hermes.kinematics.MecanumKinematics
+import gay.zharel.hermes.kinematics.WheelVelConstraint
 import gay.zharel.hermes.math.clamp
 import gay.zharel.hermes.math.range
-import gay.zharel.hermes.profiles.AngularVelConstraint
-import gay.zharel.hermes.profiles.DisplacementProfile
-import gay.zharel.hermes.profiles.MinVelConstraint
-import gay.zharel.hermes.profiles.ProfileAccelConstraint
-import gay.zharel.hermes.profiles.TimeProfile
-import gay.zharel.hermes.profiles.TranslationalVelConstraint
-import gay.zharel.hermes.profiles.createSimpleDisplacementProfile
-import gay.zharel.hermes.profiles.generateSimpleBackwardProfile
-import gay.zharel.hermes.profiles.constantProfile
-import gay.zharel.hermes.profiles.createVoltageConstrainedProfile
+import gay.zharel.hermes.profiles.*
 import gay.zharel.hermes.saveChart
 import gay.zharel.hermes.trajectories.TrajectoryBuilder
 import org.junit.jupiter.api.Test

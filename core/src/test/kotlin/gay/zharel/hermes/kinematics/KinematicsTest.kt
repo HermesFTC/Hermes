@@ -6,20 +6,20 @@
  * https://opensource.org/licenses/MIT.
  */
 
-package gay.zharel.hermes.control
+package gay.zharel.hermes.kinematics
 
 import gay.zharel.hermes.TEST_PROFILE_PARAMS
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.geometry.Rotation2d
-import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2d
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.math.range
-import gay.zharel.hermes.profiles.ProfileAccelConstraint
 import gay.zharel.hermes.paths.TangentPath
-import gay.zharel.hermes.profiles.TimeProfile
-import gay.zharel.hermes.profiles.CancelableProfile
 import gay.zharel.hermes.paths.saveProfiles
+import gay.zharel.hermes.profiles.CancelableProfile
+import gay.zharel.hermes.profiles.ProfileAccelConstraint
+import gay.zharel.hermes.profiles.TimeProfile
 import gay.zharel.hermes.trajectories.PositionPathSeqBuilder
 import kotlin.math.PI
 import kotlin.math.abs
@@ -39,7 +39,7 @@ class KinematicsTest {
                 r.nextDouble()
             )
 
-            val vs = kinematics.inverse(PoseVelocity2dDual.constant<Time>(t, 1)).all()
+            val vs = kinematics.inverse(PoseVelocity2dDual.Companion.constant<Time>(t, 1)).all()
 
             val t2 = kinematics.forward<Time>(
                 MecanumKinematics.MecanumWheelIncrements(
@@ -59,22 +59,22 @@ class KinematicsTest {
 
         val posPath = PositionPathSeqBuilder(
             Vector2d(0.0, 0.0),
-            Rotation2d.exp(0.0),
+            Rotation2d.Companion.exp(0.0),
             1e-6,
         )
             .splineTo(
                 Vector2d(15.0, 15.0),
-                Rotation2d.exp(PI),
+                Rotation2d.Companion.exp(PI),
             )
             .splineTo(
                 Vector2d(5.0, 35.0),
-                Rotation2d.exp(PI / 3),
+                Rotation2d.Companion.exp(PI / 3),
             )
             .build()
             .first()
 
         val path = TangentPath(posPath, 0.0)
-        val profile = CancelableProfile.generate(
+        val profile = CancelableProfile.Companion.generate(
             TEST_PROFILE_PARAMS,
             path, 0.0,
             WheelVelConstraint(kinematics, 10.0),
@@ -106,7 +106,7 @@ class KinematicsTest {
                 r.nextDouble()
             )
 
-            val vs = kinematics.inverse(PoseVelocity2dDual.constant<Time>(t, 1)).all()
+            val vs = kinematics.inverse(PoseVelocity2dDual.Companion.constant<Time>(t, 1)).all()
 
             val t2 = kinematics.forward<Time>(
                 TankKinematics.TankWheelIncrements(
@@ -126,22 +126,22 @@ class KinematicsTest {
 
         val posPath = PositionPathSeqBuilder(
             Vector2d(0.0, 0.0),
-            Rotation2d.exp(0.0),
+            Rotation2d.Companion.exp(0.0),
             1e-6,
         )
             .splineTo(
                 Vector2d(15.0, 15.0),
-                Rotation2d.exp(PI),
+                Rotation2d.Companion.exp(PI),
             )
             .splineTo(
                 Vector2d(5.0, 35.0),
-                Rotation2d.exp(PI / 3),
+                Rotation2d.Companion.exp(PI / 3),
             )
             .build()
             .first()
 
         val path = TangentPath(posPath, 0.0)
-        val profile = CancelableProfile.generate(
+        val profile = CancelableProfile.Companion.generate(
             TEST_PROFILE_PARAMS,
             path, 0.0,
             WheelVelConstraint(kinematics,10.0),

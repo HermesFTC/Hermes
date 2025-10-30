@@ -1,0 +1,101 @@
+/*
+ * Copyright (c) 2025 Hermes FTC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file at the root of this repository or at
+ * https://opensource.org/licenses/MIT.
+ */
+
+package gay.zharel.hermes.kinematics
+
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.DualParameter
+import gay.zharel.hermes.geometry.PoseVelocity2dDual
+import gay.zharel.hermes.geometry.RobotState
+import gay.zharel.hermes.geometry.Twist2dDual
+import gay.zharel.hermes.paths.PosePath
+import gay.zharel.hermes.profiles.VelConstraint
+
+interface WheelIncrements<Param : DualParameter>
+
+/**
+ * Represents the velocities of the individual drive wheels.
+ */
+interface WheelVelocities<Param : DualParameter> {
+    /**
+     * Returns a list of all wheel velocities.
+     * The order should be consistent for a given implementation.
+     */
+    fun all(): List<DualNum<Param>>
+
+    /**
+     * Desaturates wheel velocities to ensure none exceed the maximum physical speed.
+     *
+     * @param maxPhysicalSpeed The maximum allowable wheel speed
+     * @return A new [WheelVelocities] instance with scaled velocities if necessary
+     */
+    fun desaturate(maxPhysicalSpeed: Double): WheelVelocities<Param>
+}
+
+/**
+ * Represents the kinematics of a robot drive train, providing methods for
+ * inverse kinematics and velocity constraints based on wheel speeds.
+ */
+interface RobotKinematics<in WI: WheelIncrements<*>, in WV: WheelVelocities<*>> {
+    /**
+     * Performs forward kinematics: computes the twist (pose delta) that occurred
+     * based on the given wheel increments.
+     *
+     * @param increments The change in wheel positions
+     * @return The resulting twist (change in pose)
+     */
+    fun <Param : DualParameter> forward(increments: WI): Twist2dDual<Param>
+
+    /**
+     * Performs forward kinematics: computes the chassis velocity required
+     * to achieve the given wheel velocities.
+     *
+     * @param velocities The wheel velocities
+     * @return The resulting robot velocity
+     */
+    fun <Param : DualParameter> forward(velocities: WV): PoseVelocity2dDual<Param>
+
+    /**
+     * Performs inverse kinematics: computes wheel velocities required to achieve
+     * the desired robot velocity.
+     *
+     * @param velocity Robot velocity in the robot's local frame.
+     * @return Wheel velocities.
+     */
+    fun <Param : DualParameter> inverse(velocity: PoseVelocity2dDual<Param>): WheelVelocities<Param>
+}
+
+/**
+ * Velocity constraint based on maximum wheel velocities.
+ *
+ * This constraint calculates the maximum robot velocity by considering the
+ * physical limits of the wheel velocities through inverse and forward kinematics.
+ *
+ * @property kinematics The robot kinematics model
+ * @property maxWheelVel The maximum allowable wheel velocity
+ */
+class WheelVelConstraint<WI : WheelIncrements<*>, WV : WheelVelocities<*>>(
+    @JvmField
+    val kinematics: RobotKinematics<WI, WV>,
+    @JvmField
+    val maxWheelVel: Double
+) : VelConstraint {
+    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double {
+        val txRobotWorld = robotState.pose.inverse()
+        val robotVelWorld = robotState.vel
+        val robotVelRobot = txRobotWorld * robotVelWorld
+
+        val wheelVels = kinematics.inverse(PoseVelocity2dDual.constant(robotVelRobot, 1))
+            .desaturate(maxWheelVel) as WV
+
+        val poseVel = kinematics.forward<DualParameter>(wheelVels)
+
+        return poseVel.linearVel.norm().value()
+    }
+}
+

@@ -10,20 +10,23 @@ package gay.zharel.hermes.ftc
 
 import com.acmerobotics.dashboard.canvas.Canvas
 import com.qualcomm.hardware.lynx.LynxModule
-import com.qualcomm.robotcore.hardware.*
+import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.HardwareMap
+import com.qualcomm.robotcore.hardware.VoltageSensor
 import gay.zharel.fateweaver.flight.FlightRecorder
 import gay.zharel.hermes.actions.TrajectoryActionBuilder
 import gay.zharel.hermes.control.HolonomicController
-import gay.zharel.hermes.control.MecanumKinematics
 import gay.zharel.hermes.control.MotorFeedforward
 import gay.zharel.hermes.control.PosVelGain
-import gay.zharel.hermes.control.WheelVelConstraint
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.math.Time
+import gay.zharel.hermes.kinematics.MecanumKinematics
+import gay.zharel.hermes.kinematics.WheelVelConstraint
 import gay.zharel.hermes.logs.MecanumCommandMessage
 import gay.zharel.hermes.logs.PoseMessage
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.profiles.*
 import gay.zharel.hermes.trajectories.TrajectoryBuilder
 import gay.zharel.hermes.trajectories.TrajectoryBuilderParams

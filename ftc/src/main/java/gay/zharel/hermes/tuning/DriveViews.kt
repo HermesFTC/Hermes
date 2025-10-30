@@ -8,7 +8,7 @@
 
 package gay.zharel.hermes.tuning
 
-import gay.zharel.hermes.control.MecanumKinematics
+import gay.zharel.hermes.kinematics.MecanumKinematics
 import gay.zharel.hermes.math.DualNum
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.math.Time

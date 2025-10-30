@@ -10,11 +10,9 @@ package gay.zharel.hermes.control
 
 import gay.zharel.hermes.TEST_PROFILE_PARAMS
 import gay.zharel.hermes.geometry.*
-import gay.zharel.hermes.math.Arclength
-import gay.zharel.hermes.math.DualNum
-import gay.zharel.hermes.math.DualParameter
-import gay.zharel.hermes.math.Time
-import gay.zharel.hermes.math.sinc
+import gay.zharel.hermes.kinematics.TankKinematics
+import gay.zharel.hermes.kinematics.WheelVelConstraint
+import gay.zharel.hermes.math.*
 import gay.zharel.hermes.paths.TangentPath
 import gay.zharel.hermes.profiles.CancelableProfile
 import gay.zharel.hermes.profiles.ProfileAccelConstraint

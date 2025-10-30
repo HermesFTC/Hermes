@@ -10,6 +10,8 @@ package gay.zharel.hermes.control
 
 import gay.zharel.hermes.TEST_PROFILE_PARAMS
 import gay.zharel.hermes.geometry.*
+import gay.zharel.hermes.kinematics.MecanumKinematics
+import gay.zharel.hermes.kinematics.WheelVelConstraint
 import gay.zharel.hermes.math.DualNum
 import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.math.clamp

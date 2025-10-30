@@ -8,16 +8,10 @@
 
 package gay.zharel.hermes.builders
 
-import gay.zharel.hermes.control.MecanumKinematics
+import gay.zharel.hermes.geometry.*
+import gay.zharel.hermes.kinematics.MecanumKinematics
 import gay.zharel.hermes.math.DualNum
-import gay.zharel.hermes.geometry.Pose2d
-import gay.zharel.hermes.geometry.PoseVelocity2d
-import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.geometry.Rotation2d
-import gay.zharel.hermes.geometry.Rotation2dDual
 import gay.zharel.hermes.math.Time
-import gay.zharel.hermes.geometry.Vector2d
-import gay.zharel.hermes.geometry.Vector2dDual
 import gay.zharel.hermes.profiles.TimeProfile
 import gay.zharel.hermes.profiles.constantProfile
 import gay.zharel.hermes.trajectories.PositionPathSeqBuilder
