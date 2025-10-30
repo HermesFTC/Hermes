@@ -28,10 +28,11 @@ ejml = { module = "org.ejml:ejml-simple", version.ref = "ejml" }
 wpimath = { module = "edu.wpi.first.wpimath:wpimath-java", version.ref = "wpilib" }
 wpiutil = { module = "edu.wpi.first.wpiutil:wpiutil-java", version.ref = "wpilib" }
 wpiunits = { module = "edu.wpi.first.wpiunits:wpiunits-java", version.ref = "wpilib" }
+wpicommands = { module = "org.wpilib:commands3-java", version.ref = "wpilib" }
 
 [bundles]
 kotest = ["kotest-runner-junit5", "kotest-assertions-core", "kotest-property"]
-wpilib = ["wpimath", "wpiutil", "wpiunits"]
+wpilib = ["wpimath", "wpiutil", "wpiunits", "wpicommands"]
 jackson = ["jackson-annotations", "jackson-core", "jackson-databind"]
 
 [plugins]
