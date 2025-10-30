@@ -232,8 +232,13 @@ class KinematicsTest {
     @Test
     fun testMecanumInverseAccelerationsRotation() {
         val kinematics = MecanumKinematics(24.0, 24.0)
-        val cmd = PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
-            .concat<Time>(Acceleration2d(Vector2d(0.0, 0.0), 2 * PI))
+        val cmd = PoseVelocity2dDual<Time>(
+            gay.zharel.hermes.geometry.Vector2dDual(
+                gay.zharel.hermes.math.DualNum(doubleArrayOf(0.0, 0.0)),
+                gay.zharel.hermes.math.DualNum(doubleArrayOf(0.0, 0.0))
+            ),
+            gay.zharel.hermes.math.DualNum(doubleArrayOf(0.0, 2 * PI))
+        )
         val wheels = kinematics.inverse(cmd)
         assertEquals(-150.79645, wheels.leftFront[1], EPSILON)
         assertEquals(150.79645, wheels.rightFront[1], EPSILON)
@@ -257,8 +262,13 @@ class KinematicsTest {
     @Test
     fun testMecanumInverseAccelerationsMixed() {
         val kinematics = MecanumKinematics(24.0, 24.0)
-        val cmd = PoseVelocity2d(Vector2d(0.0, 0.0), 0.0)
-            .concat<Time>(Acceleration2d(Vector2d(2.0, 3.0), 1.0))
+        val cmd = PoseVelocity2dDual<Time>(
+            gay.zharel.hermes.geometry.Vector2dDual(
+                gay.zharel.hermes.math.DualNum<Time>(doubleArrayOf(0.0, 2.0)),
+                gay.zharel.hermes.math.DualNum<Time>(doubleArrayOf(0.0, 3.0))
+            ),
+            gay.zharel.hermes.math.DualNum<Time>(doubleArrayOf(0.0, 1.0))
+        )
         val wheels = kinematics.inverse(cmd)
         assertEquals(-25.0, wheels.leftFront[1], EPSILON)
         assertEquals(23.0, wheels.rightBack[1], EPSILON)

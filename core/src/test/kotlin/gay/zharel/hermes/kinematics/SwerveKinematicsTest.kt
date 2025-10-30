@@ -8,12 +8,16 @@
 
 package gay.zharel.hermes.kinematics
 
+import gay.zharel.hermes.control.concat
+import gay.zharel.hermes.geometry.Acceleration2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.math.DualNum
 import gay.zharel.hermes.math.Time
 import kotlin.math.PI
+import kotlin.math.hypot
+import kotlin.math.pow
 import kotlin.math.sqrt
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -21,6 +25,7 @@ import kotlin.test.assertEquals
 private const val EPSILON = 1e-9
 
 class SwerveKinematicsTest {
+    private fun dn(a: Double) = DualNum<Time>(doubleArrayOf(0.0, a))
     private val fl = Vector2d(12.0, 12.0)
     private val fr = Vector2d(12.0, -12.0)
     private val bl = Vector2d(-12.0, 12.0)
@@ -272,6 +277,44 @@ class SwerveKinematicsTest {
         assertEquals(centerRadius, fr.norm(), EPSILON)
         assertEquals(centerRadius, bl.norm(), EPSILON)
         assertEquals(centerRadius, br.norm(), EPSILON)
+    }
+
+
+    @Test
+    fun testSwerveForwardAccelerationsStraightLine() {
+        val state = SwerveModuleState<Time>(dn(3.536), DualNum.constant(0.0, 2))
+        val vels = SwerveKinematics.SwerveWheelVelocities(listOf(state, state, state, state))
+        val chassis = kinematics.forward<Time>(vels).acceleration()
+        assertEquals(3.536, chassis.linearAcc.x, 1e-9)
+        assertEquals(0.0, chassis.linearAcc.y, 1e-9)
+        assertEquals(0.0, chassis.angAcc, 1e-9)
+    }
+
+
+    @Test
+    fun testSwerveForwardAccelerationsStrafe() {
+        val state = SwerveModuleState(dn(2.828427), DualNum.constant(PI / 2, 2))
+        val vels = SwerveKinematics.SwerveWheelVelocities(listOf(state, state, state, state))
+        val chassis = kinematics.forward<Time>(vels).acceleration()
+        assertEquals(0.0, chassis.linearAcc.x, 1e-9)
+        assertEquals(2.8284, chassis.linearAcc.y, 1e-4)
+        assertEquals(0.0, chassis.angAcc, 1e-9)
+    }
+
+
+    @Test
+    fun testSwerveForwardAccelerationsRotation() {
+        val r = sqrt(12.0 * 12.0 + 12.0 * 12.0)
+        val wAcc = 2 * PI * r
+        val flState = SwerveModuleState(dn(wAcc), DualNum.constant(Math.toRadians(135.0), 2))
+        val frState = SwerveModuleState(dn(wAcc), DualNum.constant(Math.toRadians(45.0), 2))
+        val blState = SwerveModuleState(dn(wAcc), DualNum.constant(Math.toRadians(-135.0), 2))
+        val brState = SwerveModuleState(dn(wAcc), DualNum.constant(Math.toRadians(-45.0), 2))
+        val vels = SwerveKinematics.SwerveWheelVelocities(listOf(flState, frState, blState, brState))
+        val chassis = kinematics.forward<Time>(vels).acceleration()
+        assertEquals(0.0, chassis.linearAcc.x, 1e-6)
+        assertEquals(0.0, chassis.linearAcc.y, 1e-6)
+        assertEquals(2 * PI, chassis.angAcc, 1e-3)
     }
 }
 
