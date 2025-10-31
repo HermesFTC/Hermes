@@ -23,6 +23,7 @@ import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.kinematics.MecanumKinematics
+import gay.zharel.hermes.kinematics.VoltageConstraint
 import gay.zharel.hermes.kinematics.WheelVelConstraint
 import gay.zharel.hermes.logs.MecanumCommandMessage
 import gay.zharel.hermes.logs.PoseMessage
@@ -108,16 +109,10 @@ class MecanumDrive @JvmOverloads constructor(
     )
 
     /** Default velocity constraint combining wheel and angular velocity limits */
-    override val defaultVelConstraint: VelConstraint = MinVelConstraint(
-        listOf(
-            WheelVelConstraint(kinematics, params.maxWheelVel),
-            AngularVelConstraint(params.maxAngVel)
-        )
-    )
+    override val defaultVelConstraint: VelConstraint = WheelVelConstraint(kinematics, params.maxWheelVel)
 
     /** Default acceleration constraint for translational movement */
-    override val defaultAccelConstraint: AccelConstraint =
-        ProfileAccelConstraint(params.minTransAccel, params.maxTransAccel)
+    override val defaultAccelConstraint: AccelConstraint = VoltageConstraint(kinematics, feedforward, 12.0)
 
     /** Follower parameters used for trajectory following */
     override val followerParams: FollowerParams = FollowerParams(
