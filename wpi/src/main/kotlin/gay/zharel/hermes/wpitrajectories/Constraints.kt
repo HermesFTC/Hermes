@@ -1,5 +1,7 @@
 package gay.zharel.hermes.wpitrajectories
 
+import edu.wpi.first.math.controller.SimpleMotorFeedforward
+import edu.wpi.first.math.geometry.Translation2d
 import edu.wpi.first.math.kinematics.DifferentialDriveKinematics
 import edu.wpi.first.math.kinematics.MecanumDriveKinematics
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics
@@ -7,12 +9,29 @@ import edu.wpi.first.math.trajectory.constraint.DifferentialDriveKinematicsConst
 import edu.wpi.first.math.trajectory.constraint.MecanumDriveKinematicsConstraint
 import edu.wpi.first.math.trajectory.constraint.SwerveDriveKinematicsConstraint
 import edu.wpi.first.math.trajectory.constraint.TrajectoryConstraint
+import edu.wpi.first.units.measure.Distance
+import edu.wpi.first.units.measure.LinearVelocity
+import edu.wpi.first.units.measure.Voltage
 import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.geometry.Vector2d
+import gay.zharel.hermes.kinematics.MecanumKinematics
+import gay.zharel.hermes.kinematics.MotorFeedforward
+import gay.zharel.hermes.kinematics.RobotKinematics
+import gay.zharel.hermes.kinematics.SwerveKinematics
+import gay.zharel.hermes.kinematics.TankKinematics
+import gay.zharel.hermes.kinematics.VoltageConstraint
+import gay.zharel.hermes.kinematics.WheelIncrements
+import gay.zharel.hermes.kinematics.WheelVelConstraint
+import gay.zharel.hermes.kinematics.WheelVelocities
 import gay.zharel.hermes.math.MinMax
 import gay.zharel.hermes.paths.PosePath
 import gay.zharel.hermes.profiles.AccelConstraint
 import gay.zharel.hermes.profiles.VelConstraint
+import gay.zharel.hermes.wpiconversions.hermes
+import gay.zharel.hermes.wpiconversions.inches
+import gay.zharel.hermes.wpiconversions.ips
+import gay.zharel.hermes.wpiconversions.meters
+import gay.zharel.hermes.wpiconversions.volts
 import gay.zharel.hermes.wpiconversions.wpilib
 import kotlin.math.absoluteValue
 import kotlin.math.pow
@@ -33,53 +52,84 @@ interface HermesTrajectoryConstraint : VelConstraint, AccelConstraint {
     }
 }
 
-class WPILibTrajectoryConstraint @JvmOverloads constructor(
-    val wpilibConstraint: TrajectoryConstraint,
-    minAccel: Double = Double.POSITIVE_INFINITY,
-    maxAccel: Double = minAccel
+open class DriveConstraint(
+    kinematics: RobotKinematics<*, *>,
+    feedforward: MotorFeedforward,
+    maxWheelVel: Double ,
+    maxVoltage: Double = 12.0,
 ) : HermesTrajectoryConstraint {
-    val minMaxAccels = MinMax(-minAccel.coerceAtLeast(0.0), maxAccel.coerceAtLeast(0.0))
+    constructor(
+        kinematics: RobotKinematics<*, *>,
+        feedforward: SimpleMotorFeedforward,
+        maxWheelVel: LinearVelocity,
+        maxVoltage: Voltage = 12.0.volts,
+    ) : this(
+        kinematics,
+        MotorFeedforward(feedforward.ks, feedforward.kv, feedforward.ka),
+        maxWheelVel.ips,
+        maxVoltage.volts
+    )
 
-    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double = wpilibConstraint.getMaxVelocity(
-            robotState.pose.wpilib,
-            path.curvatureAt(s),
-            robotState.vel.linearVel.norm()
-        )
+    val velConstraint = WheelVelConstraint(kinematics, maxWheelVel)
+    val accelConstraint = VoltageConstraint(kinematics, feedforward, maxVoltage)
 
-    override fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double): MinMax = minMaxAccels
+    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double {
+        return velConstraint.maxRobotVel(robotState, path, s)
+    }
+
+    override fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double): MinMax {
+        return accelConstraint.minMaxProfileAccel(robotState, path, s)
+    }
 }
 
 class DifferentialDriveConstraint(
-    val kinematics: DifferentialDriveKinematics,
-    maxTransVel: Double,
-    minTransAccel: Double = Double.POSITIVE_INFINITY,
-    maxTransAccel: Double = minTransAccel
-) : HermesTrajectoryConstraint by WPILibTrajectoryConstraint(
-    DifferentialDriveKinematicsConstraint(kinematics, maxTransVel),
-    minTransAccel,
-    maxTransAccel
+    trackwidth: Distance,
+    feedforward: SimpleMotorFeedforward,
+    maxWheelVel: LinearVelocity,
+    maxVoltage: Voltage = 12.0.volts,
+) : DriveConstraint(
+    TankKinematics(trackwidth.inches),
+    feedforward,
+    maxWheelVel,
+    maxVoltage
 )
 
 class MecanumDriveConstraint(
-    val kinematics: MecanumDriveKinematics,
-    maxTransVel: Double,
-    minTransAccel: Double = Double.POSITIVE_INFINITY,
-    maxTransAccel: Double = minTransAccel
-) : HermesTrajectoryConstraint by WPILibTrajectoryConstraint(
-    MecanumDriveKinematicsConstraint(kinematics, maxTransVel),
-    minTransAccel,
-    maxTransAccel
-)
+    trackwidth: Distance,
+    wheelbase: Distance,
+    feedforward: SimpleMotorFeedforward,
+    maxWheelVel: LinearVelocity,
+    maxVoltage: Voltage = 12.0.volts,
+) : DriveConstraint(
+    MecanumKinematics(trackwidth.inches, wheelbase.inches),
+    feedforward,
+    maxWheelVel,
+    maxVoltage
+) {
+    constructor(
+        wheelLocations: Array<Translation2d>,
+        feedforward: SimpleMotorFeedforward,
+        maxWheelVel: LinearVelocity,
+        maxVoltage: Voltage = 12.0.volts,
+    ) : this(
+        trackwidth = (((wheelLocations[0].x - wheelLocations[1].x).absoluteValue +
+                      (wheelLocations[2].x - wheelLocations[3].x).absoluteValue) / 2.0).meters,
+        wheelbase = (((wheelLocations[0].y - wheelLocations[2].y).absoluteValue +
+                     (wheelLocations[1].y - wheelLocations[3].y).absoluteValue) / 2.0).meters,
+        feedforward,
+        maxWheelVel,
+        maxVoltage
+    )
+}
 
 class SwerveDriveConstraint(
-    val kinematics: SwerveDriveKinematics,
-    maxTransVel: Double,
-    minTransAccel: Double = Double.POSITIVE_INFINITY,
-    maxTransAccel: Double = minTransAccel
-) : HermesTrajectoryConstraint by WPILibTrajectoryConstraint(
-    SwerveDriveKinematicsConstraint(kinematics, maxTransVel),
-    minTransAccel,
-    maxTransAccel
+    wheelLocations: Array<Translation2d>,
+    feedforward: SimpleMotorFeedforward,
+    maxWheelVel: LinearVelocity,
+    maxVoltage: Voltage = 12.0.volts,
+) : DriveConstraint(
+    SwerveKinematics(wheelLocations.map(Translation2d::hermes)),
+    feedforward,
+    maxWheelVel,
+    maxVoltage
 )
-
-
