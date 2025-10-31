@@ -1,9 +1,18 @@
+/*
+ * Copyright (c) 2025 Hermes FTC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file at the root of this repository or at
+ * https://opensource.org/licenses/MIT.
+ */
+
 package gay.zharel.hermes.control
 
 import gay.zharel.hermes.TEST_PROFILE_PARAMS
 import gay.zharel.hermes.geometry.*
-import gay.zharel.hermes.math.DualParameter
-import gay.zharel.hermes.math.Time
+import gay.zharel.hermes.kinematics.TankKinematics
+import gay.zharel.hermes.kinematics.WheelVelConstraint
+import gay.zharel.hermes.math.*
 import gay.zharel.hermes.paths.TangentPath
 import gay.zharel.hermes.profiles.CancelableProfile
 import gay.zharel.hermes.profiles.ProfileAccelConstraint
@@ -15,6 +24,7 @@ import org.knowm.xchart.XYChart
 import org.knowm.xchart.style.markers.None
 import org.knowm.xchart.style.theme.MatlabTheme
 import kotlin.math.PI
+import kotlin.math.sqrt
 import kotlin.test.assertEquals
 
 class RamseteTest {
@@ -151,7 +161,8 @@ class RamseteTest {
             ).baseProfile
         )
 
-        val controller = RamseteController(trackWidth, bBar = 2.0)
+        val newController = RamseteController(trackWidth, bBar = 2.0)
+        val oldController = OldRamseteController(trackWidth)
 
         // var pose = (
         //     Vector2(-1.0, -1.0),
@@ -174,8 +185,8 @@ class RamseteTest {
 
             val targetPose = path[s.value(), 3]
 
-            val oldCommand: PoseVelocity2dDual<Time> = controller.computeOld(s, targetPose, pose)
-            val newCommand = controller.compute(s, targetPose, pose)
+            val oldCommand: PoseVelocity2dDual<Time> = oldController.compute(s, targetPose, pose)
+            val newCommand = newController.compute(s, targetPose, pose)
 
             val command = oldCommand.value()
 
@@ -192,6 +203,47 @@ class RamseteTest {
 
             assertEqualsDoubleList(oldCommand.flatten(), newCommand.flatten())
         }
+    }
+}
+
+class OldRamseteController(
+    trackWidth: Double,
+    val zeta: Double = 0.7,
+    bBar: Double = 2.0,
+) {
+    val b = bBar / (trackWidth * trackWidth)
+
+    /**
+     * Computes the velocity and acceleration command. The frame `Target` is the reference robot, and the frame `Actual`
+     * is the measured, physical robot.
+     *
+     * @return velocity command in the actual frame
+     */
+    fun compute(
+        s: DualNum<Time>,
+        targetPose: Pose2dDual<Arclength>,
+        actualPose: Pose2d,
+    ): PoseVelocity2dDual<Time> {
+        val targetHeading = targetPose.heading.value()
+        val tangentHeading = targetPose.position.drop(1).value().angleCast()
+        val dir = tangentHeading.real * targetHeading.real + tangentHeading.imag * targetHeading.imag
+        val vRef = dir * s[1]
+
+        val omegaRef = targetPose.reparam(s).heading.velocity()[0]
+
+        val k = 2.0 * zeta * sqrt(omegaRef * omegaRef + b * vRef * vRef)
+
+        val error = targetPose.value().minusExp(actualPose)
+        return PoseVelocity2dDual.constant(
+            PoseVelocity2d(
+                Vector2d(
+                    vRef * error.heading.real + k * error.position.x,
+                    0.0
+                ),
+                omegaRef + k * error.heading.log() + b * vRef * sinc(error.heading.log()) * error.position.y,
+            ),
+            2
+        )
     }
 }
 

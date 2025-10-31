@@ -1,8 +1,17 @@
+/*
+ * Copyright (c) 2025 Hermes FTC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file at the root of this repository or at
+ * https://opensource.org/licenses/MIT.
+ */
+
 @file:JvmName("Math")
 
 package gay.zharel.hermes.math
 
 import kotlinx.serialization.Serializable
+import kotlin.math.sin
 
 // ~10 * machine epsilon
 private const val EPS = 2.2e-15
@@ -24,6 +33,16 @@ fun snz(x: Double) =
     } else {
         -EPS
     }
+
+/**
+ * @usesMathJax
+ *
+ * Returns the sine of \(x + snz(x)\).
+ */
+fun sinc(x: Double): Double {
+    val u = x + snz(x)
+    return sin(u) / u
+}
 
 /**
  * Clamps [x] to the range [[lo], [hi]].

@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2025 Hermes FTC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file at the root of this repository or at
+ * https://opensource.org/licenses/MIT.
+ */
+
 package gay.zharel.hermes.control
 
 import gay.zharel.hermes.math.Arclength
@@ -8,41 +16,9 @@ import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
 import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2d
-import gay.zharel.hermes.math.snz
+import gay.zharel.hermes.math.sinc
 import kotlin.math.sign
-import kotlin.math.sin
 import kotlin.math.sqrt
-import kotlin.math.withSign
-
-/**
- * @usesMathJax
- *
- * Kinematic motor feedforward
- *
- * @property[kS] kStatic, \(k_s\)
- * @property[kV] kVelocity, \(k_v\)
- * @property[kA] kStatic, \(k_a\)
- */
-data class MotorFeedforward(
-    @JvmField
-    val kS: Double,
-    @JvmField
-    val kV: Double,
-    @JvmField
-    val kA: Double,
-) {
-    /**
-     * @usesMathJax
-     *
-     * Computes the (normalized) voltage \(k_s \cdot \operatorname{sign}(k_v \cdot v + k_a \cdot a) + k_v \cdot v + k_a \cdot a\).
-     *
-     * @param[vel] \(v\)
-     * @param[accel] \(a\)
-     */
-    fun compute(vel: Double, accel: Double) = kS.withSign(vel) + kV * vel + kA * accel
-
-    fun compute(vel: DualNum<Time>) = compute(vel[0], vel[1])
-}
 
 /**
  * Abstract controller for computing the velocity and acceleration commands for a robot.
@@ -63,22 +39,54 @@ interface RobotPosVelController {
 }
 
 /**
+ * Gains for the position-velocity controller.
+ *
+ * @property posGain proportional gain for position
+ * @property velGain proportional gain for velocity
+ */
+data class PosVelGain @JvmOverloads constructor(
+    @JvmField var posGain: Double,
+    @JvmField var velGain: Double = 0.0,
+)
+
+/**
  * Proportional position-velocity controller for a holonomic robot.
+ * This is essentially a P controller on the robot's position and a P controller on its velocity.
+ *
+ * @property axialGains gain for position and velocity in the robot's forward direction
+ * @property lateralGains gain for position and velocity in the robot's strafe direction
+ * @property headingGains gain for the robot's heading
  */
 class HolonomicController(
     @JvmField
-    val axialPosGain: Double,
+    val axialGains: PosVelGain,
     @JvmField
-    val lateralPosGain: Double,
+    val lateralGains: PosVelGain,
     @JvmField
-    val headingGain: Double,
-    @JvmField
-    val axialVelGain: Double,
-    @JvmField
-    val lateralVelGain: Double,
-    @JvmField
-    val headingVelGain: Double,
+    val headingGains: PosVelGain,
 ) : RobotPosVelController {
+
+    /**
+     * Proportional position-velocity controller for a holonomic robot.
+     * This is essentially a P controller on the robot's position and a P controller on its velocity.
+     *
+     * @param axialPosGain gain for position in the robot's forward direction
+     * @param lateralPosGain gain for position in the robot's strafe direction
+     * @param headingGain gain for the robot's heading
+     * @param axialVelGain gain for velocity in the robot's forward direction
+     * @param lateralVelGain gain for velocity in the robot's strafe direction
+     * @param headingVelGain gain for the robot's heading velocity
+     */
+    constructor(
+        axialPosGain: Double, lateralPosGain: Double,
+        headingGain: Double, axialVelGain: Double,
+        lateralVelGain: Double, headingVelGain: Double
+    ) : this(
+        PosVelGain(axialPosGain, axialVelGain),
+        PosVelGain(lateralPosGain, lateralVelGain),
+        PosVelGain(headingGain, headingVelGain)
+    )
+
     constructor(
         axialPosGain: Double,
         lateralPosGain: Double,
@@ -107,17 +115,17 @@ class HolonomicController(
         return targetVelTarget +
                 PoseVelocity2d(
                     Vector2d(
-                        axialPosGain * error.position.x,
-                        lateralPosGain * error.position.y,
+                        axialGains.posGain * error.position.x,
+                        lateralGains.posGain * error.position.y,
                     ),
-                    headingGain * error.heading.log(),
+                    headingGains.posGain * error.heading.log(),
                 ) +
                 PoseVelocity2d(
                     Vector2d(
-                        axialVelGain * velErrorActual.linearVel.x,
-                        lateralVelGain * velErrorActual.linearVel.y,
+                        axialGains.velGain * velErrorActual.linearVel.x,
+                        lateralGains.velGain * velErrorActual.linearVel.y,
                     ),
-                    headingVelGain * velErrorActual.angVel,
+                    headingGains.velGain * velErrorActual.angVel,
                 )
     }
 }
@@ -197,43 +205,5 @@ class RamseteController @JvmOverloads constructor(
         val vRef = dir * s[1]
 
         return compute(targetPose.reparam(s), actualPose, PoseVelocity2d(Vector2d(vRef, 0.0), dir))
-    }
-
-    /**
-     * Computes the velocity and acceleration command. The frame `Target` is the reference robot, and the frame `Actual`
-     * is the measured, physical robot.
-     *
-     * @return velocity command in the actual frame
-     */
-    fun computeOld(
-        s: DualNum<Time>,
-        targetPose: Pose2dDual<Arclength>,
-        actualPose: Pose2d,
-    ): PoseVelocity2dDual<Time> {
-        val targetHeading = targetPose.heading.value()
-        val tangentHeading = targetPose.position.drop(1).value().angleCast()
-        val dir = tangentHeading.real * targetHeading.real + tangentHeading.imag * targetHeading.imag
-        val vRef = dir * s[1]
-
-        val omegaRef = targetPose.reparam(s).heading.velocity()[0]
-
-        val k = 2.0 * zeta * sqrt(omegaRef * omegaRef + b * vRef * vRef)
-
-        val error = targetPose.value().minusExp(actualPose)
-        return PoseVelocity2dDual.constant(
-            PoseVelocity2d(
-                Vector2d(
-                    vRef * error.heading.real + k * error.position.x,
-                    0.0
-                ),
-                omegaRef + k * error.heading.log() + b * vRef * sinc(error.heading.log()) * error.position.y,
-            ),
-            2
-        )
-    }
-
-    fun sinc(x: Double): Double {
-        val u = x + snz(x)
-        return sin(u) / u
     }
 }
