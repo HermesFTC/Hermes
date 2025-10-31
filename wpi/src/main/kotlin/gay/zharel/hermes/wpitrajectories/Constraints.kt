@@ -112,8 +112,11 @@ class MecanumDriveConstraint(
         maxWheelVel: LinearVelocity,
         maxVoltage: Voltage = 12.0.volts,
     ) : this(
-        trackwidth = (((wheelLocations[0].x - wheelLocations[1].x).absoluteValue +
-                      (wheelLocations[2].x - wheelLocations[3].x).absoluteValue) / 2.0).meters,
+        trackwidth = wheelLocations.let {
+            require(it.size == 4) { "Mecanum drive requires exactly 4 wheel locations" }
+            (((it[0].x - it[1].x).absoluteValue +
+                      (it[2].x - it[3].x).absoluteValue) / 2.0).meters
+        },
         wheelbase = (((wheelLocations[0].y - wheelLocations[2].y).absoluteValue +
                      (wheelLocations[1].y - wheelLocations[3].y).absoluteValue) / 2.0).meters,
         feedforward,
