@@ -1,7 +1,14 @@
+/*
+ * Copyright (c) 2025 Hermes FTC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file at the root of this repository or at
+ * https://opensource.org/licenses/MIT.
+ */
+
 package gay.zharel.hermes.tuning
 
-import gay.zharel.hermes.control.MotorFeedforward
-import gay.zharel.hermes.geometry.Pose2d
+import gay.zharel.hermes.kinematics.MotorFeedforward
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple

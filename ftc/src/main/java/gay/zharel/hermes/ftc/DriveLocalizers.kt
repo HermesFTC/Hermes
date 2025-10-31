@@ -1,3 +1,11 @@
+/*
+ * Copyright (c) 2025 Hermes FTC
+ *
+ * Use of this source code is governed by an MIT-style
+ * license that can be found in the LICENSE file at the root of this repository or at
+ * https://opensource.org/licenses/MIT.
+ */
+
 @file:Suppress("unused")
 package gay.zharel.hermes.ftc
 
@@ -7,13 +15,13 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import com.qualcomm.robotcore.hardware.IMU
 import gay.zharel.fateweaver.flight.FlightRecorder
-import gay.zharel.hermes.control.MecanumKinematics
-import gay.zharel.hermes.control.MecanumKinematics.MecanumWheelIncrements
-import gay.zharel.hermes.control.SwerveKinematics
-import gay.zharel.hermes.control.SwerveModuleIncrements
-import gay.zharel.hermes.control.TankKinematics
-import gay.zharel.hermes.control.TankKinematics.TankWheelIncrements
 import gay.zharel.hermes.geometry.*
+import gay.zharel.hermes.kinematics.MecanumKinematics
+import gay.zharel.hermes.kinematics.MecanumKinematics.MecanumWheelIncrements
+import gay.zharel.hermes.kinematics.SwerveKinematics
+import gay.zharel.hermes.kinematics.SwerveModuleIncrements
+import gay.zharel.hermes.kinematics.TankKinematics
+import gay.zharel.hermes.kinematics.TankKinematics.TankWheelIncrements
 import gay.zharel.hermes.logs.MecanumLocalizerInputsMessage
 import gay.zharel.hermes.logs.TankLocalizerInputsMessage
 import gay.zharel.hermes.math.DualNum
