@@ -2,27 +2,17 @@ package gay.zharel.hermes.wpitrajectories
 
 import edu.wpi.first.math.controller.SimpleMotorFeedforward
 import edu.wpi.first.math.geometry.Translation2d
-import edu.wpi.first.math.kinematics.DifferentialDriveKinematics
-import edu.wpi.first.math.kinematics.MecanumDriveKinematics
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics
-import edu.wpi.first.math.trajectory.constraint.DifferentialDriveKinematicsConstraint
-import edu.wpi.first.math.trajectory.constraint.MecanumDriveKinematicsConstraint
-import edu.wpi.first.math.trajectory.constraint.SwerveDriveKinematicsConstraint
-import edu.wpi.first.math.trajectory.constraint.TrajectoryConstraint
 import edu.wpi.first.units.measure.Distance
 import edu.wpi.first.units.measure.LinearVelocity
 import edu.wpi.first.units.measure.Voltage
 import gay.zharel.hermes.geometry.RobotState
-import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.kinematics.MecanumKinematics
 import gay.zharel.hermes.kinematics.MotorFeedforward
 import gay.zharel.hermes.kinematics.RobotKinematics
 import gay.zharel.hermes.kinematics.SwerveKinematics
 import gay.zharel.hermes.kinematics.TankKinematics
 import gay.zharel.hermes.kinematics.VoltageConstraint
-import gay.zharel.hermes.kinematics.WheelIncrements
 import gay.zharel.hermes.kinematics.WheelVelConstraint
-import gay.zharel.hermes.kinematics.WheelVelocities
 import gay.zharel.hermes.math.MinMax
 import gay.zharel.hermes.paths.PosePath
 import gay.zharel.hermes.profiles.AccelConstraint
@@ -32,32 +22,46 @@ import gay.zharel.hermes.wpiconversions.inches
 import gay.zharel.hermes.wpiconversions.ips
 import gay.zharel.hermes.wpiconversions.meters
 import gay.zharel.hermes.wpiconversions.volts
-import gay.zharel.hermes.wpiconversions.wpilib
 import kotlin.math.absoluteValue
-import kotlin.math.pow
 
-infix fun Vector2d.cross(other: Vector2d) = this.x * other.y - this.y * other.x
-
-fun PosePath.curvatureAt(s: Double): Double {
-    val state = RobotState.fromDualPose(this[s, 3])
-    val numerator = state.vel.linearVel cross state.accel.linearAcc
-    val denominator = state.vel.linearVel.norm().pow(3)
-
-    return if (denominator.absoluteValue < 1e-9) 0.0 else numerator / denominator
-}
-
+/**
+ * A combined velocity and acceleration constraint interface for Hermes trajectory planning.
+ *
+ * This interface combines both velocity and acceleration constraints, allowing a single
+ * constraint object to enforce both types of limits simultaneously.
+ */
 interface HermesTrajectoryConstraint : VelConstraint, AccelConstraint {
     override fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double): MinMax {
         return MinMax(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY)
     }
 }
 
+/**
+ * Base drive constraint class that combines wheel velocity and voltage-based acceleration constraints.
+ *
+ * This constraint enforces physical limits on the robot's wheels by combining:
+ * - Maximum wheel velocity constraints
+ * - Voltage-based acceleration constraints using motor feedforward
+ *
+ * @param kinematics The robot kinematics model
+ * @param feedforward The motor feedforward model
+ * @param maxWheelVel Maximum wheel velocity in inches per second
+ * @param maxVoltage Maximum voltage available to motors (default: 12.0V)
+ */
 open class DriveConstraint(
     kinematics: RobotKinematics<*, *>,
     feedforward: MotorFeedforward,
     maxWheelVel: Double ,
     maxVoltage: Double = 12.0,
 ) : HermesTrajectoryConstraint {
+    /**
+     * Creates a DriveConstraint using WPILib units and SimpleMotorFeedforward.
+     *
+     * @param kinematics The robot kinematics model
+     * @param feedforward WPILib SimpleMotorFeedforward for motor modeling
+     * @param maxWheelVel Maximum wheel velocity (WPILib LinearVelocity)
+     * @param maxVoltage Maximum voltage available to motors (default: 12.0V)
+     */
     constructor(
         kinematics: RobotKinematics<*, *>,
         feedforward: SimpleMotorFeedforward,
@@ -82,6 +86,18 @@ open class DriveConstraint(
     }
 }
 
+/**
+ * Velocity and acceleration constraint for differential drive robots.
+ *
+ * Differential drives (also known as tank drives) have two independently controlled
+ * wheel sides. This constraint enforces velocity and acceleration limits based on
+ * the trackwidth and motor characteristics.
+ *
+ * @param trackwidth The distance between the left and right wheel centers
+ * @param feedforward Motor feedforward model for acceleration constraints
+ * @param maxWheelVel Maximum velocity of the drive wheels
+ * @param maxVoltage Maximum voltage available to motors (default: 12.0V)
+ */
 class DifferentialDriveConstraint(
     trackwidth: Distance,
     feedforward: SimpleMotorFeedforward,
@@ -94,6 +110,19 @@ class DifferentialDriveConstraint(
     maxVoltage
 )
 
+/**
+ * Velocity and acceleration constraint for mecanum drive robots.
+ *
+ * Mecanum drives use four omni-directional wheels that allow holonomic movement.
+ * This constraint enforces velocity and acceleration limits based on the robot's
+ * geometry and motor characteristics.
+ *
+ * @param trackwidth The distance between the left and right wheels
+ * @param wheelbase The distance between the front and rear wheels
+ * @param feedforward Motor feedforward model for acceleration constraints
+ * @param maxWheelVel Maximum velocity of the mecanum wheels
+ * @param maxVoltage Maximum voltage available to motors (default: 12.0V)
+ */
 class MecanumDriveConstraint(
     trackwidth: Distance,
     wheelbase: Distance,
@@ -106,6 +135,18 @@ class MecanumDriveConstraint(
     maxWheelVel,
     maxVoltage
 ) {
+    /**
+     * Creates a MecanumDriveConstraint from wheel locations.
+     *
+     * The wheel locations should be provided in the order:
+     * front-left, front-right, back-left, back-right.
+     *
+     * @param wheelLocations Array of exactly 4 wheel positions (front-left, front-right, back-left, back-right)
+     * @param feedforward Motor feedforward model for acceleration constraints
+     * @param maxWheelVel Maximum velocity of the mecanum wheels
+     * @param maxVoltage Maximum voltage available to motors (default: 12.0V)
+     * @throws IllegalArgumentException if wheelLocations does not contain exactly 4 elements
+     */
     constructor(
         wheelLocations: Array<Translation2d>,
         feedforward: SimpleMotorFeedforward,
@@ -125,6 +166,20 @@ class MecanumDriveConstraint(
     )
 }
 
+/**
+ * Velocity and acceleration constraint for swerve drive robots.
+ *
+ * Swerve drives use independently steerable and powered wheels that allow
+ * full holonomic movement with maximum maneuverability. This constraint enforces
+ * velocity and acceleration limits based on the wheel positions and motor characteristics.
+ *
+ * Swerve drives typically use 4 modules, but this constraint supports any number of modules.
+ *
+ * @param wheelLocations Array of wheel module positions relative to the robot center
+ * @param feedforward Motor feedforward model for acceleration constraints
+ * @param maxWheelVel Maximum velocity of the swerve modules
+ * @param maxVoltage Maximum voltage available to motors (default: 12.0V)
+ */
 class SwerveDriveConstraint(
     wheelLocations: Array<Translation2d>,
     feedforward: SimpleMotorFeedforward,
