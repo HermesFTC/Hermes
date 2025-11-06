@@ -29,6 +29,7 @@ dependencies {
     api(libs.bundles.jackson)
     api(libs.quickbuf.runtime)
 
+    testFixturesImplementation(libs.bundles.wpilib)
     testFixturesApi(libs.ejml)
     testFixturesApi(libs.bundles.kotest)
 
