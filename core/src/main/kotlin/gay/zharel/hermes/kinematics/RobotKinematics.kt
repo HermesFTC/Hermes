@@ -105,11 +105,14 @@ data class MotorFeedforward(
     /**
      * Computes the maximum achievable acceleration given the maximum voltage and velocity.
      */
-    fun maxAchievableAcceleration(maxVoltage: Double, velocity: Double) =
-        (maxVoltage - kS * sign(velocity) - velocity * kV) / kA
+    fun maxAchievableAcceleration(maxVoltage: Double, velocity: Double): Double {
+        if (kotlin.math.abs(kA) < 1e-12) return 0.0  // No acceleration possible if kA is zero
+        val result = (maxVoltage - kS * sign(velocity) - velocity * kV) / kA
+        return if (result.isFinite()) result else 0.0
+    }
 
     /**
-     * Computes the maximum achievable acceleration given the maximum voltage and velocity.
+     * Computes the minimum achievable acceleration given the maximum voltage and velocity.
      */
     fun minAchievableAcceleration(maxVoltage: Double, velocity: Double) =
         maxAchievableAcceleration(-maxVoltage, velocity)
