@@ -25,9 +25,9 @@ mathjax-plugin = { module = "org.jetbrains.dokka:mathjax-plugin", version.ref = 
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
 quickbuf-runtime = { module = "us.hebi.quickbuf:quickbuf-runtime", version.ref = "quickbufRuntime" }
 ejml = { module = "org.ejml:ejml-simple", version.ref = "ejml" }
-wpimath = { module = "edu.wpi.first.wpimath:wpimath-java", version.ref = "wpilib" }
-wpiutil = { module = "edu.wpi.first.wpiutil:wpiutil-java", version.ref = "wpilib" }
-wpiunits = { module = "edu.wpi.first.wpiunits:wpiunits-java", version.ref = "wpilib" }
+wpimath = { module = "org.wpilib.wpimath:wpimath-java", version.ref = "wpilib" }
+wpiutil = { module = "org.wpilib.wpiutil:wpiutil-java", version.ref = "wpilib" }
+wpiunits = { module = "org.wpilib.wpiunits:wpiunits-java", version.ref = "wpilib" }
 wpicommands = { module = "org.wpilib:commands3-java", version.ref = "wpilib" }
 
 [bundles]
