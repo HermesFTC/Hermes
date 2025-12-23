@@ -1,10 +1,10 @@
 package gay.zharel.hermes.wpiconversions
 
-import edu.wpi.first.math.geometry.Pose2d
-import edu.wpi.first.math.geometry.Rotation2d
-import edu.wpi.first.math.geometry.Translation2d
-import edu.wpi.first.math.kinematics.ChassisAccelerations
-import edu.wpi.first.math.kinematics.ChassisSpeeds
+import org.wpilib.math.geometry.Pose2d
+import org.wpilib.math.geometry.Rotation2d
+import org.wpilib.math.geometry.Translation2d
+import org.wpilib.math.kinematics.ChassisAccelerations
+import org.wpilib.math.kinematics.ChassisSpeeds
 import gay.zharel.hermes.geometry.Acceleration2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.Vector2d

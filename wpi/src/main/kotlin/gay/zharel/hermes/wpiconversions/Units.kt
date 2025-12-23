@@ -1,21 +1,21 @@
 package gay.zharel.hermes.wpiconversions
 
-import edu.wpi.first.units.Measure
-import edu.wpi.first.units.Unit
-import edu.wpi.first.units.Units.Inches
-import edu.wpi.first.units.Units.InchesPerSecond
-import edu.wpi.first.units.Units.Meters
-import edu.wpi.first.units.Units.MetersPerSecond
-import edu.wpi.first.units.Units.Radians
-import edu.wpi.first.units.Units.RadiansPerSecond
-import edu.wpi.first.units.Units.Seconds
-import edu.wpi.first.units.Units.Volts
-import edu.wpi.first.units.measure.Angle
-import edu.wpi.first.units.measure.AngularVelocity
-import edu.wpi.first.units.measure.Distance
-import edu.wpi.first.units.measure.LinearVelocity
-import edu.wpi.first.units.measure.Time
-import edu.wpi.first.units.measure.Voltage
+import org.wpilib.units.Measure
+import org.wpilib.units.Unit
+import org.wpilib.units.Units.Inches
+import org.wpilib.units.Units.InchesPerSecond
+import org.wpilib.units.Units.Meters
+import org.wpilib.units.Units.MetersPerSecond
+import org.wpilib.units.Units.Radians
+import org.wpilib.units.Units.RadiansPerSecond
+import org.wpilib.units.Units.Seconds
+import org.wpilib.units.Units.Volts
+import org.wpilib.units.measure.Angle
+import org.wpilib.units.measure.AngularVelocity
+import org.wpilib.units.measure.Distance
+import org.wpilib.units.measure.LinearVelocity
+import org.wpilib.units.measure.Time
+import org.wpilib.units.measure.Voltage
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 

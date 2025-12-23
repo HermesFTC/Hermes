@@ -1,10 +1,10 @@
 package gay.zharel.hermes.wpitrajectories
 
-import edu.wpi.first.math.controller.SimpleMotorFeedforward
-import edu.wpi.first.math.geometry.Translation2d
-import edu.wpi.first.units.measure.Distance
-import edu.wpi.first.units.measure.LinearVelocity
-import edu.wpi.first.units.measure.Voltage
+import org.wpilib.math.controller.SimpleMotorFeedforward
+import org.wpilib.math.geometry.Translation2d
+import org.wpilib.units.measure.Distance
+import org.wpilib.units.measure.LinearVelocity
+import org.wpilib.units.measure.Voltage
 import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.kinematics.MecanumKinematics
 import gay.zharel.hermes.kinematics.MotorFeedforward

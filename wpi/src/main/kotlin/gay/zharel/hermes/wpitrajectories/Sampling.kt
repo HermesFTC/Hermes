@@ -8,8 +8,8 @@
 
 package gay.zharel.hermes.wpitrajectories
 
-import edu.wpi.first.math.trajectory.TrajectorySample
-import edu.wpi.first.units.measure.Time
+import org.wpilib.math.trajectory.TrajectorySample
+import org.wpilib.units.measure.Time
 import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.profiles.ProfileParams
 import gay.zharel.hermes.trajectories.TimeTrajectory

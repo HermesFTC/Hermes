@@ -8,13 +8,13 @@
 
 package gay.zharel.hermes.wpitrajectories
 
-import edu.wpi.first.math.geometry.Pose2d
-import edu.wpi.first.math.geometry.Rotation2d
-import edu.wpi.first.math.geometry.Translation2d
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics
-import edu.wpi.first.math.trajectory.SwerveSample
-import edu.wpi.first.math.trajectory.SwerveTrajectory
-import edu.wpi.first.units.measure.LinearVelocity
+import org.wpilib.math.geometry.Pose2d
+import org.wpilib.math.geometry.Rotation2d
+import org.wpilib.math.geometry.Translation2d
+import org.wpilib.math.kinematics.SwerveDriveKinematics
+import org.wpilib.math.trajectory.SwerveSample
+import org.wpilib.math.trajectory.SwerveTrajectory
+import org.wpilib.units.measure.LinearVelocity
 import gay.zharel.hermes.paths.IdentityPoseMap
 import gay.zharel.hermes.paths.PoseMap
 import gay.zharel.hermes.profiles.AccelConstraint
