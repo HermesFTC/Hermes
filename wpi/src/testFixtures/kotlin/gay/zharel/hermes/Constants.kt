@@ -8,12 +8,12 @@
 
 package gay.zharel.hermes
 
-import edu.wpi.first.math.controller.SimpleMotorFeedforward
-import edu.wpi.first.math.geometry.Translation2d
-import edu.wpi.first.math.kinematics.MecanumDriveKinematics
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics
-import edu.wpi.first.math.trajectory.TrapezoidProfile
-import edu.wpi.first.math.util.Units
+import org.wpilib.math.controller.SimpleMotorFeedforward
+import org.wpilib.math.geometry.Translation2d
+import org.wpilib.math.kinematics.MecanumDriveKinematics
+import org.wpilib.math.kinematics.SwerveDriveKinematics
+import org.wpilib.math.trajectory.TrapezoidProfile
+import org.wpilib.math.util.Units
 import gay.zharel.hermes.kinematics.MecanumKinematics
 import gay.zharel.hermes.kinematics.SwerveKinematics
 import gay.zharel.hermes.wpiconversions.hermes
