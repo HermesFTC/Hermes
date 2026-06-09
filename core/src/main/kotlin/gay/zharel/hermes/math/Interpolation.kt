@@ -12,16 +12,16 @@ import gay.zharel.hermes.math.lerp
 import java.util.NavigableMap
 import java.util.TreeMap
 
-
 /**
  * @usesMathJax
  *
  * Linearly interpolates between \([fromLo, fromHi]\) and \([toLo, toHi]\) at value [x].
  */
-fun lerp(x: Double, fromLo: Double, fromHi: Double, toLo: Double, toHi: Double) =
-    if (fromLo == fromHi) 0.0
-    else
-        toLo + (x - fromLo) * (toHi - toLo) / (fromHi - fromLo)
+fun lerp(x: Double, fromLo: Double, fromHi: Double, toLo: Double, toHi: Double) = if (fromLo == fromHi) {
+  0.0
+} else {
+  toLo + (x - fromLo) * (toHi - toLo) / (fromHi - fromLo)
+}
 
 /**
  * @usesMathJax
@@ -54,26 +54,26 @@ fun antiLerp(value: Double, low: Double, high: Double) = (value - low) / (high -
  * @param [query] value to search for
  */
 fun lerpLookup(source: List<Double>, target: List<Double>, query: Double): Double {
-    require(source.size == target.size) { "source.size (${source.size}) != target.size (${target.size})" }
-    require(source.isNotEmpty()) { "source is empty" }
+  require(source.size == target.size) { "source.size (${source.size}) != target.size (${target.size})" }
+  require(source.isNotEmpty()) { "source is empty" }
 
-    val index = source.binarySearch(query)
-    return if (index >= 0) {
-        target[index]
-    } else {
-        val insIndex = -(index + 1)
-        when {
-            insIndex <= 0 -> target.first()
-            insIndex >= source.size -> target.last()
-            else -> {
-                val sLo = source[insIndex - 1]
-                val sHi = source[insIndex]
-                val tLo = target[insIndex - 1]
-                val tHi = target[insIndex]
-                lerp(query, sLo, sHi, tLo, tHi)
-            }
-        }
+  val index = source.binarySearch(query)
+  return if (index >= 0) {
+    target[index]
+  } else {
+    val insIndex = -(index + 1)
+    when {
+      insIndex <= 0 -> target.first()
+      insIndex >= source.size -> target.last()
+      else -> {
+        val sLo = source[insIndex - 1]
+        val sHi = source[insIndex]
+        val tLo = target[insIndex - 1]
+        val tHi = target[insIndex]
+        lerp(query, sLo, sHi, tLo, tHi)
+      }
     }
+  }
 }
 
 /**
@@ -98,35 +98,35 @@ fun lerpLookup(source: List<Double>, target: List<Double>, query: Double): Doubl
  * @throws IllegalArgumentException if `source` and `target` have different sizes or if `source` is empty.
  */
 fun lerpLookupMap(source: List<Double>, target: List<Double>, queries: List<Double>): List<Double> {
-    require(source.size == target.size) { "source.size (${source.size}) != target.size (${target.size})" }
-    require(source.isNotEmpty()) { "source is empty" }
+  require(source.size == target.size) { "source.size (${source.size}) != target.size (${target.size})" }
+  require(source.isNotEmpty()) { "source is empty" }
 
-    val result = mutableListOf<Double>()
+  val result = mutableListOf<Double>()
 
-    var i = 0
-    for (query in queries) {
-        if (query < source[0]) {
-            result.add(target[0])
-            continue
-        }
-
-        while (i + 1 < source.size && source[i + 1] < query) {
-            i++
-        }
-
-        if (i + 1 == source.size) {
-            result.add(target.last())
-            continue
-        }
-
-        val sLo = source[i]
-        val sHi = source[i + 1]
-        val tLo = target[i]
-        val tHi = target[i + 1]
-        result.add(lerp(query, sLo, sHi, tLo, tHi))
+  var i = 0
+  for (query in queries) {
+    if (query < source[0]) {
+      result.add(target[0])
+      continue
     }
 
-    return result
+    while (i + 1 < source.size && source[i + 1] < query) {
+      i++
+    }
+
+    if (i + 1 == source.size) {
+      result.add(target.last())
+      continue
+    }
+
+    val sLo = source[i]
+    val sHi = source[i + 1]
+    val tLo = target[i]
+    val tHi = target[i + 1]
+    result.add(lerp(query, sLo, sHi, tLo, tHi))
+  }
+
+  return result
 }
 
 /**
@@ -146,34 +146,34 @@ fun lerpLookupMap(source: List<Double>, target: List<Double>, queries: List<Doub
  * @throws IllegalArgumentException if the number of keys and values do not match.
  */
 class InterpolatingMap<T> private constructor(
-    val tree: TreeMap<Double, T>,
-    val interpolate: (T, T, Double) -> T
+  val tree: TreeMap<Double, T>,
+  val interpolate: (T, T, Double) -> T,
 ) : NavigableMap<Double, T> by tree {
-    constructor(interpolator: (T, T, Double) -> T) : this(TreeMap(), interpolator)
+  constructor(interpolator: (T, T, Double) -> T) : this(TreeMap(), interpolator)
 
-    constructor(interpolator: (T, T, Double) -> T, keys: List<Double>, values: List<T>) :
-            this(TreeMap(), interpolator) {
-        require(keys.size == values.size) { "Keys and values must be the same size" }
-        for (i in keys.indices) {
-            tree[keys[i]] = values[i]
-        }
+  constructor(interpolator: (T, T, Double) -> T, keys: List<Double>, values: List<T>) :
+    this(TreeMap(), interpolator) {
+    require(keys.size == values.size) { "Keys and values must be the same size" }
+    for (i in keys.indices) {
+      tree[keys[i]] = values[i]
+    }
+  }
+
+  /**
+   * Gets the value associated with the given key.
+   * If the key does not exist,
+   * the value is interpolated between the two nearest values.
+   */
+  override fun get(key: Double): T {
+    val low = floorEntry(key)
+    val high = ceilingEntry(key)
+
+    if (low.key == high.key) {
+      return tree[key]!!
     }
 
-    /**
-     * Gets the value associated with the given key.
-     * If the key does not exist,
-     * the value is interpolated between the two nearest values.
-     */
-    override fun get(key: Double): T {
-        val low = floorEntry(key)
-        val high = ceilingEntry(key)
+    val t = lerp(key, low.key, high.key, 0.0, 1.0)
 
-        if (low.key == high.key) {
-            return tree[key]!!
-        }
-
-        val t = lerp(key, low.key, high.key, 0.0, 1.0)
-
-        return interpolate(low.value, high.value, t)
-    }
+    return interpolate(low.value, high.value, t)
+  }
 }

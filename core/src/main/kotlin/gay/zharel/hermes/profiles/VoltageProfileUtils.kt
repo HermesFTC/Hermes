@@ -18,36 +18,30 @@ package gay.zharel.hermes.profiles
  * @param kV Unit of velocity per unit of voltage
  * @return Function that converts voltage to velocity
  */
-fun velocityFromVoltage(kV: Double): (Double) -> Double {
-    return { availableVoltage: Double -> availableVoltage * kV }
-}
+fun velocityFromVoltage(kV: Double): (Double) -> Double =
+  { availableVoltage: Double -> availableVoltage * kV }
 
 /**
  * Converts velocity to required voltage using the velocity constant kV.
  * @param kV Unit of velocity per unit of voltage
  * @return Function that converts velocity to voltage
  */
-fun voltageFromVelocity(kV: Double): (Double) -> Double {
-    return { velocity: Double -> velocity / kV }
-}
+fun voltageFromVelocity(kV: Double): (Double) -> Double = { velocity: Double -> velocity / kV }
 
 /**
  * Converts available voltage to acceleration using the acceleration constant kA.
  * @param kA Unit of acceleration per unit of voltage
  * @return Function that converts voltage to acceleration
  */
-fun accelerationFromVoltage(kA: Double): (Double) -> Double {
-    return { availableVoltage: Double -> availableVoltage * kA }
-}
+fun accelerationFromVoltage(kA: Double): (Double) -> Double =
+  { availableVoltage: Double -> availableVoltage * kA }
 
 /**
  * Converts acceleration to required voltage using the acceleration constant kA.
  * @param kA Unit of acceleration per unit of voltage
  * @return Function that converts acceleration to voltage
  */
-fun voltageFromAcceleration(kA: Double): (Double) -> Double {
-    return { acceleration: Double -> acceleration / kA }
-}
+fun voltageFromAcceleration(kA: Double): (Double) -> Double = { acceleration: Double -> acceleration / kA }
 
 /**
  * Calculates the maximum velocity achievable with the given voltage and motor constants.
@@ -55,9 +49,7 @@ fun voltageFromAcceleration(kA: Double): (Double) -> Double {
  * @param kV Velocity constant
  * @return Maximum achievable velocity
  */
-fun maxVelocityFromVoltage(availableVoltage: Double, kV: Double): Double {
-    return availableVoltage * kV
-}
+fun maxVelocityFromVoltage(availableVoltage: Double, kV: Double): Double = availableVoltage * kV
 
 /**
  * Calculates the maximum acceleration achievable with the given voltage and motor constants.
@@ -66,10 +58,5 @@ fun maxVelocityFromVoltage(availableVoltage: Double, kV: Double): Double {
  * @param kA Acceleration constant
  * @return Maximum achievable acceleration
  */
-fun maxAccelerationFromVoltage(
-    availableVoltage: Double,
-    velocityVoltage: Double,
-    kA: Double
-): Double {
-    return (availableVoltage - velocityVoltage) * kA
-}
+fun maxAccelerationFromVoltage(availableVoltage: Double, velocityVoltage: Double, kA: Double): Double =
+  (availableVoltage - velocityVoltage) * kA

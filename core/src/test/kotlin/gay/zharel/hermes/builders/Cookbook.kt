@@ -24,43 +24,39 @@ import kotlin.math.PI
 
 // fun displacementMarkers() {
 
-fun getDisp(): Double {
-    return 0.0
-}
+fun getDisp(): Double = 0.0
 
-fun isFollowing(): Boolean {
-    return false
-}
+fun isFollowing(): Boolean = false
 
 fun main() {
-    val posPath = PositionPathSeqBuilder(
-        Vector2d(0.0, 0.0),
-        Rotation2d.exp(0.0),
-        1e-6,
+  val posPath = PositionPathSeqBuilder(
+    Vector2d(0.0, 0.0),
+    Rotation2d.exp(0.0),
+    1e-6,
+  )
+    .splineTo(
+      Vector2d(15.0, 15.0),
+      Rotation2d.exp(PI),
     )
-        .splineTo(
-            Vector2d(15.0, 15.0),
-            Rotation2d.exp(PI),
-        )
-        .splineTo(
-            Vector2d(5.0, 35.0),
-            Rotation2d.exp(PI / 3),
-        )
-        .build()
-        .first()
+    .splineTo(
+      Vector2d(5.0, 35.0),
+      Rotation2d.exp(PI / 3),
+    )
+    .build()
+    .first()
 
-    // TODO: wrap this in a disposable command?
-    val marker = posPath.offsets[1]
-    var markerExecuted = false
-    while (isFollowing()) {
-        if (getDisp() > marker && !markerExecuted) {
-            // execute marker action
-            markerExecuted = true
-        }
+  // TODO: wrap this in a disposable command?
+  val marker = posPath.offsets[1]
+  var markerExecuted = false
+  while (isFollowing()) {
+    if (getDisp() > marker && !markerExecuted) {
+      // execute marker action
+      markerExecuted = true
     }
-    if (!markerExecuted) {
-        // execute marker action
-    }
+  }
+  if (!markerExecuted) {
+    // execute marker action
+  }
 }
 
 // // TODO: should I replace trajectory sequences with basic fsms?
@@ -103,29 +99,29 @@ fun main() {
 
 // current TS impl is only magically exception safe
 fun persistentBuilders() {
-    val builder = PositionPathSeqBuilder(
-        Vector2d(0.0, 0.0),
-        Rotation2d.exp(0.0),
-        1e-6,
+  val builder = PositionPathSeqBuilder(
+    Vector2d(0.0, 0.0),
+    Rotation2d.exp(0.0),
+    1e-6,
+  )
+    .splineTo(
+      Vector2d(15.0, 15.0),
+      Rotation2d.exp(PI),
     )
-        .splineTo(
-            Vector2d(15.0, 15.0),
-            Rotation2d.exp(PI),
-        )
 
-    val posPath1 = builder
-        .splineTo(
-            Vector2d(5.0, 35.0),
-            Rotation2d.exp(PI / 3),
-        )
-        .build()
+  val posPath1 = builder
+    .splineTo(
+      Vector2d(5.0, 35.0),
+      Rotation2d.exp(PI / 3),
+    )
+    .build()
 
-    val posPath2 = builder
-        .splineTo(
-            Vector2d(5.0, 25.0),
-            Rotation2d.exp(PI / 3),
-        )
-        .build()
+  val posPath2 = builder
+    .splineTo(
+      Vector2d(5.0, 25.0),
+      Rotation2d.exp(PI / 3),
+    )
+    .build()
 }
 
 // TODO: mirroring can be done to the inputs or the outputs
@@ -160,25 +156,29 @@ fun persistentBuilders() {
 fun setWheelPowers(powers: MecanumKinematics.MecanumWheelVelocities<Time>) {
 }
 
-fun fieldCentric(kinematics: MecanumKinematics, poseEstimate: Pose2d, leftStick: Vector2d, rightStick: Vector2d) {
-    setWheelPowers(
-        kinematics.inverse(
-            PoseVelocity2dDual.constant(
-                poseEstimate.inverse() * PoseVelocity2d(leftStick, rightStick.x),
-                1
-            )
-        )
-    )
+fun fieldCentric(
+  kinematics: MecanumKinematics,
+  poseEstimate: Pose2d,
+  leftStick: Vector2d,
+  rightStick: Vector2d,
+) {
+  setWheelPowers(
+    kinematics.inverse(
+      PoseVelocity2dDual.constant(
+        poseEstimate.inverse() * PoseVelocity2d(leftStick, rightStick.x),
+        1,
+      ),
+    ),
+  )
 }
 
-fun getWheelIncrements(): MecanumKinematics.MecanumWheelIncrements<Time> {
-    return MecanumKinematics.MecanumWheelIncrements(
-        DualNum(doubleArrayOf(0.0)),
-        DualNum(doubleArrayOf(0.0)),
-        DualNum(doubleArrayOf(0.0)),
-        DualNum(doubleArrayOf(0.0)),
-    )
-}
+fun getWheelIncrements(): MecanumKinematics.MecanumWheelIncrements<Time> =
+  MecanumKinematics.MecanumWheelIncrements(
+    DualNum(doubleArrayOf(0.0)),
+    DualNum(doubleArrayOf(0.0)),
+    DualNum(doubleArrayOf(0.0)),
+    DualNum(doubleArrayOf(0.0)),
+  )
 
 fun setWheelVelocities(vels: MecanumKinematics.MecanumWheelVelocities<Time>) {
 }
@@ -187,61 +187,59 @@ val TRANS_GAIN = 10.0
 val ROT_GAIN = 0.1
 
 fun goToPoint(kinematics: MecanumKinematics, initialPoseEstimate: Pose2d, targetPose: Pose2d) {
-    var poseEstimate = initialPoseEstimate
-    // TODO: termination criterion
-    while (true) {
-        // TODO: forward() may need some calculus to handle velocity measurements
-        //  (eeeeeek then we need a dualized WheelIncr)
-        // here it would be nice as a termination criterion
-        poseEstimate += kinematics.forward<Time>(getWheelIncrements()).value()
-        val error = targetPose.minusExp(poseEstimate)
-        // TODO: one could write some sugar
-        // inverse() could take a Twist2
-        val command = PoseVelocity2dDual.constant<Time>(
-            PoseVelocity2d(
-                error.position * TRANS_GAIN,
-                error.heading.log() * ROT_GAIN,
-            ),
-            1
-        )
-        // TODO: this leaves out feedforward
-        setWheelVelocities(kinematics.inverse(command))
-    }
+  var poseEstimate = initialPoseEstimate
+  // TODO: termination criterion
+  while (true) {
+    // TODO: forward() may need some calculus to handle velocity measurements
+    //  (eeeeeek then we need a dualized WheelIncr)
+    // here it would be nice as a termination criterion
+    poseEstimate += kinematics.forward<Time>(getWheelIncrements()).value()
+    val error = targetPose.minusExp(poseEstimate)
+    // TODO: one could write some sugar
+    // inverse() could take a Twist2
+    val command = PoseVelocity2dDual.constant<Time>(
+      PoseVelocity2d(
+        error.position * TRANS_GAIN,
+        error.heading.log() * ROT_GAIN,
+      ),
+      1,
+    )
+    // TODO: this leaves out feedforward
+    setWheelVelocities(kinematics.inverse(command))
+  }
 }
 
-fun clock(): Double {
-    return 0.0
-}
+fun clock(): Double = 0.0
 
 fun turnWithProfile(
-    kinematics: MecanumKinematics,
-    initialPoseEstimate: Pose2d,
-    maxAngVel: Double,
-    maxAbsAngAccel: Double,
-    angle: Double
+  kinematics: MecanumKinematics,
+  initialPoseEstimate: Pose2d,
+  maxAngVel: Double,
+  maxAbsAngAccel: Double,
+  angle: Double,
 ) {
-    val profile = TimeProfile(
-        constantProfile(angle, 0.0, maxAngVel, -maxAbsAngAccel, maxAbsAngAccel).baseProfile
+  val profile = TimeProfile(
+    constantProfile(angle, 0.0, maxAngVel, -maxAbsAngAccel, maxAbsAngAccel).baseProfile,
+  )
+  // TODO: termination criterion
+
+  var poseEstimate = initialPoseEstimate
+  while (true) {
+    poseEstimate += kinematics.forward<Time>(getWheelIncrements()).value()
+
+    val targetTurn = profile[clock()]
+    val targetRot = initialPoseEstimate.heading + targetTurn[0]
+    val angError = targetRot - poseEstimate.heading
+
+    setWheelVelocities(
+      kinematics.inverse(
+        PoseVelocity2dDual(
+          Vector2dDual.constant(Vector2d(0.0, 0.0), 2),
+          Rotation2dDual.exp(targetTurn).velocity() + angError * ROT_GAIN,
+        ),
+      ),
     )
-    // TODO: termination criterion
-
-    var poseEstimate = initialPoseEstimate
-    while (true) {
-        poseEstimate += kinematics.forward<Time>(getWheelIncrements()).value()
-
-        val targetTurn = profile[clock()]
-        val targetRot = initialPoseEstimate.heading + targetTurn[0]
-        val angError = targetRot - poseEstimate.heading
-
-        setWheelVelocities(
-            kinematics.inverse(
-                PoseVelocity2dDual(
-                    Vector2dDual.constant(Vector2d(0.0, 0.0), 2),
-                    Rotation2dDual.exp(targetTurn).velocity() + angError * ROT_GAIN
-                )
-            )
-        )
-    }
+  }
 }
 
 // fun spliceTraj() {

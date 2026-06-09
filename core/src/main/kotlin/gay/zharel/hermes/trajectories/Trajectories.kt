@@ -7,14 +7,15 @@
  */
 
 @file:JvmName("Trajectories")
+
 package gay.zharel.hermes.trajectories
 
-import gay.zharel.hermes.math.Arclength
-import gay.zharel.hermes.math.DualParameter
 import gay.zharel.hermes.geometry.Pose2dDual
 import gay.zharel.hermes.geometry.RobotState
-import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2d
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.DualParameter
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.paths.CompositePosePath
 import gay.zharel.hermes.paths.MappedPosePath
 import gay.zharel.hermes.paths.PoseMap
@@ -44,201 +45,204 @@ import kotlin.time.DurationUnit
  * @param Param The parameter type used to parameterize the trajectory (e.g., [Arclength], [Time])
  */
 interface Trajectory<Param : DualParameter> {
-    /**
-     * Returns the total arc length of the trajectory.
-     */
-    fun length(): Double
+  /**
+   * Returns the total arc length of the trajectory.
+   */
+  fun length(): Double
 
-    /**
-     * Returns the total time duration required to execute the trajectory.
-     */
-    fun duration() = wrtTime().duration
+  /**
+   * Returns the total time duration required to execute the trajectory.
+   */
+  fun duration() = wrtTime().duration
 
-    /**
-     * Evaluates the trajectory at the given parameter value to obtain the robot state.
-     *
-     * @param param The parameter value (displacement or time) at which to evaluate
-     * @return The [RobotState] containing position, heading, velocities, and accelerations
-     */
-    operator fun get(param: Double): RobotState
+  /**
+   * Evaluates the trajectory at the given parameter value to obtain the robot state.
+   *
+   * @param param The parameter value (displacement or time) at which to evaluate
+   * @return The [RobotState] containing position, heading, velocities, and accelerations
+   */
+  operator fun get(param: Double): RobotState
 
-    /**
-     * Returns the robot state at the start of the trajectory (parameter = 0).
-     */
-    fun start() = get(0.0)
+  /**
+   * Returns the robot state at the start of the trajectory (parameter = 0).
+   */
+  fun start() = get(0.0)
 
-    /**
-     * Returns the robot state at the end of the trajectory with respect to displacement.
-     */
-    fun endWrtDisp() = wrtDisp()[length()]
+  /**
+   * Returns the robot state at the end of the trajectory with respect to displacement.
+   */
+  fun endWrtDisp() = wrtDisp()[length()]
 
-    /**
-     * Returns the robot state at the end of the trajectory with respect to time.
-     */
-    fun endWrtTime() = wrtTime()[duration().toDouble(DurationUnit.SECONDS)]
+  /**
+   * Returns the robot state at the end of the trajectory with respect to time.
+   */
+  fun endWrtTime() = wrtTime()[duration().toDouble(DurationUnit.SECONDS)]
 
-    /**
-     * Projects a query position onto the trajectory's path using Newton's method.
-     *
-     * Finds the parameter value where the trajectory's path is closest to the query point.
-     *
-     * @param query The 2D position to project onto the trajectory
-     * @param init Initial guess for the parameter value (default: 0.0)
-     * @return The parameter value at the closest point on the trajectory to the query
-     */
-    fun project(query: Vector2d, init: Double): Double
+  /**
+   * Projects a query position onto the trajectory's path using Newton's method.
+   *
+   * Finds the parameter value where the trajectory's path is closest to the query point.
+   *
+   * @param query The 2D position to project onto the trajectory
+   * @param init Initial guess for the parameter value (default: 0.0)
+   * @return The parameter value at the closest point on the trajectory to the query
+   */
+  fun project(query: Vector2d, init: Double): Double
 
-    /**
-     * Converts this trajectory to a displacement-parameterized representation.
-     *
-     * In displacement parameterization, the trajectory is indexed by arc length along the path.
-     */
-    fun wrtDisp(): DisplacementTrajectory
+  /**
+   * Converts this trajectory to a displacement-parameterized representation.
+   *
+   * In displacement parameterization, the trajectory is indexed by arc length along the path.
+   */
+  fun wrtDisp(): DisplacementTrajectory
 
-    /**
-     * Converts this trajectory to a time-parameterized representation.
-     *
-     * In time parameterization, the trajectory is indexed by elapsed time.
-     */
-    fun wrtTime(): TimeTrajectory
+  /**
+   * Converts this trajectory to a time-parameterized representation.
+   *
+   * In time parameterization, the trajectory is indexed by elapsed time.
+   */
+  fun wrtTime(): TimeTrajectory
 
-    /**
-     * Combines this trajectory with another trajectory to create a composite trajectory.
-     *
-     * The resulting trajectory will execute this trajectory first, then the other trajectory.
-     *
-     * @param other The trajectory to append after this one
-     */
-    operator fun plus(other: Trajectory<Param>) = CompositeTrajectory(this, other)
+  /**
+   * Combines this trajectory with another trajectory to create a composite trajectory.
+   *
+   * The resulting trajectory will execute this trajectory first, then the other trajectory.
+   *
+   * @param other The trajectory to append after this one
+   */
+  operator fun plus(other: Trajectory<Param>) = CompositeTrajectory(this, other)
 
-    /**
-     * Applies a pose transformation map to this trajectory.
-     *
-     * Transforms the trajectory's path using the given [PoseMap] while preserving the motion profile.
-     *
-     * @return A new [DisplacementTrajectory] with the transformation applied
-     */
-    fun map(map: PoseMap) = wrtDisp().let {
-        DisplacementTrajectory(
-            MappedPosePath(it.path, map),
-            it.profile
-        )
-    }
+  /**
+   * Applies a pose transformation map to this trajectory.
+   *
+   * Transforms the trajectory's path using the given [PoseMap] while preserving the motion profile.
+   *
+   * @return A new [DisplacementTrajectory] with the transformation applied
+   */
+  fun map(map: PoseMap) = wrtDisp().let {
+    DisplacementTrajectory(
+      MappedPosePath(it.path, map),
+      it.profile,
+    )
+  }
 }
 
 @Serializable
 @SerialName("CancelableTrajectory")
 class CancelableTrajectory(
-    val thisPath: PosePath,
-    @JvmField
-    val cProfile: CancelableProfile,
-    @JvmField
-    val offsets: List<Double>
+  val thisPath: PosePath,
+  @JvmField
+  val cProfile: CancelableProfile,
+  @JvmField
+  val offsets: List<Double>,
 ) : DisplacementTrajectory(thisPath, cProfile.baseProfile) {
-    fun cancel(s: Double): DisplacementTrajectory {
-        val offset = s
-        return DisplacementTrajectory(
-            object : PosePath {
-                override fun length() = path.length() - offset
-                override fun get(s: Double, n: Int) = path[s + offset, n]
-            },
-            cProfile.cancel(s)
-        )
-    }
+  fun cancel(s: Double): DisplacementTrajectory {
+    val offset = s
+    return DisplacementTrajectory(
+      object : PosePath {
+        override fun length() = path.length() - offset
+        override fun get(s: Double, n: Int) = path[s + offset, n]
+      },
+      cProfile.cancel(s),
+    )
+  }
 }
 
 @Serializable
 @SerialName("DisplacementTrajectory")
 open class DisplacementTrajectory(
-    @JvmField
-    val path: PosePath,
-    @JvmField
-    val profile: DisplacementProfile
+  @JvmField
+  val path: PosePath,
+  @JvmField
+  val profile: DisplacementProfile,
 ) : Trajectory<Arclength> {
-    constructor(t: CancelableTrajectory) : this(t.path, t.cProfile.baseProfile)
+  constructor(t: CancelableTrajectory) : this(t.path, t.cProfile.baseProfile)
 
-    override fun wrtDisp() = this
-    override fun wrtTime() = TimeTrajectory(this)
+  override fun wrtDisp() = this
+  override fun wrtTime() = TimeTrajectory(this)
 
-    override fun length() = path.length()
+  override fun length() = path.length()
 
-    override fun project(query: Vector2d, init: Double) = path.project(query, init)
+  override fun project(query: Vector2d, init: Double) = path.project(query, init)
 
-    override operator fun get(s: Double): RobotState =
-        RobotState.fromDualPose(path[s, 3].reparam(profile[s]))
+  override operator fun get(param: Double): RobotState =
+    RobotState.fromDualPose(path[param, 3].reparam(profile[param]))
 }
 
 @Serializable
 @SerialName("TimeTrajectory")
 class TimeTrajectory(
-    @JvmField
-    val path: PosePath,
-    @JvmField
-    val profile: TimeProfile
+  @JvmField
+  val path: PosePath,
+  @JvmField
+  val profile: TimeProfile,
 ) : Trajectory<Time> {
-    val duration = profile.duration.seconds
+  val duration = profile.duration.seconds
 
-    constructor(t: CancelableTrajectory) : this(t.path, TimeProfile(t.cProfile.baseProfile))
+  constructor(t: CancelableTrajectory) : this(t.path, TimeProfile(t.cProfile.baseProfile))
 
-    constructor(t: DisplacementTrajectory) : this(t.path, TimeProfile(t.profile))
+  constructor(t: DisplacementTrajectory) : this(t.path, TimeProfile(t.profile))
 
-    override fun wrtDisp() = DisplacementTrajectory(this.path, this.profile.dispProfile)
-    override fun wrtTime() = this
+  override fun wrtDisp() = DisplacementTrajectory(this.path, this.profile.dispProfile)
+  override fun wrtTime() = this
 
-    override fun length(): Double = path.length()
+  override fun length(): Double = path.length()
 
-    override operator fun get(t: Double): RobotState {
-        val s = profile[t]
-        return RobotState.fromDualPose(path[s.value(), 3].reparam(s))
-    }
+  override operator fun get(param: Double): RobotState {
+    val s = profile[param]
+    return RobotState.fromDualPose(path[s.value(), 3].reparam(s))
+  }
 
-    override fun project(query: Vector2d, init: Double): Double = path.project(query, init)
+  override fun project(query: Vector2d, init: Double): Double = path.project(query, init)
 }
 
 @Serializable
 @SerialName("CompositeTrajectory")
 class CompositeTrajectory @JvmOverloads constructor(
-    @JvmField
-    val trajectories: List<DisplacementTrajectory>,
-    @JvmField
-    val offsets: List<Double> = trajectories.scan(0.0) { acc, t -> acc + t.length() }
+  @JvmField
+  val trajectories: List<DisplacementTrajectory>,
+  @JvmField
+  val offsets: List<Double> = trajectories.scan(0.0) { acc, t -> acc + t.length() },
 ) : Trajectory<Arclength> {
-    constructor(trajectories: Collection<Trajectory<*>>) : this(trajectories.map { it.wrtDisp() })
-    constructor(vararg trajectories: DisplacementTrajectory) : this(trajectories.toList())
-    constructor(vararg trajectories: Trajectory<*>) : this(trajectories.map { it.wrtDisp() })
+  constructor(trajectories: Collection<Trajectory<*>>) : this(trajectories.map { it.wrtDisp() })
+  constructor(vararg trajectories: DisplacementTrajectory) : this(trajectories.toList())
+  constructor(vararg trajectories: Trajectory<*>) : this(trajectories.map { it.wrtDisp() })
 
-    @Transient val path = CompositePosePath(trajectories.map { it.path }, offsets)
-    @Transient val profile = trajectories.map { it.profile }.reduce { acc, profile -> acc + profile }
+  @Transient val path = CompositePosePath(trajectories.map { it.path }, offsets)
 
-    @JvmField
-    val length = offsets.last()
+  @Transient val profile = trajectories.map { it.profile }.reduce { acc, profile -> acc + profile }
 
-    init {
-        require(trajectories.size + 1 == offsets.size) {
-            "trajectories.size (${trajectories.size}) + 1 != offsets.size (${offsets.size})"
-        }
+  @JvmField
+  val length = offsets.last()
+
+  init {
+    require(trajectories.size + 1 == offsets.size) {
+      "trajectories.size (${trajectories.size}) + 1 != offsets.size (${offsets.size})"
+    }
+  }
+
+  override fun get(param: Double): RobotState {
+    if (param > length) {
+      return RobotState.fromDualPose(
+        Pose2dDual.Companion.constant(trajectories.last().path.end(1).value(), 3),
+      )
     }
 
-    override fun get(s: Double): RobotState {
-        if (s > length) {
-            return RobotState.fromDualPose(Pose2dDual.Companion.constant(trajectories.last().path.end(1).value(), 3))
-        }
-
-        for ((offset, traj) in offsets.zip(trajectories).reversed()) {
-            if (s >= offset) {
-                return traj[s - offset]
-            }
-        }
-
-        return trajectories.first()[0.0]
+    for ((offset, traj) in offsets.zip(trajectories).reversed()) {
+      if (param >= offset) {
+        return traj[param - offset]
+      }
     }
 
-    override fun length() = length
+    return trajectories.first()[0.0]
+  }
 
-    override fun wrtDisp() = DisplacementTrajectory(path, profile)
-    override fun wrtTime() = TimeTrajectory(path, TimeProfile(profile))
+  override fun length() = length
 
-    override fun project(query: Vector2d, init: Double) = path.project(query, init)
+  override fun wrtDisp() = DisplacementTrajectory(path, profile)
+  override fun wrtTime() = TimeTrajectory(path, TimeProfile(profile))
+
+  override fun project(query: Vector2d, init: Double) = path.project(query, init)
 }
 
 /**
@@ -248,31 +252,31 @@ class CompositeTrajectory @JvmOverloads constructor(
 @Serializable
 @SerialName("CompositeCancelableTrajectory")
 class CompositeCancelableTrajectory @JvmOverloads constructor(
-    @JvmField
-    val trajectories: List<CancelableTrajectory>,
-    @JvmField
-    val offsets: List<Double> = trajectories.scan(0.0) { acc, t -> acc + t.length() }
+  @JvmField
+  val trajectories: List<CancelableTrajectory>,
+  @JvmField
+  val offsets: List<Double> = trajectories.scan(0.0) { acc, t -> acc + t.length() },
 ) : Trajectory<Arclength> by CompositeTrajectory(trajectories, offsets) {
 
-    /**
-     * Cancels the composite trajectory at the given displacement,
-     * returning a new trajectory starting from that point.
-     * @param s The displacement at which to cancel.
-     * @return A new [DisplacementTrajectory] representing the remaining trajectory.
-     */
-    fun cancel(s: Double): DisplacementTrajectory {
-        if (s > length()) {
-            return trajectories.last().cancel(s - length())
-        }
-
-        for ((offset, traj) in offsets.zip(trajectories).reversed()) {
-            if (s >= offset) {
-                return traj.cancel(s - offset)
-            }
-        }
-
-        return trajectories.first().cancel(0.0)
+  /**
+   * Cancels the composite trajectory at the given displacement,
+   * returning a new trajectory starting from that point.
+   * @param s The displacement at which to cancel.
+   * @return A new [DisplacementTrajectory] representing the remaining trajectory.
+   */
+  fun cancel(s: Double): DisplacementTrajectory {
+    if (s > length()) {
+      return trajectories.last().cancel(s - length())
     }
+
+    for ((offset, traj) in offsets.zip(trajectories).reversed()) {
+      if (s >= offset) {
+        return traj.cancel(s - offset)
+      }
+    }
+
+    return trajectories.first().cancel(0.0)
+  }
 }
 
 fun compose(vararg trajectories: Trajectory<*>) = CompositeTrajectory(*trajectories)

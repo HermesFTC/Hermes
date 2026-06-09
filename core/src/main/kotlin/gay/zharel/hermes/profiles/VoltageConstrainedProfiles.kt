@@ -31,28 +31,30 @@ import kotlin.math.max
  * @return CancelableProfile with optimal profile and cancellation constraints
  */
 fun createVoltageConstrainedProfile(
-    length: Double,
-    beginEndVel: Double,
-    kV: Double,
-    kA: Double,
-    kS: Double,
-    maxVoltage: (Double) -> Double,
-    resolution: Double,
+  length: Double,
+  beginEndVel: Double,
+  kV: Double,
+  kA: Double,
+  kS: Double,
+  maxVoltage: (Double) -> Double,
+  resolution: Double,
 ): CancelableProfile {
-    require(length > 0.0) { "length ($length) must be positive" }
-    require(resolution > 0.0) { "resolution ($resolution) must be positive" }
-    require(beginEndVel >= 0.0) { "beginEndVel ($beginEndVel) must be non-negative" }
+  require(length > 0.0) { "length ($length) must be positive" }
+  require(resolution > 0.0) { "resolution ($resolution) must be positive" }
+  require(beginEndVel >= 0.0) { "beginEndVel ($beginEndVel) must be non-negative" }
 
-    val samples = max(1, ceil(length / resolution).toInt())
-    val disps = rangeCentered(0.0, length, samples)
+  val samples = max(1, ceil(length / resolution).toInt())
+  val disps = rangeCentered(0.0, length, samples)
 
-    // Subtract kS from max voltage to account for static friction
-    val availableVoltages = disps.map { maxVoltage(it) - kS }
-    val cancellationMinAccels = availableVoltages.map { -accelerationFromVoltage(kA)(it) }
+  // Subtract kS from max voltage to account for static friction
+  val availableVoltages = disps.map { maxVoltage(it) - kS }
+  val cancellationMinAccels = availableVoltages.map { -accelerationFromVoltage(kA)(it) }
 
-    val forwardProfile = generateVoltageConstrainedForwardProfile(disps, beginEndVel, kV, kA, availableVoltages)
-    val backwardProfile = generateVoltageConstrainedBackwardProfile(disps, beginEndVel, kV, kA, availableVoltages)
-    val mergedProfile = mergeDisplacementProfiles(forwardProfile, backwardProfile)
+  val forwardProfile =
+    generateVoltageConstrainedForwardProfile(disps, beginEndVel, kV, kA, availableVoltages)
+  val backwardProfile =
+    generateVoltageConstrainedBackwardProfile(disps, beginEndVel, kV, kA, availableVoltages)
+  val mergedProfile = mergeDisplacementProfiles(forwardProfile, backwardProfile)
 
-    return CancelableProfile(mergedProfile, disps, cancellationMinAccels)
+  return CancelableProfile(mergedProfile, disps, cancellationMinAccels)
 }
