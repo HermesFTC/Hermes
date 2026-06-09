@@ -33,7 +33,6 @@ dependencies {
 kotlin {
   compilerOptions {
     jvmTarget.set(JvmTarget.JVM_25)
-    freeCompilerArgs.set(listOf("-jvm-default=all"))
   }
 }
 

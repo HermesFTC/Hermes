@@ -73,11 +73,11 @@ class VoltageConstraint<WI : WheelIncrements<*>, WV : WheelVelocities<*>>(
     }
 
     // If kA is zero or too small, we can't meaningfully constrain acceleration
-        if (kotlin.math.abs(feedforward.kA) < 1e-12) {
-            return MinMax(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY)
-        }
+    if (kotlin.math.abs(feedforward.kA) < 1e-12) {
+      return MinMax(Double.NEGATIVE_INFINITY, Double.POSITIVE_INFINITY)
+    }
 
-        // Convert the geometric velocity (per unit arclength) into the robot frame.
+    // Convert the geometric velocity (per unit arclength) into the robot frame.
     val txRobotWorld = robotState.pose.inverse()
     val robotVelWorld = robotState.vel
     val robotVelRobot = txRobotWorld * robotVelWorld
@@ -87,14 +87,14 @@ class VoltageConstraint<WI : WheelIncrements<*>, WV : WheelVelocities<*>>(
     val wheelVels = kinematics.inverse(PoseVelocity2dDual.constant(robotVelRobot, 1)) as WV
     val wheelVelValues = wheelVels.all().map { it.value() }
 
-        val maxWheelAccels = wheelVelValues.map { v ->
-            val accel = feedforward.maxAchievableAcceleration(maxVoltage, v)
-            if (!accel.isFinite()) 0.0 else accel
-        }
-        val minWheelAccels = wheelVelValues.map { v ->
-            val accel = feedforward.minAchievableAcceleration(maxVoltage, v)
-            if (!accel.isFinite()) 0.0 else accel
-        }
+    val maxWheelAccels = wheelVelValues.map { v ->
+      val accel = feedforward.maxAchievableAcceleration(maxVoltage, v)
+      if (!accel.isFinite()) 0.0 else accel
+    }
+    val minWheelAccels = wheelVelValues.map { v ->
+      val accel = feedforward.minAchievableAcceleration(maxVoltage, v)
+      if (!accel.isFinite()) 0.0 else accel
+    }
 
     // Build a dual robot velocity parameterized by a scalar path speed v such that
     // chassis velocity = robotVelRobot * v, with dv/dv = 1. The derivative of each wheel speed
@@ -123,31 +123,31 @@ class VoltageConstraint<WI : WheelIncrements<*>, WV : WheelVelocities<*>>(
         continue
       }
 
-            val bound1 = wMin / Ai
-            val bound2 = wMax / Ai
+      val bound1 = wMin / Ai
+      val bound2 = wMax / Ai
 
-            // Only consider finite bounds
-            if (bound1.isFinite() && bound2.isFinite()) {
-                val lo = kotlin.math.min(bound1, bound2)
-                val hi = kotlin.math.max(bound1, bound2)
+      // Only consider finite bounds
+      if (bound1.isFinite() && bound2.isFinite()) {
+        val lo = kotlin.math.min(bound1, bound2)
+        val hi = kotlin.math.max(bound1, bound2)
 
-                if (lo > asMin) asMin = lo
-                if (hi < asMax) asMax = hi
-            }
-        }
+        if (lo > asMin) asMin = lo
+        if (hi < asMax) asMax = hi
+      }
+    }
 
-        // Ensure bounds are ordered and meaningful
-        if (!asMin.isFinite()) asMin = -1000.0  // Large but finite bound
-        if (!asMax.isFinite()) asMax = 1000.0   // Large but finite bound
+    // Ensure bounds are ordered and meaningful
+    if (!asMin.isFinite()) asMin = -1000.0 // Large but finite bound
+    if (!asMax.isFinite()) asMax = 1000.0 // Large but finite bound
 
-        // If infeasible (asMin > asMax), return conservative bounds
+    // If infeasible (asMin > asMax), return conservative bounds
     if (asMin > asMax) {
-      return MinMax(-fallbackAccel, fallbackAccel)  // Conservative fallback with positive max
-        }
+      return MinMax(-fallbackAccel, fallbackAccel) // Conservative fallback with positive max
+    }
 
-        // Ensure we have a meaningful positive upper bound for profile generation
-        if (asMax <= 0.0) {
-      asMax = fallbackAccel  // Provide a reasonable positive bound
+    // Ensure we have a meaningful positive upper bound for profile generation
+    if (asMax <= 0.0) {
+      asMax = fallbackAccel // Provide a reasonable positive bound
     }
 
     return MinMax(asMin, asMax)
