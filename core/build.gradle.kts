@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.tasks.KotlinJvmCompile
+
 plugins {
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.kotlin.serialization)
@@ -28,10 +31,26 @@ dependencies {
 }
 
 kotlin {
-  jvmToolchain(21)
   compilerOptions {
-    freeCompilerArgs.set(listOf("-Xjvm-default=all"))
+    jvmTarget.set(JvmTarget.JVM_25)
+    freeCompilerArgs.set(listOf("-jvm-default=all"))
   }
+}
+
+tasks.named<KotlinJvmCompile>("compileKotlin") {
+  compilerOptions {
+    jvmTarget.set(JvmTarget.JVM_1_8)
+  }
+}
+
+java {
+  toolchain {
+    languageVersion.set(JavaLanguageVersion.of(25))
+  }
+}
+
+tasks.named<JavaCompile>("compileJava") {
+  options.release.set(8)
 }
 
 tasks.named<Test>("test") {

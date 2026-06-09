@@ -6,24 +6,25 @@
  * https://opensource.org/licenses/MIT.
  */
 
-package gay.zharel.hermes.wpitrajectories
+package gay.zharel.hermes.wpi.trajectories
 
 import gay.zharel.hermes.paths.IdentityPoseMap
 import gay.zharel.hermes.paths.PoseMap
 import gay.zharel.hermes.profiles.AccelConstraint
 import gay.zharel.hermes.profiles.VelConstraint
 import gay.zharel.hermes.trajectories.CompositeCancelableTrajectory
+import gay.zharel.hermes.trajectories.TimeTrajectory
+import gay.zharel.hermes.trajectories.Trajectory
 import gay.zharel.hermes.trajectories.TrajectoryBuilder
 import gay.zharel.hermes.trajectories.TrajectoryBuilderParams
-import gay.zharel.hermes.wpiconversions.hermes
-import gay.zharel.hermes.wpiconversions.ips
-import gay.zharel.hermes.wpiconversions.mps
+import gay.zharel.hermes.wpi.conversions.TimeParam
+import gay.zharel.hermes.wpi.conversions.hermes
+import gay.zharel.hermes.wpi.conversions.ips
+import gay.zharel.hermes.wpi.conversions.mps
 import org.wpilib.math.geometry.Pose2d
 import org.wpilib.math.geometry.Rotation2d
 import org.wpilib.math.geometry.Translation2d
 import org.wpilib.math.kinematics.MecanumDriveKinematics
-import org.wpilib.math.trajectory.MecanumSample
-import org.wpilib.math.trajectory.MecanumTrajectory
 import org.wpilib.units.measure.LinearVelocity
 
 /**
@@ -851,10 +852,7 @@ class MecanumTrajectoryBuilder internal constructor(
   /**
    * Builds the trajectory, returning a `MecanumTrajectory` object.
    */
-  fun build() = MecanumTrajectory(
-    kinematics,
-    builder.build().wrtTime().sample().map { MecanumSample(it, kinematics) }.toTypedArray(),
-  )
+  fun build() = MecanumTrajectory(kinematics, builder.build().wrtTime())
 
   /**
    * Builds the trajectory,

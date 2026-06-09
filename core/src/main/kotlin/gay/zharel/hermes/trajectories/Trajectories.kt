@@ -165,7 +165,8 @@ open class DisplacementTrajectory(
 
   override fun project(query: Vector2d, init: Double) = path.project(query, init)
 
-  override operator fun get(s: Double): RobotState = RobotState.fromDualPose(path[s, 3].reparam(profile[s]))
+  override operator fun get(param: Double): RobotState =
+    RobotState.fromDualPose(path[param, 3].reparam(profile[param]))
 }
 
 @Serializable
@@ -187,8 +188,8 @@ class TimeTrajectory(
 
   override fun length(): Double = path.length()
 
-  override operator fun get(t: Double): RobotState {
-    val s = profile[t]
+  override operator fun get(param: Double): RobotState {
+    val s = profile[param]
     return RobotState.fromDualPose(path[s.value(), 3].reparam(s))
   }
 
@@ -220,16 +221,16 @@ class CompositeTrajectory @JvmOverloads constructor(
     }
   }
 
-  override fun get(s: Double): RobotState {
-    if (s > length) {
+  override fun get(param: Double): RobotState {
+    if (param > length) {
       return RobotState.fromDualPose(
         Pose2dDual.Companion.constant(trajectories.last().path.end(1).value(), 3),
       )
     }
 
     for ((offset, traj) in offsets.zip(trajectories).reversed()) {
-      if (s >= offset) {
-        return traj[s - offset]
+      if (param >= offset) {
+        return traj[param - offset]
       }
     }
 

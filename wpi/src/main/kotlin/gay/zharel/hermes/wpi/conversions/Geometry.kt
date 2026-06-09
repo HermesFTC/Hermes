@@ -1,13 +1,14 @@
-package gay.zharel.hermes.wpiconversions
+package gay.zharel.hermes.wpi.conversions
 
 import gay.zharel.hermes.geometry.Acceleration2d
 import gay.zharel.hermes.geometry.PoseVelocity2d
+import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.geometry.Vector2d
 import org.wpilib.math.geometry.Pose2d
 import org.wpilib.math.geometry.Rotation2d
 import org.wpilib.math.geometry.Translation2d
 import org.wpilib.math.kinematics.ChassisAccelerations
-import org.wpilib.math.kinematics.ChassisSpeeds
+import org.wpilib.math.kinematics.ChassisVelocities
 
 @get:JvmName("wpilib")
 inline val Vector2d.wpilib get() = Translation2d(x.inches, y.inches)
@@ -28,10 +29,10 @@ inline val HPose2d.wpilib get() = Pose2d(position.wpilib, heading.wpilib)
 inline val Pose2d.hermes get() = HPose2d(translation.hermes, rotation.hermes)
 
 @get:JvmName("wpilib")
-inline val PoseVelocity2d.wpilib get() = ChassisSpeeds(linearVel.x.ips, linearVel.y.ips, angVel.radps)
+inline val PoseVelocity2d.wpilib get() = ChassisVelocities(linearVel.x.ips, linearVel.y.ips, angVel.radps)
 
 @get:JvmName("hermes")
-inline val ChassisSpeeds.hermes get() = PoseVelocity2d(Vector2d(vx.mps.ips, vy.mps.ips), omega)
+inline val ChassisVelocities.hermes get() = PoseVelocity2d(Vector2d(vx.mps.ips, vy.mps.ips), omega)
 
 @get:JvmName("wpilib")
 inline val Acceleration2d.wpilib get() = ChassisAccelerations(
@@ -44,4 +45,10 @@ inline val Acceleration2d.wpilib get() = ChassisAccelerations(
 inline val ChassisAccelerations.hermes get() = Acceleration2d(
   Vector2d(ax.meters.inches, ay.meters.inches),
   alpha,
+)
+
+val RobotState.wpilib get() = Triple(
+  pose.wpilib,
+  vel.wpilib,
+  accel.wpilib,
 )

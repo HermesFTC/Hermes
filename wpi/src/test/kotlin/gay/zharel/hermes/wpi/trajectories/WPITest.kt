@@ -6,7 +6,7 @@
  * https://opensource.org/licenses/MIT.
  */
 
-package gay.zharel.hermes.wpitrajectories
+package gay.zharel.hermes.wpi.trajectories
 
 import gay.zharel.hermes.AUTO_FEEDFORWARD
 import gay.zharel.hermes.MAX_SPEED_METERS_PER_SECOND
@@ -16,9 +16,9 @@ import gay.zharel.hermes.TRACK_WIDTH
 import gay.zharel.hermes.WHEEL_BASE
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.trajectories.TrajectoryBuilder
-import gay.zharel.hermes.wpiconversions.HPose2d
-import gay.zharel.hermes.wpiconversions.hermes
-import gay.zharel.hermes.wpiconversions.meters
+import gay.zharel.hermes.wpi.conversions.HPose2d
+import gay.zharel.hermes.wpi.conversions.hermes
+import gay.zharel.hermes.wpi.conversions.meters
 import org.junit.jupiter.api.Assertions.assertDoesNotThrow
 import org.wpilib.math.geometry.Rotation2d
 import org.wpilib.units.Units

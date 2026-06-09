@@ -1,4 +1,4 @@
-package gay.zharel.hermes.wpitrajectories
+package gay.zharel.hermes.wpi.trajectories
 
 import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.kinematics.MecanumKinematics
@@ -12,11 +12,11 @@ import gay.zharel.hermes.math.MinMax
 import gay.zharel.hermes.paths.PosePath
 import gay.zharel.hermes.profiles.AccelConstraint
 import gay.zharel.hermes.profiles.VelConstraint
-import gay.zharel.hermes.wpiconversions.hermes
-import gay.zharel.hermes.wpiconversions.inches
-import gay.zharel.hermes.wpiconversions.ips
-import gay.zharel.hermes.wpiconversions.meters
-import gay.zharel.hermes.wpiconversions.volts
+import gay.zharel.hermes.wpi.conversions.hermes
+import gay.zharel.hermes.wpi.conversions.inches
+import gay.zharel.hermes.wpi.conversions.ips
+import gay.zharel.hermes.wpi.conversions.meters
+import gay.zharel.hermes.wpi.conversions.volts
 import org.wpilib.math.controller.SimpleMotorFeedforward
 import org.wpilib.math.geometry.Translation2d
 import org.wpilib.units.measure.Distance

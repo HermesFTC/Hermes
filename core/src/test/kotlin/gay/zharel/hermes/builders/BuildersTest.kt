@@ -308,7 +308,7 @@ class BuildersTest {
       chartSpline(
         (
           (
-            (posePath as CompositePosePath).paths[0]
+            posePath.paths[0]
               as HeadingPosePath
             ).headingPath
             as SplineHeadingPath

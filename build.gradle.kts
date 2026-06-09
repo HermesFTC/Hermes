@@ -11,6 +11,8 @@ plugins {
 
   alias(libs.plugins.deployer)
   alias(libs.plugins.spotless)
+
+  alias(libs.plugins.gradleRIO) apply false
 }
 
 allprojects {

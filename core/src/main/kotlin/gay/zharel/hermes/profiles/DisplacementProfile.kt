@@ -58,13 +58,13 @@ data class DisplacementProfile(
    * Evaluates the profile at the given displacement, returning position, velocity, and acceleration.
    * Uses binary search to efficiently find the correct interval and interpolates as needed.
    */
-  override operator fun get(x: Double): DualNum<Time> {
-    val index = disps.binarySearch(x)
+  override operator fun get(param: Double): DualNum<Time> {
+    val index = disps.binarySearch(param)
 
     return when {
-      index >= disps.lastIndex -> createDualNumAtEnd(x, index)
-      index >= 0 -> createDualNumAtKnownPoint(x, index)
-      else -> createDualNumByInterpolation(x, index)
+      index >= disps.lastIndex -> createDualNumAtEnd(param, index)
+      index >= 0 -> createDualNumAtKnownPoint(param, index)
+      else -> createDualNumByInterpolation(param, index)
     }
   }
 

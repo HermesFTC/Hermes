@@ -1,15 +1,16 @@
 [versions]
 jacksonDatabind = "2.20.0"
 jacksonAnnotation = "2.19.2"
-kotlin = "2.2.21"
+kotlin = "2.4.0"
 dokka = "2.1.0"
 kotest = "6.0.4"
 kxserialization = "1.9.0"
 mathjaxPlugin = "2.1.0"
 mockk = "1.14.4"
 quickbufRuntime = "1.4"
-ejml = "0.44.0"
+ejml = "0.41"
 deployer = "0.18.0"
+gradleRIO = "2027.0.0-alpha-6"
 wpilib = "2027.424242.+"
 spotless = "8.1.0"
 xchart = "3.8.1"
@@ -44,4 +45,5 @@ kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 deployer = { id = "io.deepmedia.tools.deployer", version.ref = "deployer" }
+gradleRIO = { id = "org.wpilib.GradleRIO", version.ref = "gradleRIO" }
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

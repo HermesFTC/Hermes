@@ -51,10 +51,10 @@ interface Profile {
    * - First derivative: \(dt/dx\) (inverse velocity with respect to the parameter)
    * - Higher derivatives as applicable
    *
-   * @param x The parameter value at which to evaluate the profile
+   * @param param The parameter value at which to evaluate the profile
    * @return A [DualNum] of type [Time] containing time and its derivatives with respect to the parameter
    */
-  operator fun get(x: Double): DualNum<Time>
+  operator fun get(param: Double): DualNum<Time>
 }
 
 fun samplePathByRotation(path: PosePath, angResolution: Double, eps: Double): List<Double> {

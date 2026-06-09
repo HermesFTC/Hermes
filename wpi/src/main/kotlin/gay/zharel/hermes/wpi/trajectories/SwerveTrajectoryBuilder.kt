@@ -6,7 +6,7 @@
  * https://opensource.org/licenses/MIT.
  */
 
-package gay.zharel.hermes.wpitrajectories
+package gay.zharel.hermes.wpi.trajectories
 
 import gay.zharel.hermes.paths.IdentityPoseMap
 import gay.zharel.hermes.paths.PoseMap
@@ -15,15 +15,13 @@ import gay.zharel.hermes.profiles.VelConstraint
 import gay.zharel.hermes.trajectories.CompositeCancelableTrajectory
 import gay.zharel.hermes.trajectories.TrajectoryBuilder
 import gay.zharel.hermes.trajectories.TrajectoryBuilderParams
-import gay.zharel.hermes.wpiconversions.hermes
-import gay.zharel.hermes.wpiconversions.ips
-import gay.zharel.hermes.wpiconversions.mps
+import gay.zharel.hermes.wpi.conversions.hermes
+import gay.zharel.hermes.wpi.conversions.ips
+import gay.zharel.hermes.wpi.conversions.mps
 import org.wpilib.math.geometry.Pose2d
 import org.wpilib.math.geometry.Rotation2d
 import org.wpilib.math.geometry.Translation2d
 import org.wpilib.math.kinematics.SwerveDriveKinematics
-import org.wpilib.math.trajectory.SwerveSample
-import org.wpilib.math.trajectory.SwerveTrajectory
 import org.wpilib.units.measure.LinearVelocity
 
 /**
@@ -855,10 +853,7 @@ class SwerveTrajectoryBuilder internal constructor(
   /**
    * Builds the trajectory, returning a [SwerveTrajectory] object.
    */
-  fun build() = SwerveTrajectory(
-    kinematics,
-    builder.build().wrtTime().sample().map { SwerveSample(it, kinematics) }.toTypedArray(),
-  )
+  fun build() = SwerveTrajectory(kinematics, builder.build().wrtTime())
 
   /**
    * Builds the trajectory,

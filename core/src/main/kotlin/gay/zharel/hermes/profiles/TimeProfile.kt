@@ -39,8 +39,8 @@ data class TimeProfile @JvmOverloads constructor(
     }
   }
 
-  override operator fun get(t: Double): DualNum<Time> {
-    val index = times.binarySearch(t)
+  override operator fun get(param: Double): DualNum<Time> {
+    val index = times.binarySearch(param)
     return when {
       index >= times.lastIndex ->
         DualNum(
@@ -63,14 +63,14 @@ data class TimeProfile @JvmOverloads constructor(
         when {
           insIndex <= 0 -> {
             val v = dispProfile.vels.first()
-            DualNum(doubleArrayOf(v * t, v, 0.0))
+            DualNum(doubleArrayOf(v * param, v, 0.0))
           }
           insIndex >= times.size -> {
             val v = dispProfile.vels.last()
-            DualNum(doubleArrayOf(dispProfile.length + v * (t - duration), v, 0.0))
+            DualNum(doubleArrayOf(dispProfile.length + v * (param - duration), v, 0.0))
           }
           else -> {
-            val dt = t - times[insIndex - 1]
+            val dt = param - times[insIndex - 1]
             val x0 = dispProfile.disps[insIndex - 1]
             val v0 = dispProfile.vels[insIndex - 1]
             val a = dispProfile.accels[insIndex - 1]

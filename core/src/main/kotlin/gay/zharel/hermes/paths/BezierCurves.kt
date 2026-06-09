@@ -81,7 +81,7 @@ class BezierCurve2dInternal(val x: BezierCurve1d, val y: BezierCurve1d) : Positi
   constructor(xs: List<Double>, ys: List<Double>) : this(BezierCurve1d(xs), BezierCurve1d(ys))
   constructor(points: List<Vector2d>) : this(points.xs(), points.ys())
 
-  override operator fun get(t: Double, n: Int) = Vector2dDual(x[t, n], y[t, n])
+  override operator fun get(param: Double, n: Int) = Vector2dDual(x[param, n], y[param, n])
 
   val length = 1.0
   override fun length() = length

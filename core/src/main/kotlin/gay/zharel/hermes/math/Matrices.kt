@@ -73,7 +73,7 @@ class Matrix internal constructor(internal val simple: SimpleMatrix) {
      * where n is [data].size.
      */
     @JvmStatic
-    fun row(vararg data: Double) = Matrix(SimpleMatrix(1, data.size, true, *data))
+    fun row(vararg data: Double) = Matrix(SimpleMatrix(1, data.size, true, data))
 
     /**
      * Creates a 1 by n matrix with [data] as its elements,
@@ -87,7 +87,7 @@ class Matrix internal constructor(internal val simple: SimpleMatrix) {
      * where n is [data].size.
      */
     @JvmStatic
-    fun column(vararg data: Double) = Matrix(SimpleMatrix(data.size, 1, false, *data))
+    fun column(vararg data: Double) = Matrix(SimpleMatrix(data.size, 1, false, data))
 
     /**
      * Creates an n by 1 matrix with [data] as its elements,
@@ -100,12 +100,12 @@ class Matrix internal constructor(internal val simple: SimpleMatrix) {
   /**
    * The number of columns in the matrix.
    */
-  @JvmField val numColumns = simple.numCols
+  @JvmField val numColumns = simple.numCols()
 
   /**
    * The number of rows in the matrix.
    */
-  @JvmField val numRows = simple.numRows
+  @JvmField val numRows = simple.numRows()
 
   /**
    * The size of the matrix.
@@ -208,12 +208,12 @@ class Matrix internal constructor(internal val simple: SimpleMatrix) {
   /**
    * Returns the [n]th row of the matrix.
    */
-  fun row(n: Int) = Matrix(simple.getRow(n))
+  fun row(n: Int) = Matrix(simple.rows(n, n + 1))
 
   /**
    * Returns the [n]th column of the matrix.
    */
-  fun column(n: Int) = Matrix(simple.getColumn(n))
+  fun column(n: Int) = Matrix(simple.cols(n, n + 1))
 
   /**
    * Returns the diagonal elements of this matrix.
@@ -274,7 +274,7 @@ class Matrix internal constructor(internal val simple: SimpleMatrix) {
     return QRDecomposition(qr, mat)
   }
 
-  override fun toString(): String = (simple.toArray2()).contentDeepToString()
+  override fun toString(): String = toArray2().contentDeepToString()
 
   override fun equals(other: Any?): Boolean {
     if (this === other) return true
@@ -286,7 +286,7 @@ class Matrix internal constructor(internal val simple: SimpleMatrix) {
   /**
    * Converts this matrix to a 2D array.
    */
-  fun toArray2(): Array<DoubleArray> = simple.toArray2()
+  fun toArray2(): Array<DoubleArray> = Array(numRows) { i -> DoubleArray(numColumns) { j -> this[i, j] } }
 }
 
 /**

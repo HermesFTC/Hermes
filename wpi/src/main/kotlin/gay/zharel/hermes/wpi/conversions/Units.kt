@@ -1,4 +1,4 @@
-package gay.zharel.hermes.wpiconversions
+package gay.zharel.hermes.wpi.conversions
 
 import org.wpilib.units.Measure
 import org.wpilib.units.Unit

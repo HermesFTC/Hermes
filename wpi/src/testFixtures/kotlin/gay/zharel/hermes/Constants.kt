@@ -10,7 +10,7 @@ package gay.zharel.hermes
 
 import gay.zharel.hermes.kinematics.MecanumKinematics
 import gay.zharel.hermes.kinematics.SwerveKinematics
-import gay.zharel.hermes.wpiconversions.hermes
+import gay.zharel.hermes.wpi.conversions.hermes
 import org.wpilib.math.controller.SimpleMotorFeedforward
 import org.wpilib.math.geometry.Translation2d
 import org.wpilib.math.kinematics.MecanumDriveKinematics

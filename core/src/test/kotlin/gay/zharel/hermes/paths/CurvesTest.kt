@@ -381,7 +381,7 @@ class CurvesTest {
       // Calculate expected value manually using the Bernstein polynomial formula
       val expected = (0..degree).sumOf { i: Int ->
         binomialCoefficient(degree, i) * (1 - t).pow(degree - i) * t.pow(i) * coefficients[i]
-      }.toDouble()
+      }
       assertEquals(expected, bezier[t], 1e-6)
     }
   }
