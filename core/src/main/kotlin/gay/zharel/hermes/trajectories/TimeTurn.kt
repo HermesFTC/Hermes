@@ -12,19 +12,19 @@ import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Pose2dDual
 import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.geometry.Rotation2dDual
-import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2dDual
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.profiles.TimeProfile
 import gay.zharel.hermes.profiles.constantProfile
 import kotlin.math.abs
 
 data class TurnConstraints(
-    @JvmField
-    val maxAngVel: Double,
-    @JvmField
-    val minAngAccel: Double,
-    @JvmField
-    val maxAngAccel: Double,
+  @JvmField
+  val maxAngVel: Double,
+  @JvmField
+  val minAngAccel: Double,
+  @JvmField
+  val maxAngAccel: Double,
 )
 
 /**
@@ -34,42 +34,42 @@ data class TurnConstraints(
  * and the min accel limit is applied when speeding down.
  */
 class TimeTurn(
-    @JvmField
-    val beginPose: Pose2d,
-    @JvmField
-    val angle: Double,
-    @JvmField
-    val constraints: TurnConstraints,
+  @JvmField
+  val beginPose: Pose2d,
+  @JvmField
+  val angle: Double,
+  @JvmField
+  val constraints: TurnConstraints,
 ) {
-    @JvmField
-    val profile = TimeProfile(
-        constantProfile(
-            abs(angle),
-            0.0,
-            constraints.maxAngVel,
-            constraints.minAngAccel,
-            constraints.maxAngAccel
-        ).baseProfile
+  @JvmField
+  val profile = TimeProfile(
+    constantProfile(
+      abs(angle),
+      0.0,
+      constraints.maxAngVel,
+      constraints.minAngAccel,
+      constraints.maxAngAccel,
+    ).baseProfile,
+  )
+
+  @JvmField
+  val duration = profile.duration
+
+  @JvmField
+  val reversed = angle < 0
+
+  operator fun get(t: Double): RobotState {
+    val x = profile[t]
+    val dualPose = Pose2dDual<Time>(
+      Vector2dDual.constant(beginPose.position, x.size()),
+      Rotation2dDual.exp(
+        if (reversed) {
+          x.unaryMinus()
+        } else {
+          x
+        },
+      ) * beginPose.heading,
     )
-
-    @JvmField
-    val duration = profile.duration
-
-    @JvmField
-    val reversed = angle < 0
-
-    operator fun get(t: Double): RobotState {
-        val x = profile[t]
-        val dualPose = Pose2dDual<Time>(
-            Vector2dDual.constant(beginPose.position, x.size()),
-            Rotation2dDual.exp(
-                if (reversed) {
-                    x.unaryMinus()
-                } else {
-                    x
-                }
-            ) * beginPose.heading
-        )
-        return RobotState.fromDualPose(dualPose)
-    }
+    return RobotState.fromDualPose(dualPose)
+  }
 }

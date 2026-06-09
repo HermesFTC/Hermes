@@ -14,22 +14,21 @@
 package gay.zharel.hermes.control
 
 import gay.zharel.hermes.geometry.Acceleration2d
-import gay.zharel.hermes.math.DualNum
-import gay.zharel.hermes.math.DualParameter
-import gay.zharel.hermes.math.Matrix
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Pose2dDual
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Twist2d
 import gay.zharel.hermes.geometry.Twist2dDual
 import gay.zharel.hermes.geometry.Vector2d
 import gay.zharel.hermes.geometry.Vector2dDual
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.DualParameter
+import gay.zharel.hermes.math.Matrix
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.math.makeBrysonMatrix
 import kotlin.time.DurationUnit
 import kotlin.time.TimeSource
-
 
 /**
  * A Linear Quadratic Regulator (LQR) for controlling a system modeled by state-space equations.
@@ -49,157 +48,172 @@ import kotlin.time.TimeSource
  * @see <a href="https://en.wikipedia.org/wiki/Linear%E2%80%93quadratic_regulator">LQR on Wikipedia</a>
  * @see <a href="https://docs.wpilib.org/en/stable/docs/software/advanced-controls/state-space/state-space-intro.html#the-linear-quadratic-regulator">LQR in WPILib</a>
  */
-class LQRController : RobotPosVelController{
-    private val K: Matrix
-    private val dt: Double
-    private val timeSource = TimeSource.Monotonic
-    private var lastTimeStamp = timeSource.markNow()
+@Suppress("ktlint:standard:property-naming")
+class LQRController : RobotPosVelController {
+  private val K: Matrix
+  private val dt: Double
+  private val timeSource = TimeSource.Monotonic
+  private var lastTimeStamp = timeSource.markNow()
 
-    /**
-     * Constructor for the common holonomic robot control use case.
-     *
-     * This constructor assumes a kinematic acceleration model where the state error `x` is
-     * `[xError, yError, headingError, vxError, vyError, omegaError]` and the control input `u`
-     * is the desired robot acceleration `[ax, ay, alpha]`.
-     *
-     * The system dynamics are approximated as:
-     * `dx_dot = vx`
-     * `dy_dot = vy`
-     * `dtheta_dot = omega`
-     * `dvx_dot = ax`
-     * `dvy_dot = ay`
-     * `domega_dot = alpha`
-     *
-     * @param qX The maximum error in the x-position.
-     * @param qY The maximum error in the y-position.
-     * @param qHeading The maximum error in the heading.
-     * @param qVx The maximum error in the x-velocity.
-     * @param qVy The maximum error in the y-velocity.
-     * @param qOmega The maximum error in the angular velocity.
-     * @param rAx The maximum linear acceleration in the x-direction.
-     * @param rAy The maximum using linear acceleration in the y-direction.
-     * @param rAlpha The maximum angular acceleration.
-     * @param dt The discrete time step (control loop period) in seconds.
-     */
-    constructor(
-        qX: Double, qY: Double, qHeading: Double,
-        qVx: Double, qVy: Double, qOmega: Double,
-        rAx: Double, rAy: Double, rAlpha: Double,
-        dt: Double = 0.0303
-    ) {
-        val A_cont = Matrix.zero(6, 6)
-        A_cont[0, 3] = 1.0 // d(delta_x)/dt = delta_vx
-        A_cont[1, 4] = 1.0 // d(delta_y)/dt = delta_vy
-        A_cont[2, 5] = 1.0 // d(delta_theta)/dt = delta_omega
+  /**
+   * Constructor for the common holonomic robot control use case.
+   *
+   * This constructor assumes a kinematic acceleration model where the state error `x` is
+   * `[xError, yError, headingError, vxError, vyError, omegaError]` and the control input `u`
+   * is the desired robot acceleration `[ax, ay, alpha]`.
+   *
+   * The system dynamics are approximated as:
+   * `dx_dot = vx`
+   * `dy_dot = vy`
+   * `dtheta_dot = omega`
+   * `dvx_dot = ax`
+   * `dvy_dot = ay`
+   * `domega_dot = alpha`
+   *
+   * @param qX The maximum error in the x-position.
+   * @param qY The maximum error in the y-position.
+   * @param qHeading The maximum error in the heading.
+   * @param qVx The maximum error in the x-velocity.
+   * @param qVy The maximum error in the y-velocity.
+   * @param qOmega The maximum error in the angular velocity.
+   * @param rAx The maximum linear acceleration in the x-direction.
+   * @param rAy The maximum using linear acceleration in the y-direction.
+   * @param rAlpha The maximum angular acceleration.
+   * @param dt The discrete time step (control loop period) in seconds.
+   */
+  constructor(
+    qX: Double,
+    qY: Double,
+    qHeading: Double,
+    qVx: Double,
+    qVy: Double,
+    qOmega: Double,
+    rAx: Double,
+    rAy: Double,
+    rAlpha: Double,
+    dt: Double = 0.0303,
+  ) {
+    val A_cont = Matrix.zero(6, 6)
+    A_cont[0, 3] = 1.0 // d(delta_x)/dt = delta_vx
+    A_cont[1, 4] = 1.0 // d(delta_y)/dt = delta_vy
+    A_cont[2, 5] = 1.0 // d(delta_theta)/dt = delta_omega
 
-        val B_cont = Matrix.zero(6, 3)
-        B_cont[3, 0] = 1.0 // d(delta_vx)/dt = ax_cmd
-        B_cont[4, 1] = 1.0 // d(delta_vy)/dt = ay_cmd
-        B_cont[5, 2] = 1.0 // d(delta_omega)/dt = alpha_cmd
+    val B_cont = Matrix.zero(6, 3)
+    B_cont[3, 0] = 1.0 // d(delta_vx)/dt = ax_cmd
+    B_cont[4, 1] = 1.0 // d(delta_vy)/dt = ay_cmd
+    B_cont[5, 2] = 1.0 // d(delta_omega)/dt = alpha_cmd
 
-        // discretize continuous A and B matrices for DARE
-        val (Ad, Bd) = discretizeSystem(A_cont, B_cont, dt)
+    // discretize continuous A and B matrices for DARE
+    val (Ad, Bd) = discretizeSystem(A_cont, B_cont, dt)
 
-        val Q = makeBrysonMatrix(qX, qY, qHeading, qVx, qVy, qOmega)
-        val R = makeBrysonMatrix(rAx, rAy, rAlpha)
+    val Q = makeBrysonMatrix(qX, qY, qHeading, qVx, qVy, qOmega)
+    val R = makeBrysonMatrix(rAx, rAy, rAlpha)
 
-        val (_, K) = computeLQRGain(Ad, Bd, Q, R)
+    val (_, K) = computeLQRGain(Ad, Bd, Q, R)
 
-        this.K = K
-        this.dt = dt
+    this.K = K
+    this.dt = dt
+  }
+
+  /**
+   * General-purpose constructor for any linear time-invariant (LTI) system.
+   *
+   * This constructor is for advanced users who have a full state-space model of their system
+   * in the form `ẋ = Ax + Bu`. It computes the optimal gain matrix `K` by iteratively
+   * solving the discrete-time Algebraic Riccati Equation (ARE) until convergence.
+   *
+   * @param A The state matrix.
+   * @param B The input matrix.
+   * @param Q The state cost matrix.
+   * @param R The control cost matrix.
+   * @param dt The time step for the discrete-time model (your loop time)
+   */
+  @JvmOverloads
+  constructor(
+    A: Matrix,
+    B: Matrix,
+    Q: Matrix,
+    R: Matrix,
+    dt: Double = 0.0303,
+  ) {
+    require(dt > 0) { "Time step (dt) must be positive" }
+    require(A.numRows == A.numColumns && A.numRows == Q.numRows && Q.numRows == Q.numColumns) {
+      "A and Q must be square and match dimensions."
+    }
+    require(B.numRows == A.numRows && B.numColumns == R.numRows && R.numRows == R.numColumns) {
+      "B and R must have compatible dimensions with A and each other."
     }
 
-    /**
-     * General-purpose constructor for any linear time-invariant (LTI) system.
-     *
-     * This constructor is for advanced users who have a full state-space model of their system
-     * in the form `ẋ = Ax + Bu`. It computes the optimal gain matrix `K` by iteratively
-     * solving the discrete-time Algebraic Riccati Equation (ARE) until convergence.
-     *
-     * @param A The state matrix.
-     * @param B The input matrix.
-     * @param Q The state cost matrix.
-     * @param R The control cost matrix.
-     * @param dt The time step for the discrete-time model (your loop time)
-     */
-    @JvmOverloads
-    constructor(
-        A: Matrix,
-        B: Matrix,
-        Q: Matrix,
-        R: Matrix,
-        dt: Double = 0.0303,
-    ) {
-        require(dt > 0) { "Time step (dt) must be positive" }
-        require(A.numRows == A.numColumns && A.numRows == Q.numRows && Q.numRows == Q.numColumns) { "A and Q must be square and match dimensions." }
-        require(B.numRows == A.numRows && B.numColumns == R.numRows && R.numRows == R.numColumns) { "B and R must have compatible dimensions with A and each other." }
+    val (Ad, Bd) = discretizeSystem(A, B, dt)
 
-        val (Ad, Bd) = discretizeSystem(A, B, dt)
+    val (_, K) = computeLQRGain(Ad, Bd, Q, R)
 
-        val (_, K) = computeLQRGain(Ad, Bd, Q, R)
+    this.K = K
+    this.dt = dt
+  }
 
-        this.K = K
-        this.dt = dt
+  /**
+   * Calculates the optimal control input (accelerations) to correct for the given state error.
+   *
+   * @param error The current state error of the system, represented as a Matrix.
+   * Expected dimensions: num_states x 1.
+   * Order of states MUST match the LQR's design: [dx, dy, dtheta, dvx, dvy, domega].
+   * @return The calculated optimal control accelerations as a Matrix.
+   * The matrix will have dimensions 3 x 1: [ax, ay, alpha].
+   * */
+  fun update(error: Matrix): Matrix {
+    require(error.numColumns == K.numColumns)
+
+    return -K * error
+  }
+
+  /**
+   * Calculates the optimal control input to correct for the given state error.
+   *
+   * @param error The current state error of the system, represented as a dual twist
+   *              (position error AND velocity error).
+   * @return The calculated optimal control acceleration.
+   */
+  fun <Param : DualParameter> update(error: Twist2dDual<Param>): Acceleration2d {
+    require(error.size() >= 2) { "Position and velocity errors must be provided" }
+
+    val posError = error.value()
+    val velError = error.velocity().value()
+
+    val input = Matrix.column(
+      posError.line.x,
+      posError.line.y,
+      posError.angle,
+      velError.linearVel.x,
+      velError.linearVel.y,
+      velError.angVel,
+    )
+
+    val output = update(input)
+
+    return Acceleration2d(Vector2d(output[0, 0], output[1, 0]), output[2, 0])
+  }
+
+  override fun compute(
+    targetPose: Pose2dDual<Time>,
+    actualPose: Pose2d,
+    actualVelActual: PoseVelocity2d,
+  ): PoseVelocity2dDual<Time> {
+    val newStamp = timeSource.markNow()
+
+    val posError = targetPose.value() - actualPose
+    val velError = (targetPose.velocity().value() - actualVelActual).let {
+      Twist2d(it.linearVel, it.angVel)
     }
 
-    /**
-     * Calculates the optimal control input (accelerations) to correct for the given state error.
-     *
-     * @param error The current state error of the system, represented as a Matrix.
-     * Expected dimensions: num_states x 1.
-     * Order of states MUST match the LQR's design: [dx, dy, dtheta, dvx, dvy, domega].
-     * @return The calculated optimal control accelerations as a Matrix.
-     * The matrix will have dimensions 3 x 1: [ax, ay, alpha].
-     * */
-    fun update(error: Matrix): Matrix {
-        require(error.numColumns == K.numColumns)
+    val acc = update(posError.concat<Time>(velError))
+    val dt = (newStamp - lastTimeStamp).toDouble(DurationUnit.SECONDS)
+    val vel = acc.integrateToVel(dt, actualVelActual)
 
-        return -K * error
-    }
+    lastTimeStamp = newStamp
 
-    /**
-     * Calculates the optimal control input to correct for the given state error.
-     *
-     * @param error The current state error of the system, represented as a dual twist
-     *              (position error AND velocity error).
-     * @return The calculated optimal control acceleration.
-     */
-    fun <Param : DualParameter> update(error: Twist2dDual<Param>): Acceleration2d {
-        require(error.size() >= 2) { "Position and velocity errors must be provided" }
-
-        val posError = error.value()
-        val velError = error.velocity().value()
-
-        val input = Matrix.column(
-            posError.line.x, posError.line.y, posError.angle,
-            velError.linearVel.x, velError.linearVel.y, velError.angVel
-        )
-
-        val output = update(input)
-
-        return Acceleration2d(Vector2d(output[0, 0], output[1, 0]), output[2, 0])
-    }
-
-    override fun compute(
-        targetPose: Pose2dDual<Time>,
-        actualPose: Pose2d,
-        actualVelActual: PoseVelocity2d,
-    ): PoseVelocity2dDual<Time> {
-        val newStamp = timeSource.markNow()
-
-        val posError = targetPose.value() - actualPose
-        val velError = (targetPose.velocity().value() - actualVelActual).let {
-            Twist2d(it.linearVel, it.angVel)
-        }
-
-        val acc = update(posError.concat<Time>(velError))
-        val dt = (newStamp - lastTimeStamp).toDouble(DurationUnit.SECONDS)
-        val vel = acc.integrateToVel(dt, actualVelActual)
-
-        lastTimeStamp = newStamp
-
-        return vel.concat(acc)
-    }
+    return vel.concat(acc)
+  }
 }
 
 /**
@@ -209,38 +223,43 @@ class LQRController : RobotPosVelController{
  * @author Tyler Veness (C++ implementation)
  * @author Zach Harel (Kotlin implementation)
  */
+@Suppress("ktlint:standard:property-naming")
 internal fun solveDARE(
-    Ad: Matrix, Bd: Matrix, Q: Matrix, R: Matrix,
-    maxIter: Int = -1, epsilon: Double = 1e-6)
-: Matrix {
-    // Initialize matrices
-    var A_K = Ad.copy()
+  Ad: Matrix,
+  Bd: Matrix,
+  Q: Matrix,
+  R: Matrix,
+  maxIter: Int = -1,
+  epsilon: Double = 1e-6,
+): Matrix {
+  // Initialize matrices
+  var A_K = Ad.copy()
 
-    // Calculate G_k = B * R^-1 * B^T using Cholesky decomposition
-    // Equivalent to B * R.llt().solve(B.transpose())
-    var G_K = Bd * R.solve(Bd.transpose)
+  // Calculate G_k = B * R^-1 * B^T using Cholesky decomposition
+  // Equivalent to B * R.llt().solve(B.transpose())
+  var G_K = Bd * R.solve(Bd.transpose)
 
-    var H_K1 = Q.copy()
-    var H_K: Matrix
+  var H_K1 = Q.copy()
+  var H_K: Matrix
 
-    var i = 0
+  var i = 0
 
-    do {
-        H_K = H_K1.copy()
+  do {
+    H_K = H_K1.copy()
 
-        val W = Matrix.identity(H_K.numRows) + G_K * H_K
+    val W = Matrix.identity(H_K.numRows) + G_K * H_K
 
-        val v1 = W.solve(A_K)
-        val v2 = W.solve(G_K.transpose).transpose
+    val v1 = W.solve(A_K)
+    val v2 = W.solve(G_K.transpose).transpose
 
-        G_K = (G_K + A_K * v2 * A_K.transpose)
+    G_K = (G_K + A_K * v2 * A_K.transpose)
 
-        H_K1 += v1.transpose * H_K * A_K
+    H_K1 += v1.transpose * H_K * A_K
 
-        A_K *= v1
-    } while ((H_K1 - H_K).norm > epsilon * H_K1.norm && (maxIter < 0 || i++ < maxIter))
+    A_K *= v1
+  } while ((H_K1 - H_K).norm > epsilon * H_K1.norm && (maxIter < 0 || i++ < maxIter))
 
-    return H_K1
+  return H_K1
 }
 
 /**
@@ -248,17 +267,22 @@ internal fun solveDARE(
  *
  * @return Pair of DARE solution X and K.
  */
+@Suppress("ktlint:standard:property-naming")
 internal fun computeLQRGain(
-    Ad: Matrix, Bd: Matrix, Q: Matrix, R: Matrix,
-    maxIter: Int = -1, epsilon: Double = 1e-6
+  Ad: Matrix,
+  Bd: Matrix,
+  Q: Matrix,
+  R: Matrix,
+  maxIter: Int = -1,
+  epsilon: Double = 1e-6,
 ): Pair<Matrix, Matrix> {
-    val X = solveDARE(Ad, Bd, Q, R, maxIter, epsilon)
+  val X = solveDARE(Ad, Bd, Q, R, maxIter, epsilon)
 
-    val btx = Bd.transpose * X
-    val btxb = btx * Bd
-    val K = (R + btxb).inverse * btx * Ad
+  val btx = Bd.transpose * X
+  val btxb = btx * Bd
+  val K = (R + btxb).inverse * btx * Ad
 
-    return X to K
+  return X to K
 }
 
 /**
@@ -267,47 +291,54 @@ internal fun computeLQRGain(
  * Ad = e^(A*dt)
  * Bd = (∫ e^(Aτ) dτ from 0 to dt) * B ≈ (I*dt + A*dt²/2! + ...) * B
  */
-internal fun discretizeSystem(A: Matrix, B: Matrix, dt: Double, taylorTerms: Int = 10): Pair<Matrix, Matrix> {
-    val n = A.numRows
-    var Ad = Matrix.identity(n)
-    var Bd_integral = Matrix.identity(n).times(dt) // Start with I*dt
+@Suppress("ktlint:standard:property-naming")
+internal fun discretizeSystem(
+  A: Matrix,
+  B: Matrix,
+  dt: Double,
+  taylorTerms: Int = 10,
+): Pair<Matrix, Matrix> {
+  val n = A.numRows
+  var Ad = Matrix.identity(n)
+  var Bd_integral = Matrix.identity(n).times(dt) // Start with I*dt
 
-    var APowerDt = A.times(dt)
-    var dtPower = dt
-    var factorial = 1.0
+  var APowerDt = A.times(dt)
+  var dtPower = dt
+  var factorial = 1.0
 
-    // Taylor series for e^(A*dt) and its integral
-    for (i in 1..taylorTerms) {
-        // Ad term: (A*dt)^i / i!
-        Ad = Ad.plus(APowerDt.times(1.0 / factorial))
+  // Taylor series for e^(A*dt) and its integral
+  for (i in 1..taylorTerms) {
+    // Ad term: (A*dt)^i / i!
+    Ad = Ad.plus(APowerDt.times(1.0 / factorial))
 
-        // Bd integral term: A^(i-1) * dt^(i+1) / (i+1)!
-        dtPower *= dt
-        factorial *= (i + 1)
-        Bd_integral = Bd_integral.plus(APowerDt.times(dt / (i + 1)))
+    // Bd integral term: A^(i-1) * dt^(i+1) / (i+1)!
+    dtPower *= dt
+    factorial *= (i + 1)
+    Bd_integral = Bd_integral.plus(APowerDt.times(dt / (i + 1)))
 
-        // Prepare for next iteration
-        APowerDt = APowerDt.times(A.times(dt))
-        factorial *= (i + 1)
-    }
+    // Prepare for next iteration
+    APowerDt = APowerDt.times(A.times(dt))
+    factorial *= (i + 1)
+  }
 
-    val Bd = Bd_integral.times(B)
-    return Pair(Ad, Bd)
+  val Bd = Bd_integral.times(B)
+  return Pair(Ad, Bd)
 }
 
 internal fun <Param : DualParameter> Twist2d.concat(other: Twist2d) = Twist2dDual<Param>(
-    this.line.concat(other.line),
-    DualNum(doubleArrayOf(angle, other.angle))
+  this.line.concat(other.line),
+  DualNum(doubleArrayOf(angle, other.angle)),
 )
 
 internal fun <Param : DualParameter> Vector2d.concat(other: Vector2d) = Vector2dDual<Param>(
-    DualNum(doubleArrayOf(this.x, other.x)),
-    DualNum(doubleArrayOf(this.y, other.y))
+  DualNum(doubleArrayOf(this.x, other.x)),
+  DualNum(doubleArrayOf(this.y, other.y)),
 )
 
-internal fun <Param : DualParameter> PoseVelocity2d.concat(other: Acceleration2d) = PoseVelocity2dDual<Param>(
+internal fun <Param : DualParameter> PoseVelocity2d.concat(other: Acceleration2d) =
+  PoseVelocity2dDual<Param>(
     this.linearVel.concat(other.linearAcc),
-    DualNum(doubleArrayOf(this.angVel, other.angAcc))
-)
+    DualNum(doubleArrayOf(this.angVel, other.angAcc)),
+  )
 
 internal fun <Param : DualParameter> Twist2dDual<Param>.size() = angle.size()

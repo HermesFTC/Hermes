@@ -6,104 +6,106 @@
  * https://opensource.org/licenses/MIT.
  */
 
-package gay.zharel.hermes.trajectories
+package gay.zharel.hermes.wpitrajectories
 
-import gay.zharel.hermes.geometry.Pose2d
-import gay.zharel.hermes.geometry.Rotation2d
-import gay.zharel.hermes.geometry.Vector2d
-import gay.zharel.hermes.math.Arclength
 import gay.zharel.hermes.paths.IdentityPoseMap
-import gay.zharel.hermes.paths.MappedPosePath
 import gay.zharel.hermes.paths.PoseMap
 import gay.zharel.hermes.profiles.AccelConstraint
-import gay.zharel.hermes.profiles.CancelableProfile
-import gay.zharel.hermes.profiles.CompositeAccelConstraint
-import gay.zharel.hermes.profiles.CompositeVelConstraint
-import gay.zharel.hermes.profiles.ProfileParams
 import gay.zharel.hermes.profiles.VelConstraint
+import gay.zharel.hermes.trajectories.CompositeCancelableTrajectory
+import gay.zharel.hermes.trajectories.TrajectoryBuilder
+import gay.zharel.hermes.trajectories.TrajectoryBuilderParams
+import gay.zharel.hermes.wpiconversions.hermes
+import gay.zharel.hermes.wpiconversions.ips
+import gay.zharel.hermes.wpiconversions.mps
+import org.wpilib.math.geometry.Pose2d
+import org.wpilib.math.geometry.Rotation2d
+import org.wpilib.math.geometry.Translation2d
+import org.wpilib.math.kinematics.SwerveDriveKinematics
+import org.wpilib.math.trajectory.SwerveSample
+import org.wpilib.math.trajectory.SwerveTrajectory
+import org.wpilib.units.measure.LinearVelocity
 
-data class TrajectoryBuilderParams(val arcLengthSamplingEps: Double, val profileParams: ProfileParams)
-
-class TrajectoryBuilder private constructor(
-  private val profileParams: ProfileParams,
-  private val pathBuilder: PathBuilder,
-  private val beginEndVel: Double,
-  private val baseVelConstraint: VelConstraint,
-  private val baseAccelConstraint: AccelConstraint,
-  private val poseMap: PoseMap,
-  private val velConstraints: List<VelConstraint>,
-  private val accelConstraints: List<AccelConstraint>,
-  private val markers: List<Marker> = listOf(),
+/**
+ * A trajectory builder for swerve drive robots that uses WPILib geometry types.
+ *
+ * Swerve drives are holonomic and can control their heading independently of their
+ * path direction. This builder supports constant heading, linear heading interpolation,
+ * and spline-based heading control for maximum flexibility.
+ *
+ * Example usage:
+ * ```java
+ * var kinematics = new SwerveDriveKinematics(
+ *     frontLeftLocation, frontRightLocation,
+ *     backLeftLocation, backRightLocation
+ * );
+ * var constraint = new SwerveDriveConstraint(
+ *     new Translation2d[] {
+ *         frontLeftLocation, frontRightLocation,
+ *         backLeftLocation, backRightLocation
+ *     },
+ *     new SimpleMotorFeedforward(kS, kV, kA),
+ *     Units.MetersPerSecond.of(maxVelocity),
+ *     Units.Volts.of(12.0)
+ * );
+ *
+ * var trajectory = new SwerveTrajectoryBuilder(kinematics, constraint, startPose)
+ *     .strafeToLinearHeading(new Translation2d(24.0, 24.0), Rotation2d.fromDegrees(90.0))
+ *     .splineToSplineHeading(new Pose2d(48.0, 24.0, Rotation2d.fromDegrees(180.0)), 0.0)
+ *     .build();
+ * ```
+ *
+ * @see SwerveTrajectory
+ */
+class SwerveTrajectoryBuilder internal constructor(
+  private val builder: TrajectoryBuilder,
+  private val kinematics: SwerveDriveKinematics,
 ) {
-  @JvmOverloads
-  constructor(
-    params: TrajectoryBuilderParams,
-    beginPose: Pose2d,
-    beginEndVel: Double,
-    baseVelConstraint: VelConstraint,
-    baseAccelConstraint: AccelConstraint,
+  /**
+   * Creates a new SwerveTrajectoryBuilder with the specified parameters.
+   *
+   * @param kinematics The swerve drive kinematics object
+   * @param constraint The velocity and acceleration constraints for the drive
+   * @param startPose The starting pose of the trajectory (WPILib Pose2d)
+   * @param params Trajectory builder parameters (arc length sampling and profile params)
+   * @param beginEndVel The starting/ending velocity of the trajectory (default: 0)
+   * @param poseMap Optional pose transformation map for custom coordinate systems
+   */
+  @JvmOverloads constructor(
+    kinematics: SwerveDriveKinematics,
+    constraint: SwerveDriveConstraint,
+    startPose: Pose2d,
+    params: TrajectoryBuilderParams = DEFAULT_BUILDER_PARAMS,
+    beginEndVel: LinearVelocity = 0.0.mps,
     poseMap: PoseMap = IdentityPoseMap,
-  ) :
-    this(
-      params.profileParams,
-      PathBuilder(beginPose, params.arcLengthSamplingEps),
-      beginEndVel,
-      baseVelConstraint,
-      baseAccelConstraint,
-      poseMap,
-      listOf(),
-      listOf(),
-    )
-
-  private fun add(
-    newPathBuilder: PathBuilder,
-    velConstraintOverride: VelConstraint?,
-    accelConstraintOverride: AccelConstraint?,
-  ) = TrajectoryBuilder(
-    profileParams,
-    newPathBuilder,
-    beginEndVel,
-    baseVelConstraint,
-    baseAccelConstraint,
-    poseMap,
-    velConstraints + listOf(velConstraintOverride ?: baseVelConstraint),
-    accelConstraints + listOf(accelConstraintOverride ?: baseAccelConstraint),
+  ) : this(
+    TrajectoryBuilder(
+      params = params,
+      beginPose = startPose.hermes,
+      beginEndVel = beginEndVel.ips,
+      baseVelConstraint = constraint,
+      baseAccelConstraint = constraint,
+      poseMap = poseMap,
+    ),
+    kinematics,
   )
 
   /**
    * Sets the starting tangent of the next path segment.
    * See [RoadRunner docs](https://rr.brott.dev/docs/v1-0/guides/tangents/).
    */
-  fun setTangent(r: Rotation2d) = TrajectoryBuilder(
-    profileParams,
-    pathBuilder.setTangent(r),
-    beginEndVel,
-    baseVelConstraint,
-    baseAccelConstraint,
-    poseMap,
-    velConstraints,
-    accelConstraints,
-  )
+  fun setTangent(r: Rotation2d) = SwerveTrajectoryBuilder(builder.setTangent(r.hermes), kinematics)
 
   /**
    * Sets the starting tangent of the next path segment.
    * See [RoadRunner docs](https://rr.brott.dev/docs/v1-0/guides/tangents/).
    */
-  fun setTangent(r: Double) = setTangent(Rotation2d.Companion.exp(r))
+  fun setTangent(r: Double) = SwerveTrajectoryBuilder(builder.setTangent(r), kinematics)
 
   /**
    * Reverses the next path segment; actually a call to [setTangent(Math.PI)][setTangent]!
    */
-  fun setReversed(reversed: Boolean) = TrajectoryBuilder(
-    profileParams,
-    pathBuilder.setReversed(reversed),
-    beginEndVel,
-    baseVelConstraint,
-    baseAccelConstraint,
-    poseMap,
-    velConstraints,
-    accelConstraints,
-  )
+  fun setReversed(reversed: Boolean) = SwerveTrajectoryBuilder(builder.setReversed(reversed), kinematics)
 
   /**
    * Adds a line segment that goes forward [ds].
@@ -113,7 +115,10 @@ class TrajectoryBuilder private constructor(
     ds: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.forward(ds), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.forward(ds, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes forward [ds] while maintaining current heading.
@@ -124,7 +129,10 @@ class TrajectoryBuilder private constructor(
     ds: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.forwardConstantHeading(ds), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.forwardConstantHeading(ds, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes forward [ds],
@@ -136,7 +144,10 @@ class TrajectoryBuilder private constructor(
     heading: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.forwardLinearHeading(ds, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.forwardLinearHeading(ds, heading.hermes, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes forward [ds],
@@ -148,7 +159,10 @@ class TrajectoryBuilder private constructor(
     heading: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.forwardLinearHeading(ds, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.forwardLinearHeading(ds, heading, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes forward [ds],
@@ -160,7 +174,10 @@ class TrajectoryBuilder private constructor(
     heading: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.forwardSplineHeading(ds, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.forwardSplineHeading(ds, heading.hermes, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes forward [ds],
@@ -172,7 +189,10 @@ class TrajectoryBuilder private constructor(
     heading: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.forwardSplineHeading(ds, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.forwardSplineHeading(ds, heading, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(x\)-coordinate [posX].
@@ -184,7 +204,10 @@ class TrajectoryBuilder private constructor(
     posX: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToX(posX), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToX(posX, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(x\)-coordinate [posX].
@@ -197,7 +220,10 @@ class TrajectoryBuilder private constructor(
     posX: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToXConstantHeading(posX), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToXConstantHeading(posX, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(x\)-coordinate [posX],
@@ -211,7 +237,15 @@ class TrajectoryBuilder private constructor(
     heading: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToXLinearHeading(posX, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToXLinearHeading(
+      posX,
+      heading.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(x\)-coordinate [posX],
@@ -225,7 +259,10 @@ class TrajectoryBuilder private constructor(
     heading: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToXLinearHeading(posX, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToXLinearHeading(posX, heading, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(x\)-coordinate [posX],
@@ -239,7 +276,15 @@ class TrajectoryBuilder private constructor(
     heading: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToXSplineHeading(posX, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToXSplineHeading(
+      posX,
+      heading.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(x\)-coordinate [posX],
@@ -253,7 +298,10 @@ class TrajectoryBuilder private constructor(
     heading: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToXSplineHeading(posX, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToXSplineHeading(posX, heading, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(y\)-coordinate [posY].
@@ -265,7 +313,10 @@ class TrajectoryBuilder private constructor(
     posY: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToY(posY), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToY(posY, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(y\)-coordinate [posY].
@@ -278,7 +329,10 @@ class TrajectoryBuilder private constructor(
     posY: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToYConstantHeading(posY), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToYConstantHeading(posY, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(y\)-coordinate [posY],
@@ -292,7 +346,15 @@ class TrajectoryBuilder private constructor(
     heading: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToYLinearHeading(posY, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToYLinearHeading(
+      posY,
+      heading.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(y\)-coordinate [posY],
@@ -306,7 +368,10 @@ class TrajectoryBuilder private constructor(
     heading: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToYLinearHeading(posY, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToYLinearHeading(posY, heading, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(y\)-coordinate [posY],
@@ -320,7 +385,15 @@ class TrajectoryBuilder private constructor(
     heading: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToYSplineHeading(posY, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToYSplineHeading(
+      posY,
+      heading.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to \(y\)-coordinate [posY],
@@ -334,17 +407,23 @@ class TrajectoryBuilder private constructor(
     heading: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.lineToYSplineHeading(posY, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.lineToYSplineHeading(posY, heading, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to [pos].
    */
   @JvmOverloads
   fun strafeTo(
-    pos: Vector2d,
+    pos: Translation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.strafeTo(pos), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.strafeTo(pos.hermes, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to [pos].
@@ -352,10 +431,13 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun strafeToConstantHeading(
-    pos: Vector2d,
+    pos: Translation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.strafeToConstantHeading(pos), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.strafeToConstantHeading(pos.hermes, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to [pos],
@@ -363,11 +445,19 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun strafeToLinearHeading(
-    pos: Vector2d,
+    pos: Translation2d,
     heading: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.strafeToLinearHeading(pos, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.strafeToLinearHeading(
+      pos.hermes,
+      heading.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to [pos],
@@ -375,11 +465,19 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun strafeToLinearHeading(
-    pos: Vector2d,
+    pos: Translation2d,
     heading: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.strafeToLinearHeading(pos, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.strafeToLinearHeading(
+      pos.hermes,
+      heading,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to [pos],
@@ -387,11 +485,19 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun strafeToSplineHeading(
-    pos: Vector2d,
+    pos: Translation2d,
     heading: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.strafeToSplineHeading(pos, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.strafeToSplineHeading(
+      pos.hermes,
+      heading.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
+  )
 
   /**
    * Adds a line segment that goes to [pos],
@@ -399,11 +505,19 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun strafeToSplineHeading(
-    pos: Vector2d,
+    pos: Translation2d,
     heading: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.strafeToSplineHeading(pos, heading), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.strafeToSplineHeading(
+      pos.hermes,
+      heading,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
+  )
 
   /**
    * Adds a curved path segment using quintic Hermite splines
@@ -413,11 +527,14 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun splineTo(
-    pos: Vector2d,
+    pos: Translation2d,
     tangent: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.splineTo(pos, tangent), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.splineTo(pos.hermes, tangent.hermes, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a curved path segment using quintic Hermite splines
@@ -427,11 +544,14 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun splineTo(
-    pos: Vector2d,
+    pos: Translation2d,
     tangent: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(pathBuilder.splineTo(pos, tangent), velConstraintOverride, accelConstraintOverride)
+  ) = SwerveTrajectoryBuilder(
+    builder.splineTo(pos.hermes, tangent, velConstraintOverride, accelConstraintOverride),
+    kinematics,
+  )
 
   /**
    * Adds a curved path segment using quintic Hermite splines
@@ -443,14 +563,18 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun splineToConstantHeading(
-    pos: Vector2d,
+    pos: Translation2d,
     tangent: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.splineToConstantHeading(pos, tangent),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.splineToConstantHeading(
+      pos.hermes,
+      tangent.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
@@ -463,23 +587,27 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun splineToConstantHeading(
-    pos: Vector2d,
+    pos: Translation2d,
     tangent: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.splineToConstantHeading(pos, tangent),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.splineToConstantHeading(
+      pos.hermes,
+      tangent,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
    * Adds a curved path segment using quintic Hermite splines
-   * that goes to [pose.position][pose] with an end tangent of [tangent].
+   * that goes to [pose.translation][pose] with an end tangent of [tangent].
    * The shape of the curve is based off of the starting position and tangent
    * as well as the ending position and [tangent].
    * The robot's heading linearly interpolates from its current heading
-   * to [pose.heading][pose].
+   * to [pose.rotation][pose].
    */
   @JvmOverloads
   fun splineToLinearHeading(
@@ -487,19 +615,23 @@ class TrajectoryBuilder private constructor(
     tangent: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.splineToLinearHeading(pose, tangent),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.splineToLinearHeading(
+      pose.hermes,
+      tangent.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
    * Adds a curved path segment using quintic Hermite splines
-   * that goes to [pose.position][pose] with an end tangent of [tangent].
+   * that goes to [pose.translation][pose] with an end tangent of [tangent].
    * The shape of the curve is based off of the starting position and tangent
    * as well as the ending position and [tangent].
    * The robot's heading linearly interpolates from its current heading
-   * to [pose.heading][pose].
+   * to [pose.rotation][pose].
    */
   @JvmOverloads
   fun splineToLinearHeading(
@@ -507,19 +639,23 @@ class TrajectoryBuilder private constructor(
     tangent: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.splineToLinearHeading(pose, tangent),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.splineToLinearHeading(
+      pose.hermes,
+      tangent,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
    * Adds a curved path segment using quintic Hermite splines
-   * that goes to [pose.position][pose] with an end tangent of [tangent].
+   * that goes to [pose.translation][pose] with an end tangent of [tangent].
    * The shape of the curve is based off of the starting position and tangent
    * as well as the ending position and [tangent].
    * The robot's heading interpolates from its current heading
-   * to [pose.heading][pose] using spline interpolation.
+   * to [pose.rotation][pose] using spline interpolation.
    */
   @JvmOverloads
   fun splineToSplineHeading(
@@ -527,19 +663,23 @@ class TrajectoryBuilder private constructor(
     tangent: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.splineToSplineHeading(pose, tangent),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.splineToSplineHeading(
+      pose.hermes,
+      tangent.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
    * Adds a curved path segment using quintic Hermite splines
-   * that goes to [pose.position][pose] with an end tangent of [tangent].
+   * that goes to [pose.translation][pose] with an end tangent of [tangent].
    * The shape of the curve is based off of the starting position and tangent
    * as well as the ending position and [tangent].
    * The robot's heading interpolates from its current heading
-   * to [pose.heading][pose] using spline interpolation.
+   * to [pose.rotation][pose] using spline interpolation.
    */
   @JvmOverloads
   fun splineToSplineHeading(
@@ -547,10 +687,14 @@ class TrajectoryBuilder private constructor(
     tangent: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.splineToSplineHeading(pose, tangent),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.splineToSplineHeading(
+      pose.hermes,
+      tangent,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
@@ -562,13 +706,12 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun bezierTo(
-    controlPoints: List<Vector2d>,
+    controlPoints: List<Translation2d>,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.bezierTo(controlPoints),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.bezierTo(controlPoints.map { it.hermes }, velConstraintOverride, accelConstraintOverride),
+    kinematics,
   )
 
   /**
@@ -577,10 +720,9 @@ class TrajectoryBuilder private constructor(
    * as the first control point and [controlPoints]
    * as the remaining control points.
    */
-  fun bezierTo(vararg controlPoints: Vector2d) = add(
-    pathBuilder.bezierTo(*controlPoints),
-    null,
-    null,
+  fun bezierTo(vararg controlPoints: Translation2d) = SwerveTrajectoryBuilder(
+    builder.bezierTo(*controlPoints.map { it.hermes }.toTypedArray()),
+    kinematics,
   )
 
   /**
@@ -592,13 +734,18 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun bezierToConstantHeading(
-    controlPoints: List<Vector2d>,
+    controlPoints: List<Translation2d>,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.bezierToConstantHeading(controlPoints),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.bezierToConstantHeading(
+      controlPoints.map {
+        it.hermes
+      },
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
@@ -611,14 +758,20 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun bezierToLinearHeading(
-    controlPoints: List<Vector2d>,
+    controlPoints: List<Translation2d>,
     heading: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.bezierToLinearHeading(controlPoints, heading),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.bezierToLinearHeading(
+      controlPoints.map {
+        it.hermes
+      },
+      heading.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
@@ -631,14 +784,20 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun bezierToLinearHeading(
-    controlPoints: List<Vector2d>,
+    controlPoints: List<Translation2d>,
     heading: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.bezierToLinearHeading(controlPoints, heading),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.bezierToLinearHeading(
+      controlPoints.map {
+        it.hermes
+      },
+      heading,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
@@ -651,14 +810,20 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun bezierToSplineHeading(
-    controlPoints: List<Vector2d>,
+    controlPoints: List<Translation2d>,
     heading: Rotation2d,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.bezierToSplineHeading(controlPoints, heading),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.bezierToSplineHeading(
+      controlPoints.map {
+        it.hermes
+      },
+      heading.hermes,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
@@ -671,123 +836,34 @@ class TrajectoryBuilder private constructor(
    */
   @JvmOverloads
   fun bezierToSplineHeading(
-    controlPoints: List<Vector2d>,
+    controlPoints: List<Translation2d>,
     heading: Double,
     velConstraintOverride: VelConstraint? = null,
     accelConstraintOverride: AccelConstraint? = null,
-  ) = add(
-    pathBuilder.bezierToSplineHeading(controlPoints, heading),
-    velConstraintOverride,
-    accelConstraintOverride,
+  ) = SwerveTrajectoryBuilder(
+    builder.bezierToSplineHeading(
+      controlPoints.map {
+        it.hermes
+      },
+      heading,
+      velConstraintOverride,
+      accelConstraintOverride,
+    ),
+    kinematics,
   )
 
   /**
-   * Adds a marker to the trajectory builder.
-   * @param marker The [Marker] to add.
-   * @return A new [TrajectoryBuilder] with the marker added.
+   * Builds the trajectory, returning a [SwerveTrajectory] object.
    */
-  fun addMarker(marker: Marker): TrajectoryBuilder = TrajectoryBuilder(
-    profileParams,
-    pathBuilder, beginEndVel, baseVelConstraint, baseAccelConstraint, poseMap,
-    velConstraints, accelConstraints,
-    markers + marker,
+  fun build() = SwerveTrajectory(
+    kinematics,
+    builder.build().wrtTime().sample().map { SwerveSample(it, kinematics) }.toTypedArray(),
   )
 
   /**
-   * Adds a marker to the trajectory at the current position.
-   * @param trigger The marker trigger function.
-   * @param callback The marker callback function.
-   * @return A new [TrajectoryBuilder] with the marker added.
+   * Builds the trajectory,
+   * returning the [CompositeCancelableTrajectory] object for use with other Hermes core functions.
+   * The returned trajectory can be smoothly canceled at any time.
    */
-  fun addMarker(trigger: MarkerTrigger, callback: MarkerCallback) = addMarker(Marker(trigger, callback))
-
-  /**
-   * Adds a marker that triggers after a specified displacement.
-   * @param disp The displacement value at which to trigger the marker.
-   * @param callback The callback to execute when triggered.
-   * @return A new [TrajectoryBuilder] with the marker added.
-   */
-  fun addDispMarker(disp: Double, callback: MarkerCallback) = addMarker(Marker.afterDisp(disp, callback))
-
-  /**
-   * Adds a marker that triggers after a specified time.
-   * @param time The time value at which to trigger the marker.
-   * @param callback The callback to execute when triggered.
-   * @return A new [TrajectoryBuilder] with the marker added.
-   */
-  fun addTimeMarker(time: Double, callback: MarkerCallback) = addMarker(Marker.afterTime(time, callback))
-
-  /**
-   * Adds a marker that triggers when the robot is within a certain tolerance of a given point.
-   * @param point The [Vector2d] point to check proximity against.
-   * @param tolerance The distance tolerance for triggering the marker (default: 2.0 units).
-   * @param callback The callback to execute when triggered.
-   * @return A new [TrajectoryBuilder] with the marker added.
-   */
-  fun addPointMarker(point: Vector2d, tolerance: Double = 2.0, callback: MarkerCallback) =
-    addMarker(Marker.atPoint(point, tolerance, callback))
-
-  /**
-   * Adds a marker that triggers when the robot is within a certain linear and angular tolerance of a given pose.
-   * @param pose The [Pose2d] to check proximity and orientation against.
-   * @param linearTolerance The distance tolerance for triggering the marker (default: 2.0 units).
-   * @param angularTolerance The angular tolerance in radians for triggering the marker (default: 5 degrees).
-   * @param callback The callback to execute when triggered.
-   * @return A new [TrajectoryBuilder] with the marker added.
-   */
-  fun addPoseMarker(
-    pose: Pose2d,
-    linearTolerance: Double = 2.0,
-    angularTolerance: Double = Math.toRadians(5.0),
-    callback: MarkerCallback,
-  ) = addMarker(Marker.atPose(pose, linearTolerance, angularTolerance, callback))
-
-  /**
-   * Builds the specified trajectories, creating a new CancelableTrajectory
-   * object for each discontinuity.
-   * Returns a [TrajectoryWithMarkers] using a [CompositeCancelableTrajectory] as the base trajectory.
-   * @return the resulting [TrajectoryWithMarkers] object
-   */
-  fun build(): TrajectoryWithMarkers<Arclength> = TrajectoryWithMarkers(buildToComposite(), markers)
-
-  /**
-   * Builds the specified trajectories, creating a new CancelableTrajectory
-   * object for each discontinuity.
-   * This does not include markers.
-   * @return the resulting list of CancelableTrajectory objects
-   */
-  fun buildToList(): List<CancelableTrajectory> {
-    val rawPaths = pathBuilder.build()
-    val offsets = rawPaths.scan(0) { acc, rawPath -> acc + rawPath.paths.size }
-    return rawPaths.zip(offsets).map { (rawPath, offset) ->
-      val path = MappedPosePath(rawPath, poseMap)
-
-      CancelableTrajectory(
-        path,
-        CancelableProfile.generate(
-          profileParams,
-          path,
-          beginEndVel,
-          CompositeVelConstraint(
-            velConstraints.slice(offset until offset + rawPath.paths.size),
-            rawPath.offsets,
-          ),
-          CompositeAccelConstraint(
-            accelConstraints.slice(offset until offset + rawPath.paths.size),
-            rawPath.offsets,
-          ),
-        ),
-        rawPath.offsets,
-      )
-    }
-  }
-
-  /**
-   * Builds the specified trajectories,
-   * creating a new CancelableTrajectory for each discontinuity,
-   * and then packing them into a [CompositeCancelableTrajectory] object.
-   * This does not include any markers.
-   * @return the resulting [CompositeCancelableTrajectory] object
-   */
-  fun buildToComposite() = CompositeCancelableTrajectory(buildToList())
+  fun buildToComposite(): CompositeCancelableTrajectory = builder.buildToComposite()
 }

@@ -8,14 +8,14 @@
 
 package gay.zharel.hermes.control
 
-import gay.zharel.hermes.math.Arclength
-import gay.zharel.hermes.math.DualNum
 import gay.zharel.hermes.geometry.Pose2d
 import gay.zharel.hermes.geometry.Pose2dDual
 import gay.zharel.hermes.geometry.PoseVelocity2d
 import gay.zharel.hermes.geometry.PoseVelocity2dDual
-import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.geometry.Vector2d
+import gay.zharel.hermes.math.Arclength
+import gay.zharel.hermes.math.DualNum
+import gay.zharel.hermes.math.Time
 import gay.zharel.hermes.math.sinc
 import kotlin.math.sign
 import kotlin.math.sqrt
@@ -25,17 +25,17 @@ import kotlin.math.sqrt
  */
 interface RobotPosVelController {
 
-    /**
-     * Computes the velocity and acceleration command. The frame `Target` is the reference robot, and the frame `Actual`
-     * is the measured, physical robot.
-     *
-     * @return velocity command in the actual frame
-     */
-    fun compute(
-        targetPose: Pose2dDual<Time>,
-        actualPose: Pose2d,
-        actualVelActual: PoseVelocity2d,
-    ): PoseVelocity2dDual<Time>
+  /**
+   * Computes the velocity and acceleration command. The frame `Target` is the reference robot, and the frame `Actual`
+   * is the measured, physical robot.
+   *
+   * @return velocity command in the actual frame
+   */
+  fun compute(
+    targetPose: Pose2dDual<Time>,
+    actualPose: Pose2d,
+    actualVelActual: PoseVelocity2d,
+  ): PoseVelocity2dDual<Time>
 }
 
 /**
@@ -45,8 +45,8 @@ interface RobotPosVelController {
  * @property velGain proportional gain for velocity
  */
 data class PosVelGain @JvmOverloads constructor(
-    @JvmField var posGain: Double,
-    @JvmField var velGain: Double = 0.0,
+  @JvmField var posGain: Double,
+  @JvmField var velGain: Double = 0.0,
 )
 
 /**
@@ -58,76 +58,79 @@ data class PosVelGain @JvmOverloads constructor(
  * @property headingGains gain for the robot's heading
  */
 class HolonomicController(
-    @JvmField
-    val axialGains: PosVelGain,
-    @JvmField
-    val lateralGains: PosVelGain,
-    @JvmField
-    val headingGains: PosVelGain,
+  @JvmField
+  val axialGains: PosVelGain,
+  @JvmField
+  val lateralGains: PosVelGain,
+  @JvmField
+  val headingGains: PosVelGain,
 ) : RobotPosVelController {
 
-    /**
-     * Proportional position-velocity controller for a holonomic robot.
-     * This is essentially a P controller on the robot's position and a P controller on its velocity.
-     *
-     * @param axialPosGain gain for position in the robot's forward direction
-     * @param lateralPosGain gain for position in the robot's strafe direction
-     * @param headingGain gain for the robot's heading
-     * @param axialVelGain gain for velocity in the robot's forward direction
-     * @param lateralVelGain gain for velocity in the robot's strafe direction
-     * @param headingVelGain gain for the robot's heading velocity
-     */
-    constructor(
-        axialPosGain: Double, lateralPosGain: Double,
-        headingGain: Double, axialVelGain: Double,
-        lateralVelGain: Double, headingVelGain: Double
-    ) : this(
-        PosVelGain(axialPosGain, axialVelGain),
-        PosVelGain(lateralPosGain, lateralVelGain),
-        PosVelGain(headingGain, headingVelGain)
-    )
+  /**
+   * Proportional position-velocity controller for a holonomic robot.
+   * This is essentially a P controller on the robot's position and a P controller on its velocity.
+   *
+   * @param axialPosGain gain for position in the robot's forward direction
+   * @param lateralPosGain gain for position in the robot's strafe direction
+   * @param headingGain gain for the robot's heading
+   * @param axialVelGain gain for velocity in the robot's forward direction
+   * @param lateralVelGain gain for velocity in the robot's strafe direction
+   * @param headingVelGain gain for the robot's heading velocity
+   */
+  constructor(
+    axialPosGain: Double,
+    lateralPosGain: Double,
+    headingGain: Double,
+    axialVelGain: Double,
+    lateralVelGain: Double,
+    headingVelGain: Double,
+  ) : this(
+    PosVelGain(axialPosGain, axialVelGain),
+    PosVelGain(lateralPosGain, lateralVelGain),
+    PosVelGain(headingGain, headingVelGain),
+  )
 
-    constructor(
-        axialPosGain: Double,
-        lateralPosGain: Double,
-        headingGain: Double,
-    ) : this(axialPosGain, lateralPosGain, headingGain, 0.0, 0.0, 0.0)
+  constructor(
+    axialPosGain: Double,
+    lateralPosGain: Double,
+    headingGain: Double,
+  ) : this(axialPosGain, lateralPosGain, headingGain, 0.0, 0.0, 0.0)
 
-    /**
-     * Computes the velocity and acceleration command. The frame `Target` is the reference robot, and the frame `Actual`
-     * is the measured, physical robot.
-     *
-     * @return velocity command in the actual frame
-     */
-    override fun compute(
-        targetPose: Pose2dDual<Time>,
-        actualPose: Pose2d,
-        actualVelActual: PoseVelocity2d,
-    ): PoseVelocity2dDual<Time> {
-        // TODO: Are these names useful for anyone else?
-        val targetVelWorld = targetPose.velocity()
-        val txTargetWorld = Pose2dDual.constant<Time>(targetPose.value().inverse(), 2)
-        val targetVelTarget = txTargetWorld * targetVelWorld
+  /**
+   * Computes the velocity and acceleration command. The frame `Target` is the reference robot, and the frame `Actual`
+   * is the measured, physical robot.
+   *
+   * @return velocity command in the actual frame
+   */
+  override fun compute(
+    targetPose: Pose2dDual<Time>,
+    actualPose: Pose2d,
+    actualVelActual: PoseVelocity2d,
+  ): PoseVelocity2dDual<Time> {
+    // TODO: Are these names useful for anyone else?
+    val targetVelWorld = targetPose.velocity()
+    val txTargetWorld = Pose2dDual.constant<Time>(targetPose.value().inverse(), 2)
+    val targetVelTarget = txTargetWorld * targetVelWorld
 
-        val velErrorActual = targetVelTarget.value() - actualVelActual
+    val velErrorActual = targetVelTarget.value() - actualVelActual
 
-        val error = targetPose.value().minusExp(actualPose)
-        return targetVelTarget +
-                PoseVelocity2d(
-                    Vector2d(
-                        axialGains.posGain * error.position.x,
-                        lateralGains.posGain * error.position.y,
-                    ),
-                    headingGains.posGain * error.heading.log(),
-                ) +
-                PoseVelocity2d(
-                    Vector2d(
-                        axialGains.velGain * velErrorActual.linearVel.x,
-                        lateralGains.velGain * velErrorActual.linearVel.y,
-                    ),
-                    headingGains.velGain * velErrorActual.angVel,
-                )
-    }
+    val error = targetPose.value().minusExp(actualPose)
+    return targetVelTarget +
+      PoseVelocity2d(
+        Vector2d(
+          axialGains.posGain * error.position.x,
+          lateralGains.posGain * error.position.y,
+        ),
+        headingGains.posGain * error.heading.log(),
+      ) +
+      PoseVelocity2d(
+        Vector2d(
+          axialGains.velGain * velErrorActual.linearVel.x,
+          lateralGains.velGain * velErrorActual.linearVel.y,
+        ),
+        headingGains.velGain * velErrorActual.angVel,
+      )
+  }
 }
 
 /**
@@ -149,61 +152,63 @@ class HolonomicController(
 // defaults taken from https://github.com/wpilibsuite/allwpilib/blob/3fdb2f767d466e00d19e487fdb64d33c22ccc7d5/wpimath/src/main/native/cpp/controller/RamseteController.cpp#L31-L33
 // with a track width of 1 meter
 class RamseteController @JvmOverloads constructor(
-    @JvmField
-    val trackWidth: Double,
-    @JvmField
-    val zeta: Double = 0.7,
-    @JvmField
-    val bBar: Double = 2.0,
+  @JvmField
+  val trackWidth: Double,
+  @JvmField
+  val zeta: Double = 0.7,
+  @JvmField
+  val bBar: Double = 2.0,
 ) : RobotPosVelController {
-    @JvmField
-    val b = bBar / (trackWidth * trackWidth)
+  @JvmField
+  val b = bBar / (trackWidth * trackWidth)
 
-    /**
-     * Computes the velocity and acceleration command. The frame `Target` is the reference robot, and the frame `Actual`
-     * is the measured, physical robot.
-     *
-     * @return velocity command in the actual frame
-     */
-    override fun compute(
-        targetPose: Pose2dDual<Time>,
-        actualPose: Pose2d,
-        actualVelActual: PoseVelocity2d
-    ): PoseVelocity2dDual<Time> {
-        val omegaRef = targetPose.heading.velocity()[0]
-        val vRef = targetPose.velocity().value().linearVel.norm() * sign(actualVelActual.angVel)
+  /**
+   * Computes the velocity and acceleration command. The frame `Target` is the reference robot, and the frame `Actual`
+   * is the measured, physical robot.
+   *
+   * @return velocity command in the actual frame
+   */
+  override fun compute(
+    targetPose: Pose2dDual<Time>,
+    actualPose: Pose2d,
+    actualVelActual: PoseVelocity2d,
+  ): PoseVelocity2dDual<Time> {
+    val omegaRef = targetPose.heading.velocity()[0]
+    val vRef = targetPose.velocity().value().linearVel.norm() * sign(actualVelActual.angVel)
 
-        val k = 2.0 * zeta * sqrt(omegaRef * omegaRef + b * vRef * vRef)
+    val k = 2.0 * zeta * sqrt(omegaRef * omegaRef + b * vRef * vRef)
 
-        val error = targetPose.value().minusExp(actualPose)
-        return PoseVelocity2dDual.constant(
-            PoseVelocity2d(
-                Vector2d(
-                    vRef * error.heading.real + k * error.position.x,
-                    0.0
-                ),
-                omegaRef + k * error.heading.log() + b * vRef * sinc(error.heading.log()) * error.position.y,
-            ),
-            2
-        )
-    }
+    val error = targetPose.value().minusExp(actualPose)
+    return PoseVelocity2dDual.constant(
+      PoseVelocity2d(
+        Vector2d(
+          vRef * error.heading.real + k * error.position.x,
+          0.0,
+        ),
+        omegaRef + k * error.heading.log() + b * vRef * sinc(
+          error.heading.log(),
+        ) * error.position.y,
+      ),
+      2,
+    )
+  }
 
-    /**
-     * Computes the velocity and acceleration command. The frame `Target` is the reference robot, and the frame `Actual`
-     * is the measured, physical robot.
-     *
-     * @return velocity command in the actual frame
-     */
-    fun compute(
-        s: DualNum<Time>,
-        targetPose: Pose2dDual<Arclength>,
-        actualPose: Pose2d,
-    ): PoseVelocity2dDual<Time> {
-        val targetHeading = targetPose.heading.value()
-        val tangentHeading = targetPose.position.drop(1).value().angleCast()
-        val dir = tangentHeading.real * targetHeading.real + tangentHeading.imag * targetHeading.imag
-        val vRef = dir * s[1]
+  /**
+   * Computes the velocity and acceleration command. The frame `Target` is the reference robot, and the frame `Actual`
+   * is the measured, physical robot.
+   *
+   * @return velocity command in the actual frame
+   */
+  fun compute(
+    s: DualNum<Time>,
+    targetPose: Pose2dDual<Arclength>,
+    actualPose: Pose2d,
+  ): PoseVelocity2dDual<Time> {
+    val targetHeading = targetPose.heading.value()
+    val tangentHeading = targetPose.position.drop(1).value().angleCast()
+    val dir = tangentHeading.real * targetHeading.real + tangentHeading.imag * targetHeading.imag
+    val vRef = dir * s[1]
 
-        return compute(targetPose.reparam(s), actualPose, PoseVelocity2d(Vector2d(vRef, 0.0), dir))
-    }
+    return compute(targetPose.reparam(s), actualPose, PoseVelocity2d(Vector2d(vRef, 0.0), dir))
+  }
 }

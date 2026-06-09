@@ -25,11 +25,7 @@ import kotlin.math.*
  * @property angResolution Angular sampling resolution (radians).
  * @property angSamplingEps Epsilon for angular integration (radians).
  */
-data class ProfileParams(
-    val dispResolution: Double,
-    val angResolution: Double,
-    val angSamplingEps: Double,
-)
+data class ProfileParams(val dispResolution: Double, val angResolution: Double, val angSamplingEps: Double)
 
 /**
  * @usesMathJax
@@ -45,37 +41,35 @@ data class ProfileParams(
  * time-parameterized trajectories that respect kinematic and dynamic constraints.
  */
 interface Profile {
-    /**
-     * @usesMathJax
-     *
-     * Evaluates the profile at parameter \(x\) to obtain time and its derivatives.
-     *
-     * Returns a dual number containing:
-     * - Value: time \(t(x)\) at the given parameter
-     * - First derivative: \(dt/dx\) (inverse velocity with respect to the parameter)
-     * - Higher derivatives as applicable
-     *
-     * @param x The parameter value at which to evaluate the profile
-     * @return A [DualNum] of type [Time] containing time and its derivatives with respect to the parameter
-     */
-    operator fun get(x: Double): DualNum<Time>
+  /**
+   * @usesMathJax
+   *
+   * Evaluates the profile at parameter \(x\) to obtain time and its derivatives.
+   *
+   * Returns a dual number containing:
+   * - Value: time \(t(x)\) at the given parameter
+   * - First derivative: \(dt/dx\) (inverse velocity with respect to the parameter)
+   * - Higher derivatives as applicable
+   *
+   * @param x The parameter value at which to evaluate the profile
+   * @return A [DualNum] of type [Time] containing time and its derivatives with respect to the parameter
+   */
+  operator fun get(x: Double): DualNum<Time>
 }
 
-fun samplePathByRotation(
-    path: PosePath,
-    angResolution: Double,
-    eps: Double,
-): List<Double> {
-    val (values, sums) = integralScan(0.0, path.length(), eps) {
-        // TODO: this is pretty wasteful
-        abs(path[it, 2].heading.velocity().value())
-    }
+fun samplePathByRotation(path: PosePath, angResolution: Double, eps: Double): List<Double> {
+  val (values, sums) = integralScan(0.0, path.length(), eps) {
+    // TODO: this is pretty wasteful
+    abs(path[it, 2].heading.velocity().value())
+  }
 
-    return lerpLookupMap(
-        sums, values,
-        rangeCentered(
-            0.0, sums.last(),
-            max(1, ceil(sums.last() / angResolution).toInt())
-        )
-    )
+  return lerpLookupMap(
+    sums,
+    values,
+    rangeCentered(
+      0.0,
+      sums.last(),
+      max(1, ceil(sums.last() / angResolution).toInt()),
+    ),
+  )
 }

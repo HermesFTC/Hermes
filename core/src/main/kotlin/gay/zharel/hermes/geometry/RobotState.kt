@@ -19,23 +19,23 @@ import gay.zharel.hermes.math.DualParameter
  * @property accel The linear and angular acceleration of the robot, in the robot frame.
  */
 data class RobotState(
-    @JvmField val pose: Pose2d,
-    @JvmField val vel: PoseVelocity2d,
-    @JvmField val accel: Acceleration2d,
+  @JvmField val pose: Pose2d,
+  @JvmField val vel: PoseVelocity2d,
+  @JvmField val accel: Acceleration2d,
 ) {
-    companion object {
-        @JvmField val zero = RobotState(Pose2d.zero, PoseVelocity2d.zero, Acceleration2d.zero)
+  companion object {
+    @JvmField val zero = RobotState(Pose2d.zero, PoseVelocity2d.zero, Acceleration2d.zero)
 
-        @JvmStatic fun <Param : DualParameter> fromDualPose(dualPose: Pose2dDual<Param>) = RobotState(
-            dualPose.value(),
-            dualPose.velocity().value(),
-            dualPose.velocity().acceleration()
-        )
-    }
-
-    fun <Param : DualParameter> toDualPose() = Pose2dDual<Param>(
-        DualNum(doubleArrayOf(pose.position.x, vel.linearVel.x, accel.linearAcc.x)),
-        DualNum(doubleArrayOf(pose.position.y, vel.linearVel.y, accel.linearAcc.y)),
-        Rotation2dDual.exp(DualNum(doubleArrayOf(pose.heading.log(), vel.angVel, accel.angAcc)))
+    @JvmStatic fun <Param : DualParameter> fromDualPose(dualPose: Pose2dDual<Param>) = RobotState(
+      dualPose.value(),
+      dualPose.velocity().value(),
+      dualPose.velocity().acceleration(),
     )
+  }
+
+  fun <Param : DualParameter> toDualPose() = Pose2dDual<Param>(
+    DualNum(doubleArrayOf(pose.position.x, vel.linearVel.x, accel.linearAcc.x)),
+    DualNum(doubleArrayOf(pose.position.y, vel.linearVel.y, accel.linearAcc.y)),
+    Rotation2dDual.exp(DualNum(doubleArrayOf(pose.heading.log(), vel.angVel, accel.angAcc))),
+  )
 }

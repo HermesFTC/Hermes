@@ -8,15 +8,15 @@
 
 package gay.zharel.hermes
 
+import gay.zharel.hermes.kinematics.MecanumKinematics
+import gay.zharel.hermes.kinematics.SwerveKinematics
+import gay.zharel.hermes.wpiconversions.hermes
 import org.wpilib.math.controller.SimpleMotorFeedforward
 import org.wpilib.math.geometry.Translation2d
 import org.wpilib.math.kinematics.MecanumDriveKinematics
 import org.wpilib.math.kinematics.SwerveDriveKinematics
 import org.wpilib.math.trajectory.TrapezoidProfile
 import org.wpilib.math.util.Units
-import gay.zharel.hermes.kinematics.MecanumKinematics
-import gay.zharel.hermes.kinematics.SwerveKinematics
-import gay.zharel.hermes.wpiconversions.hermes
 
 // Neo Motor Constants
 const val NEO_FREE_SPEED_RPM: Double = 5676.0
@@ -30,28 +30,33 @@ const val MAX_SPEED_METERS_PER_SECOND: Double = 4.8
 const val MAX_ANGULAR_SPEED: Double = 2 * Math.PI // radians per second
 
 // Chassis configuration
-val TRACK_WIDTH: Double = Units.inchesToMeters(26.5) // Distance between centers of right and left wheels on robot
-val WHEEL_BASE: Double = Units.inchesToMeters(26.5) // Distance between front and back wheels on robot
+// Distance between centers of right and left wheels on robot
+val TRACK_WIDTH: Double = Units.inchesToMeters(26.5)
+
+// Distance between front and back wheels on robot
+val WHEEL_BASE: Double = Units.inchesToMeters(26.5)
 
 val SWERVE_DRIVE_KINEMATICS: SwerveDriveKinematics = SwerveDriveKinematics(
-    Translation2d(WHEEL_BASE / 2, TRACK_WIDTH / 2),
-    Translation2d(WHEEL_BASE / 2, -TRACK_WIDTH / 2),
-    Translation2d(-WHEEL_BASE / 2, TRACK_WIDTH / 2),
-    Translation2d(-WHEEL_BASE / 2, -TRACK_WIDTH / 2)
+  Translation2d(WHEEL_BASE / 2, TRACK_WIDTH / 2),
+  Translation2d(WHEEL_BASE / 2, -TRACK_WIDTH / 2),
+  Translation2d(-WHEEL_BASE / 2, TRACK_WIDTH / 2),
+  Translation2d(-WHEEL_BASE / 2, -TRACK_WIDTH / 2),
 )
 
-val SWERVE_KINEMATICS_HERMES = SwerveKinematics(listOf(
+val SWERVE_KINEMATICS_HERMES = SwerveKinematics(
+  listOf(
     Translation2d(WHEEL_BASE / 2, TRACK_WIDTH / 2).hermes,
     Translation2d(WHEEL_BASE / 2, -TRACK_WIDTH / 2).hermes,
     Translation2d(-WHEEL_BASE / 2, TRACK_WIDTH / 2).hermes,
-    Translation2d(-WHEEL_BASE / 2, -TRACK_WIDTH / 2).hermes
-))
+    Translation2d(-WHEEL_BASE / 2, -TRACK_WIDTH / 2).hermes,
+  ),
+)
 
 val MECANUM_DRIVE_KINEMATICS: MecanumDriveKinematics = MecanumDriveKinematics(
-    Translation2d(WHEEL_BASE / 2, TRACK_WIDTH / 2),
-    Translation2d(WHEEL_BASE / 2, -TRACK_WIDTH / 2),
-    Translation2d(-WHEEL_BASE / 2, TRACK_WIDTH / 2),
-    Translation2d(-WHEEL_BASE / 2, -TRACK_WIDTH / 2)
+  Translation2d(WHEEL_BASE / 2, TRACK_WIDTH / 2),
+  Translation2d(WHEEL_BASE / 2, -TRACK_WIDTH / 2),
+  Translation2d(-WHEEL_BASE / 2, TRACK_WIDTH / 2),
+  Translation2d(-WHEEL_BASE / 2, -TRACK_WIDTH / 2),
 )
 
 val MECANUM_KINEMATICS_HERMES = MecanumKinematics(TRACK_WIDTH, WHEEL_BASE)
@@ -89,7 +94,8 @@ const val WHEEL_CIRCUMFERENCE_METERS: Double = WHEEL_DIAMETER_METERS * Math.PI
 // 45 teeth on the wheel's bevel gear, 22 teeth on the first-stage spur gear, 15
 // teeth on the bevel pinion
 const val DRIVING_MOTOR_REDUCTION: Double = (45.0 * 22) / (DRIVING_MOTOR_PINION_TEETH * 15)
-const val DRIVE_WHEEL_FREE_SPEED_RPS: Double = (DRIVING_MOTOR_FREE_SPEED_RPS * WHEEL_CIRCUMFERENCE_METERS) / DRIVING_MOTOR_REDUCTION
+const val DRIVE_WHEEL_FREE_SPEED_RPS: Double =
+  (DRIVING_MOTOR_FREE_SPEED_RPS * WHEEL_CIRCUMFERENCE_METERS) / DRIVING_MOTOR_REDUCTION
 
 // Operator Input Constants
 const val DRIVER_CONTROLLER_PORT: Int = 0
@@ -113,6 +119,6 @@ const val P_THETA_CONTROLLER: Double = 1.0
 
 // Constraint for the motion profiled robot angle controller
 val THETA_CONTROLLER_CONSTRAINTS: TrapezoidProfile.Constraints = TrapezoidProfile.Constraints(
-    AUTO_MAX_ANGULAR_SPEED_RADIANS_PER_SECOND,
-    AUTO_MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED
+  AUTO_MAX_ANGULAR_SPEED_RADIANS_PER_SECOND,
+  AUTO_MAX_ANGULAR_SPEED_RADIANS_PER_SECOND_SQUARED,
 )

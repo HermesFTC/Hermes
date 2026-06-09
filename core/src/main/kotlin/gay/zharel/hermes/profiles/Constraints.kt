@@ -8,8 +8,8 @@
 
 package gay.zharel.hermes.profiles
 
-import gay.zharel.hermes.math.MinMax
 import gay.zharel.hermes.geometry.RobotState
+import gay.zharel.hermes.math.MinMax
 import gay.zharel.hermes.paths.PosePath
 import kotlin.math.abs
 
@@ -20,15 +20,15 @@ import kotlin.math.abs
  * at a given point along a path.
  */
 fun interface VelConstraint {
-    /**
-     * Returns the maximum robot velocity at the specified state and path position.
-     *
-     * @param robotState The current state of the robot
-     * @param path The path being followed
-     * @param s The arc length parameter along the path
-     * @return The maximum allowable robot velocity
-     */
-    fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double
+  /**
+   * Returns the maximum robot velocity at the specified state and path position.
+   *
+   * @param robotState The current state of the robot
+   * @param path The path being followed
+   * @param s The arc length parameter along the path
+   * @return The maximum allowable robot velocity
+   */
+  fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double
 }
 
 /**
@@ -38,15 +38,15 @@ fun interface VelConstraint {
  * at a given point along a path.
  */
 fun interface AccelConstraint {
-    /**
-     * Returns the minimum and maximum profile acceleration at the specified state and path position.
-     *
-     * @param robotState The current state of the robot
-     * @param path The path being followed
-     * @param s The arc length parameter along the path
-     * @return A [MinMax] containing the minimum and maximum allowable accelerations
-     */
-    fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double): MinMax
+  /**
+   * Returns the minimum and maximum profile acceleration at the specified state and path position.
+   *
+   * @param robotState The current state of the robot
+   * @param path The path being followed
+   * @param s The arc length parameter along the path
+   * @return A [MinMax] containing the minimum and maximum allowable accelerations
+   */
+  fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double): MinMax
 }
 
 /**
@@ -59,14 +59,14 @@ fun interface AccelConstraint {
  * @throws IllegalArgumentException if [maxTransVel] is not positive
  */
 class TranslationalVelConstraint(
-    @JvmField
-    val maxTransVel: Double,
+  @JvmField
+  val maxTransVel: Double,
 ) : VelConstraint {
-    init {
-        require(maxTransVel > 0.0) { "maxTransVel ($maxTransVel) must be positive" }
-    }
+  init {
+    require(maxTransVel > 0.0) { "maxTransVel ($maxTransVel) must be positive" }
+  }
 
-    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double) = maxTransVel
+  override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double) = maxTransVel
 }
 
 /**
@@ -80,15 +80,15 @@ class TranslationalVelConstraint(
  * @throws IllegalArgumentException if [maxAngVel] is not positive
  */
 class AngularVelConstraint(
-    @JvmField
-    val maxAngVel: Double,
+  @JvmField
+  val maxAngVel: Double,
 ) : VelConstraint {
-    init {
-        require(maxAngVel > 0.0) { "maxAngVel ($maxAngVel) must be positive" }
-    }
+  init {
+    require(maxAngVel > 0.0) { "maxAngVel ($maxAngVel) must be positive" }
+  }
 
-    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double) =
-        abs(maxAngVel / robotState.vel.angVel)
+  override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double) =
+    abs(maxAngVel / robotState.vel.angVel)
 }
 
 /**
@@ -101,11 +101,11 @@ class AngularVelConstraint(
  * @property constraints List of velocity constraints to combine
  */
 class MinVelConstraint(
-    @JvmField
-    val constraints: List<VelConstraint>,
+  @JvmField
+  val constraints: List<VelConstraint>,
 ) : VelConstraint {
-    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double) =
-        constraints.minOf { it.maxRobotVel(robotState, path, s) }
+  override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double) =
+    constraints.minOf { it.maxRobotVel(robotState, path, s) }
 }
 
 /**
@@ -120,19 +120,19 @@ class MinVelConstraint(
  * @throws IllegalArgumentException if [minAccel] is not negative or [maxAccel] is not positive
  */
 class ProfileAccelConstraint(
-    @JvmField
-    val minAccel: Double,
-    @JvmField
-    val maxAccel: Double,
+  @JvmField
+  val minAccel: Double,
+  @JvmField
+  val maxAccel: Double,
 ) : AccelConstraint {
-    init {
-        require(minAccel < 0.0) { "minAccel ($minAccel) must be negative" }
-        require(maxAccel > 0.0) { "maxAccel ($maxAccel) must be positive" }
-    }
+  init {
+    require(minAccel < 0.0) { "minAccel ($minAccel) must be negative" }
+    require(maxAccel > 0.0) { "maxAccel ($maxAccel) must be positive" }
+  }
 
-    private val minMax = MinMax(minAccel, maxAccel)
+  private val minMax = MinMax(minAccel, maxAccel)
 
-    override fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double) = minMax
+  override fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double) = minMax
 }
 
 /**
@@ -148,26 +148,26 @@ class ProfileAccelConstraint(
  * @throws IllegalArgumentException if the size relationship between constraints and offsets is invalid
  */
 class CompositeVelConstraint(
-    @JvmField
-    val constraints: List<VelConstraint>,
-    @JvmField
-    val offsets: List<Double>
+  @JvmField
+  val constraints: List<VelConstraint>,
+  @JvmField
+  val offsets: List<Double>,
 ) : VelConstraint {
-    init {
-        require(constraints.size + 1 == offsets.size) {
-            "constraints.size() (${constraints.size}) + 1 != offsets.size() (${offsets.size})"
-        }
+  init {
+    require(constraints.size + 1 == offsets.size) {
+      "constraints.size() (${constraints.size}) + 1 != offsets.size() (${offsets.size})"
+    }
+  }
+
+  override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double {
+    for ((offset, constraint) in offsets.zip(constraints).drop(1).reversed()) {
+      if (s >= offset) {
+        return constraint.maxRobotVel(robotState, path, s)
+      }
     }
 
-    override fun maxRobotVel(robotState: RobotState, path: PosePath, s: Double): Double {
-        for ((offset, constraint) in offsets.zip(constraints).drop(1).reversed()) {
-            if (s >= offset) {
-                return constraint.maxRobotVel(robotState, path, s)
-            }
-        }
-
-        return constraints.first().maxRobotVel(robotState, path, s)
-    }
+    return constraints.first().maxRobotVel(robotState, path, s)
+  }
 }
 
 /**
@@ -183,24 +183,24 @@ class CompositeVelConstraint(
  * @throws IllegalArgumentException if the size relationship between constraints and offsets is invalid
  */
 class CompositeAccelConstraint(
-    @JvmField
-    val constraints: List<AccelConstraint>,
-    @JvmField
-    val offsets: List<Double>
+  @JvmField
+  val constraints: List<AccelConstraint>,
+  @JvmField
+  val offsets: List<Double>,
 ) : AccelConstraint {
-    init {
-        require(constraints.size + 1 == offsets.size) {
-            "constraints.size() (${constraints.size}) + 1 != offsets.size() (${offsets.size})"
-        }
+  init {
+    require(constraints.size + 1 == offsets.size) {
+      "constraints.size() (${constraints.size}) + 1 != offsets.size() (${offsets.size})"
+    }
+  }
+
+  override fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double): MinMax {
+    for ((offset, constraint) in offsets.zip(constraints).drop(1).reversed()) {
+      if (s >= offset) {
+        return constraint.minMaxProfileAccel(robotState, path, s)
+      }
     }
 
-    override fun minMaxProfileAccel(robotState: RobotState, path: PosePath, s: Double): MinMax {
-        for ((offset, constraint) in offsets.zip(constraints).drop(1).reversed()) {
-            if (s >= offset) {
-                return constraint.minMaxProfileAccel(robotState, path, s)
-            }
-        }
-
-        return constraints.first().minMaxProfileAccel(robotState, path, s)
-    }
+    return constraints.first().minMaxProfileAccel(robotState, path, s)
+  }
 }

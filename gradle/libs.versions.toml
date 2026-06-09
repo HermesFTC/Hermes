@@ -12,6 +12,7 @@ ejml = "0.44.0"
 deployer = "0.18.0"
 wpilib = "2027.424242.+"
 spotless = "8.1.0"
+xchart = "3.8.1"
 
 [libraries]
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version.ref = "jacksonAnnotation" }
@@ -30,6 +31,7 @@ wpimath = { module = "org.wpilib.wpimath:wpimath-java", version.ref = "wpilib" }
 wpiutil = { module = "org.wpilib.wpiutil:wpiutil-java", version.ref = "wpilib" }
 wpiunits = { module = "org.wpilib.wpiunits:wpiunits-java", version.ref = "wpilib" }
 wpicommands = { module = "org.wpilib:commands3-java", version.ref = "wpilib" }
+xchart = { module = "org.knowm.xchart:xchart", version.ref = "xchart" }
 
 [bundles]
 kotest = ["kotest-runner-junit5", "kotest-assertions-core", "kotest-property"]

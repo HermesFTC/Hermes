@@ -8,8 +8,6 @@
 
 package gay.zharel.hermes.wpitrajectories
 
-import org.wpilib.math.trajectory.TrajectorySample
-import org.wpilib.units.measure.Time
 import gay.zharel.hermes.geometry.RobotState
 import gay.zharel.hermes.profiles.ProfileParams
 import gay.zharel.hermes.trajectories.TimeTrajectory
@@ -17,15 +15,20 @@ import gay.zharel.hermes.trajectories.TrajectoryBuilderParams
 import gay.zharel.hermes.wpiconversions.HTrajectory
 import gay.zharel.hermes.wpiconversions.seconds
 import gay.zharel.hermes.wpiconversions.wpilib
+import org.wpilib.math.trajectory.TrajectorySample
+import org.wpilib.units.measure.Time
 import kotlin.time.Duration
 
-val DEFAULT_PROFILE_PARAMS = ProfileParams(0.25, Math.PI / 8, 1e-4,)
+val DEFAULT_PROFILE_PARAMS = ProfileParams(0.25, Math.PI / 8, 1e-4)
 val DEFAULT_BUILDER_PARAMS = TrajectoryBuilderParams(1e-6, DEFAULT_PROFILE_PARAMS)
 
 fun RobotState.asSample(timestamp: Time) = TrajectorySample.Base(
-    timestamp, pose.wpilib, vel.wpilib, accel.wpilib,
+  timestamp,
+  pose.wpilib,
+  vel.wpilib,
+  accel.wpilib,
 )
 
 fun TimeTrajectory.sample() = profile.times.map {
-    this[it].asSample(it.seconds)
+  this[it].asSample(it.seconds)
 }
